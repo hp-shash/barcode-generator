@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barcode Studio Pro</title>
+    <title>Barcode Studio Pro with Batch Print</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JsBarcode -->
@@ -20,7 +20,7 @@
         <div class="flex items-center gap-3">
             <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <h1 class="text-xs font-semibold tracking-widest uppercase text-zinc-400">
-                Barcode & Pallet Studio <span class="text-zinc-600 font-normal">v2.5</span>
+                Barcode & Pallet Studio <span class="text-zinc-600 font-normal">v2.6</span>
             </h1>
         </div>
         <!-- Tab Switcher -->
@@ -36,7 +36,7 @@
         <!-- GENERATOR SECTION -->
         <section id="section-generator" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Controls Panel (Left Column) -->
+            <!-- Controls Panel -->
             <div class="lg:col-span-6 bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl space-y-5">
                 <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 pb-2 border-b border-zinc-800">Configuration</h2>
                 
@@ -80,7 +80,7 @@
                 </div>
             </div>
 
-            <!-- Live Preview Panel (Right Column) -->
+            <!-- Live Preview Panel -->
             <div class="lg:col-span-6 bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl flex flex-col items-center justify-between min-h-[380px]">
                 <div class="w-full flex justify-between items-center pb-2 border-b border-zinc-800">
                     <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Live Preview</h2>
@@ -146,16 +146,20 @@
                 </div>
             </div>
 
-            <!-- History Table -->
+            <!-- History Table with Batch Print Actions -->
             <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Scan History Log</h2>
-                        <p class="text-[11px] text-zinc-500">Persistent local log of scanned pallets and items</p>
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Scan History Log & Batch Print</h2>
+                        <p class="text-[11px] text-zinc-500">Select multiple scanned pallets to print in batch</p>
                     </div>
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="exportHistoryCSV()" class="flex-1 sm:flex-none bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium py-2 px-3 rounded-lg transition shadow">Export CSV</button>
-                        <button onclick="clearHistory()" class="flex-1 sm:flex-none bg-zinc-950 hover:bg-red-950/30 border border-zinc-800 text-zinc-400 hover:text-red-400 text-xs font-medium py-2 px-3 rounded-lg transition">Clear Log</button>
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <button onclick="batchPrintSelected()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium py-2 px-3 rounded-lg transition shadow flex items-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            Print Selected (Batch)
+                        </button>
+                        <button onclick="exportHistoryCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium py-2 px-3 rounded-lg transition shadow">Export CSV</button>
+                        <button onclick="clearHistory()" class="bg-zinc-950 hover:bg-red-950/30 border border-zinc-800 text-zinc-400 hover:text-red-400 text-xs font-medium py-2 px-3 rounded-lg transition">Clear Log</button>
                     </div>
                 </div>
 
@@ -163,6 +167,7 @@
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="border-b border-zinc-800 text-zinc-500 font-medium">
+                                <th class="p-3 w-10 text-center"><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" class="accent-zinc-400 cursor-pointer"></th>
                                 <th class="p-3">#</th>
                                 <th class="p-3">Pallet ID / Data</th>
                                 <th class="p-3">Method</th>
@@ -184,6 +189,9 @@
     <div id="toast" class="fixed bottom-6 right-6 bg-zinc-800 text-zinc-100 text-xs font-medium px-4 py-2.5 rounded-lg shadow-2xl border border-zinc-700 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
         Copied to clipboard!
     </div>
+
+    <!-- Hidden canvas for rendering batch barcodes -->
+    <canvas id="batchCanvas" class="hidden"></canvas>
 
     <!-- Minimal Footer -->
     <footer class="text-center py-6 text-[11px] text-zinc-600 border-t border-zinc-900 mt-auto">
@@ -251,6 +259,7 @@
 
             if (scanHistory.length === 0) {
                 emptyMsg.classList.remove('hidden');
+                document.getElementById('selectAllCheckbox').checked = false;
                 return;
             }
 
@@ -259,6 +268,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-zinc-900/50 transition";
                 tr.innerHTML = `
+                    <td class="p-3 text-center"><input type="checkbox" class="row-checkbox accent-zinc-400 cursor-pointer" data-index="${index}"></td>
                     <td class="p-3 text-zinc-600">${scanHistory.length - index}</td>
                     <td class="p-3 text-zinc-100 select-all font-semibold">${escapeHtml(item.data)}</td>
                     <td class="p-3 text-zinc-400"><span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px]">${item.method}</span></td>
@@ -266,6 +276,11 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = master.checked);
         }
 
         function clearHistory() {
@@ -349,42 +364,86 @@
                 graphicHtml = `<img src="${canvas.toDataURL('image/png')}" style="max-width:100%; height:auto;" />`;
             }
 
+            openPrintWindow([ { data: value, html: graphicHtml } ]);
+        }
+
+        function batchPrintSelected() {
+            const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert("Please select at least one pallet ID from the history log to batch print.");
+                return;
+            }
+
+            const batchItems = [];
+            const tempCanvas = document.getElementById('batchCanvas');
+
+            checkboxes.forEach(cb => {
+                const index = cb.getAttribute('data-index');
+                const item = scanHistory[index];
+                
+                try {
+                    // Generate Code 128 barcode dynamically onto offscreen canvas for batch
+                    JsBarcode(tempCanvas, item.data, { format: "CODE128", lineColor: "#000", width: 2, height: 80, displayValue: true, fontSize: 13, margin: 8 });
+                    const dataUrl = tempCanvas.toDataURL('image/png');
+                    batchItems.push({
+                        data: item.data,
+                        html: `<img src="${dataUrl}" style="max-width:100%; height:auto;" />`
+                    });
+                } catch (e) {
+                    console.error("Failed to generate barcode for batch print: " + item.data);
+                }
+            });
+
+            if (batchItems.length > 0) {
+                openPrintWindow(batchItems);
+            } else {
+                alert("Could not generate barcodes for the selected items.");
+            }
+        }
+
+        function openPrintWindow(items) {
             const printWindow = window.open('', '_blank');
+            let labelsGridHtml = items.map(item => `
+                <div class="label-item">
+                    ${item.html}
+                </div>
+            `).join('');
+
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Print Label - ${value}</title>
+                    <title>Batch Print Labels (${items.length} items)</title>
                     <style>
                         body {
                             margin: 0;
-                            padding: 0;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            height: 100vh;
-                            font-family: monospace;
-                        }
-                        .label-container {
-                            text-align: center;
                             padding: 20px;
+                            font-family: monospace;
+                            background: white;
                         }
-                        .sku-text {
-                            margin-top: 10px;
-                            font-size: 16px;
-                            font-weight: bold;
-                            letter-spacing: 1px;
+                        .print-grid {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 20px;
+                            justify-content: center;
+                        }
+                        .label-item {
+                            border: 1px dashed #ccc;
+                            padding: 15px;
+                            text-align: center;
+                            page-break-inside: avoid;
+                            width: 280px;
+                            background: white;
                         }
                         @media print {
-                            body { background: white; }
+                            body { padding: 0; }
+                            .label-item { border: none; }
                         }
                     </style>
                 </head>
                 <body>
-                    <div class="label-container">
-                        ${graphicHtml}
-                        <div class="sku-text">${value}</div>
+                    <div class="print-grid">
+                        ${labelsGridHtml}
                     </div>
                     <script>
                         window.onload = function() {

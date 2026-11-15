@@ -1,0 +1,19 @@
+{
+  "name": "BARCODE.STUDIO // Enterprise WMS Suite",
+  "short_name": "BarcodeStudio",
+  "description": "Offline-ready Barcode Generator, Batch WMS Label Printer & Scanner",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%2309090b'/%3E%3Crect x='32' y='32' width='448' height='448' rx='88' fill='none' stroke='%2327272a' stroke-width='12'/%3E%3Cpath d='M120 140v232M168 140v232M200 140v232M248 140v232M312 140v232M344 140v232M392 140v232' stroke='%2310b981' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

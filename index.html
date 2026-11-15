@@ -3,116 +3,439 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Barcode Generator & Scanner Studio</title>
-    <!-- Tailwind CSS for modern styling -->
+    <title>Barcode Studio Pro</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- JsBarcode for 1D Barcode Generation -->
+    <!-- JsBarcode -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <!-- QRCode.js for QR Code Generation -->
+    <!-- QRCode.js -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <!-- Html5-Qrcode for Camera & File Image Scanning -->
+    <!-- Html5-Qrcode -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans selection:bg-zinc-800">
 
-    <!-- Header -->
-    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h1 class="text-xl font-bold tracking-tight text-blue-400 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                Barcode Studio & Scanner
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-zinc-800/80 bg-zinc-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <h1 class="text-xs font-semibold tracking-widest uppercase text-zinc-400">
+                Barcode & Pallet Studio <span class="text-zinc-600 font-normal">v2.5</span>
             </h1>
-            <!-- Navigation Tabs -->
-            <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
-                <button onclick="switchTab('generator')" id="btn-generator" class="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white transition">Generator</button>
-                <button onclick="switchTab('scanner')" id="btn-scanner" class="px-4 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white transition">Scanner & Upload</button>
-            </div>
         </div>
+        <!-- Tab Switcher -->
+        <nav class="flex space-x-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 shadow-inner">
+            <button onclick="switchTab('generator')" id="btn-generator" class="px-4 py-1.5 text-xs font-medium rounded-md bg-zinc-100 text-zinc-950 shadow transition-all">Generator</button>
+            <button onclick="switchTab('scanner')" id="btn-scanner" class="px-4 py-1.5 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-100 transition-all">Scanner & History</button>
+        </nav>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
+    <!-- Main Workspace -->
+    <main class="flex-grow max-w-5xl w-full mx-auto p-6 space-y-6">
 
         <!-- GENERATOR SECTION -->
-        <section id="section-generator" class="space-y-6">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section id="section-generator" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Controls Panel (Left Column) -->
+            <div class="lg:col-span-6 bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl space-y-5">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 pb-2 border-b border-zinc-800">Configuration</h2>
                 
-                <!-- Controls -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Barcode Type / Symbology</label>
-                        <select id="barcodeType" onchange="generateBarcode()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="CODE128">Code 128 (Standard / Alphanumeric)</option>
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Symbology / Format</label>
+                        <select id="barcodeType" onchange="generateBarcode()" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3.5 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500 transition">
+                            <option value="CODE128">Code 128 (Standard)</option>
                             <option value="UPC">UPC-A (Retail)</option>
-                            <option value="EAN13">EAN-13 (International Retail)</option>
+                            <option value="EAN13">EAN-13 (International)</option>
                             <option value="CODE39">Code 39</option>
                             <option value="qrcode">QR Code</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Data / Text / SKU Content</label>
-                        <input type="text" id="barcodeValue" value="PRO-SKU-987654" oninput="generateBarcode()" placeholder="Enter data to encode..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-1">Bar Width</label>
-                            <input type="range" id="barWidth" min="1" max="4" value="2" oninput="generateBarcode()" class="w-full accent-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-1">Height</label>
-                            <input type="range" id="barHeight" min="40" max="150" value="80" oninput="generateBarcode()" class="w-full accent-blue-500">
+                        <label class="block text-xs font-medium text-zinc-400 mb-1.5">Data Content / SKU / Pallet ID</label>
+                        <div class="relative">
+                            <input type="text" id="barcodeValue" value="PALLET-987654" oninput="generateBarcode()" placeholder="Enter barcode data..." class="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-3.5 pr-10 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500 transition font-mono">
+                            <button onclick="copyGeneratorInput()" title="Copy content" class="absolute right-2.5 top-2.5 text-zinc-500 hover:text-zinc-200 p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 pt-2">
-                        <input type="checkbox" id="showText" checked onchange="generateBarcode()" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-blue-500 h-4 w-4">
-                        <label for="showText" class="text-sm text-slate-300">Display Text Below Barcode</label>
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400 mb-1.5">Bar Width (<span id="widthVal">2</span>px)</label>
+                            <input type="range" id="barWidth" min="1" max="4" value="2" oninput="document.getElementById('widthVal').innerText=this.value; generateBarcode();" class="w-full accent-zinc-400 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400 mb-1.5">Height (<span id="heightVal">80</span>px)</label>
+                            <input type="range" id="barHeight" min="40" max="140" value="80" oninput="document.getElementById('heightVal').innerText=this.value; generateBarcode();" class="w-full accent-zinc-400 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-2 border-t border-zinc-800">
+                        <input type="checkbox" id="showText" checked onchange="generateBarcode()" class="rounded bg-zinc-950 border-zinc-800 text-zinc-100 h-4 w-4 accent-zinc-400 cursor-pointer">
+                        <label for="showText" class="text-xs text-zinc-400 cursor-pointer">Display readable text label below bars</label>
                     </div>
                 </div>
-
-                <!-- Preview Box -->
-                <div class="flex flex-col items-center justify-center bg-slate-900/50 border border-slate-700 rounded-xl p-6 text-center">
-                    <div class="bg-white p-6 rounded-lg shadow-inner max-w-full overflow-x-auto flex items-center justify-center min-h-[180px]">
-                        <!-- Canvas for 1D Barcodes -->
-                        <canvas id="barcodeCanvas" class="max-w-full"></canvas>
-                        <!-- Div for QR Code -->
-                        <div id="qrcodeContainer" class="hidden"></div>
-                    </div>
-                    <p id="errorMsg" class="text-xs text-red-400 mt-2 hidden">Invalid formatting or data length for this symbology.</p>
-
-                    <!-- Export Buttons -->
-                    <div class="flex flex-wrap gap-3 mt-6 w-full justify-center">
-                        <button onclick="downloadBarcode('png')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-lg transition text-sm shadow">Download PNG</button>
-                        <button onclick="printBarcode()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition text-sm shadow">Print Label</button>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- Live Preview Panel (Right Column) -->
+            <div class="lg:col-span-6 bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl flex flex-col items-center justify-between min-h-[380px]">
+                <div class="w-full flex justify-between items-center pb-2 border-b border-zinc-800">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Live Preview</h2>
+                    <span id="badgeType" class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">CODE128</span>
+                </div>
+
+                <div class="my-auto py-6 bg-white px-8 rounded-lg shadow-inner max-w-full overflow-x-auto flex items-center justify-center min-h-[180px] w-full">
+                    <canvas id="barcodeCanvas" class="max-w-full"></canvas>
+                    <div id="qrcodeContainer" class="hidden"></div>
+                </div>
+                <p id="errorMsg" class="text-xs text-red-400 mt-2 hidden font-medium">Invalid formatting or characters for this symbology.</p>
+
+                <div class="grid grid-cols-2 gap-3 w-full pt-4 border-t border-zinc-800">
+                    <button onclick="downloadBarcode()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium py-2.5 px-4 rounded-lg transition flex items-center justify-center gap-2 shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download PNG
+                    </button>
+                    <button onclick="printBarcode()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium py-2.5 px-4 rounded-lg transition flex items-center justify-center gap-2 shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print Label
+                    </button>
+                </div>
+            </div>
+
         </section>
 
-        <!-- SCANNER & UPLOAD SECTION -->
+        <!-- SCANNER & HISTORY SECTION -->
         <section id="section-scanner" class="space-y-6 hidden">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- Option A: Upload File Image -->
-                <div class="flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-700 pb-6 md:pb-0 md:pr-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- File Upload Box -->
+                <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl flex flex-col justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-slate-200 mb-2">Upload Barcode Image File</h2>
-                        <p class="text-xs text-slate-400 mb-4">Select a saved PNG, JPG, or screenshot containing a barcode or QR code from your device gallery.</p>
-                        
-                        <label class="flex flex-col items-center justify-center border-2 border-dashed border-slate-600 hover:border-blue-500 bg-slate-900/50 rounded-xl p-6 cursor-pointer transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                            <span class="text-sm font-medium text-slate-300">Choose Image File</span>
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Upload Barcode Image</h2>
+                        <label class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 hover:border-zinc-600 rounded-xl p-8 cursor-pointer transition bg-zinc-950/50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-zinc-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            <span class="text-xs font-medium text-zinc-300">Drop PNG/JPG or click to browse</span>
                             <input type="file" id="barcodeFileInput" accept="image/*" onchange="scanUploadedFile(event)" class="hidden">
                         </label>
                     </div>
-                    <div id="fileScanResultContainer" class="mt-4 hidden bg-slate-900 p-4 rounded-lg border border-slate-700">
-                        <span class="text-xs font-semibold text-blue-400 block mb-1">Decoded Data Result:</span>
-                        <p id="fileScanResultText" class="text-sm text-white font-mono break-all select-all"></p>
+                    <div id="fileScanResultContainer" class="mt-4 hidden bg-zinc-950 p-4 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] font-semibold uppercase text-emerald-400 block mb-0.5">Successfully Decoded:</span>
+                            <p id="fileScanResultText" class="text-xs text-zinc-100 font-mono break-all"></p>
+                        </div>
+                        <button onclick="copyText(document.getElementById('fileScanResultText').innerText)" class="text-zinc-400 hover:text-white p-1.5 bg-zinc-900 rounded border border-zinc-800 text-xs">Copy</button>
                     </div>
                 </div>
 
-                <!-- Option B: Live Camera Scan -->
-                <div class="flex flex-col justify-
+                <!-- Live Camera Box -->
+                <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Live Camera Feed</h2>
+                        <div id="reader" class="w-full bg-zinc-950 rounded-lg overflow-hidden border border-zinc-800 text-xs min-h-[160px]"></div>
+                    </div>
+                    <div id="cameraScanResultContainer" class="mt-4 hidden bg-zinc-950 p-4 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] font-semibold uppercase text-emerald-400 block mb-0.5">Live Scan Captured:</span>
+                            <p id="cameraScanResultText" class="text-xs text-zinc-100 font-mono break-all"></p>
+                        </div>
+                        <button onclick="copyText(document.getElementById('cameraScanResultText').innerText)" class="text-zinc-400 hover:text-white p-1.5 bg-zinc-900 rounded border border-zinc-800 text-xs">Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-6 shadow-xl space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Scan History Log</h2>
+                        <p class="text-[11px] text-zinc-500">Persistent local log of scanned pallets and items</p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="exportHistoryCSV()" class="flex-1 sm:flex-none bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium py-2 px-3 rounded-lg transition shadow">Export CSV</button>
+                        <button onclick="clearHistory()" class="flex-1 sm:flex-none bg-zinc-950 hover:bg-red-950/30 border border-zinc-800 text-zinc-400 hover:text-red-400 text-xs font-medium py-2 px-3 rounded-lg transition">Clear Log</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-zinc-800 rounded-lg bg-zinc-950">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-zinc-500 font-medium">
+                                <th class="p-3">#</th>
+                                <th class="p-3">Pallet ID / Data</th>
+                                <th class="p-3">Method</th>
+                                <th class="p-3">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-zinc-900 font-mono text-zinc-300">
+                        </tbody>
+                    </table>
+                </div>
+                <p id="emptyHistoryMsg" class="text-xs text-zinc-600 text-center py-6">No scan history recorded during this session.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-zinc-800 text-zinc-100 text-xs font-medium px-4 py-2.5 rounded-lg shadow-2xl border border-zinc-700 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        Copied to clipboard!
+    </div>
+
+    <!-- Minimal Footer -->
+    <footer class="text-center py-6 text-[11px] text-zinc-600 border-t border-zinc-900 mt-auto">
+        Barcode Studio • Client-side Web Utility
+    </footer>
+
+    <!-- Script Application Logic -->
+    <script>
+        let scanHistory = JSON.parse(localStorage.getItem('palletScanHistory') || '[]');
+
+        function switchTab(tab) {
+            const genBtn = document.getElementById('btn-generator');
+            const scanBtn = document.getElementById('btn-scanner');
+            const genSec = document.getElementById('section-generator');
+            const scanSec = document.getElementById('section-scanner');
+
+            if (tab === 'generator') {
+                genBtn.className = "px-4 py-1.5 text-xs font-medium rounded-md bg-zinc-100 text-zinc-950 shadow transition-all";
+                scanBtn.className = "px-4 py-1.5 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-100 transition-all";
+                genSec.classList.remove('hidden');
+                scanSec.classList.add('hidden');
+                stopCameraScanner();
+            } else {
+                scanBtn.className = "px-4 py-1.5 text-xs font-medium rounded-md bg-zinc-100 text-zinc-950 shadow transition-all";
+                genBtn.className = "px-4 py-1.5 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-100 transition-all";
+                scanSec.classList.remove('hidden');
+                genSec.classList.add('hidden');
+                initCameraScanner();
+                renderHistoryTable();
+            }
+        }
+
+        function showToast(msg = "Copied to clipboard!") {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                t.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+            showToast("Copied: " + text);
+        }
+
+        function copyGeneratorInput() {
+            const val = document.getElementById('barcodeValue').value;
+            if (val) copyText(val);
+        }
+
+        function logScannedItem(data, method) {
+            const timestamp = new Date().toLocaleTimeString();
+            if (scanHistory.length > 0 && scanHistory[0].data === data) return;
+
+            scanHistory.unshift({ data, method, timestamp });
+            localStorage.setItem('palletScanHistory', JSON.stringify(scanHistory));
+            renderHistoryTable();
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('historyTableBody');
+            const emptyMsg = document.getElementById('emptyHistoryMsg');
+            tbody.innerHTML = '';
+
+            if (scanHistory.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+
+            emptyMsg.classList.add('hidden');
+            scanHistory.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-900/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 text-zinc-600">${scanHistory.length - index}</td>
+                    <td class="p-3 text-zinc-100 select-all font-semibold">${escapeHtml(item.data)}</td>
+                    <td class="p-3 text-zinc-400"><span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px]">${item.method}</span></td>
+                    <td class="p-3 text-zinc-500 text-[11px]">${item.timestamp}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearHistory() {
+            if (confirm("Are you sure you want to clear your scan history?")) {
+                scanHistory = [];
+                localStorage.removeItem('palletScanHistory');
+                renderHistoryTable();
+            }
+        }
+
+        function exportHistoryCSV() {
+            if (scanHistory.length === 0) return alert("No scan history to export.");
+            let csv = "data:text/csv;charset=utf-8,Index,Pallet ID,Method,Timestamp\n";
+            scanHistory.forEach((i, idx) => {
+                csv += [scanHistory.length - idx, `"${i.data}"`, `"${i.method}"`, `"${i.timestamp}"`].join(",") + "\n";
+            });
+            const link = document.createElement("a");
+            link.href = encodeURI(csv);
+            link.download = `scanned-pallets-${Date.now()}.csv`;
+            link.click();
+        }
+
+        function generateBarcode() {
+            const type = document.getElementById('barcodeType').value;
+            const value = document.getElementById('barcodeValue').value;
+            const canvas = document.getElementById('barcodeCanvas');
+            const qrcodeContainer = document.getElementById('qrcodeContainer');
+            const errorMsg = document.getElementById('errorMsg');
+            const showText = document.getElementById('showText').checked;
+            const barWidth = parseInt(document.getElementById('barWidth').value);
+            const barHeight = parseInt(document.getElementById('barHeight').value);
+
+            document.getElementById('badgeType').innerText = type;
+            errorMsg.classList.add('hidden');
+            if (!value) return;
+
+            if (type === 'qrcode') {
+                canvas.style.display = 'none';
+                qrcodeContainer.classList.remove('hidden');
+                qrcodeContainer.innerHTML = '';
+                try {
+                    new QRCode(qrcodeContainer, { text: value, width: 150, height: 150, colorDark: "#000", colorLight: "#fff" });
+                } catch (e) {
+                    errorMsg.classList.remove('hidden');
+                }
+            } else {
+                canvas.style.display = 'block';
+                qrcodeContainer.classList.add('hidden');
+                try {
+                    JsBarcode(canvas, value, { format: type, lineColor: "#000", width: barWidth, height: barHeight, displayValue: showText, fontSize: 13, margin: 8 });
+                } catch (e) {
+                    errorMsg.classList.remove('hidden');
+                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function downloadBarcode() {
+            const type = document.getElementById('barcodeType').value;
+            let link = document.createElement('a');
+            link.download = `barcode-${Date.now()}.png`;
+            if (type === 'qrcode') {
+                const img = document.querySelector('#qrcodeContainer img');
+                if (img) { link.href = img.src; link.click(); }
+            } else {
+                link.href = document.getElementById('barcodeCanvas').toDataURL('image/png');
+                link.click();
+            }
+        }
+
+        function printBarcode() {
+            const type = document.getElementById('barcodeType').value;
+            const value = document.getElementById('barcodeValue').value;
+            let graphicHtml = '';
+
+            if (type === 'qrcode') {
+                const img = document.querySelector('#qrcodeContainer img');
+                graphicHtml = img ? `<img src="${img.src}" style="width:200px; height:200px;" />` : '';
+            } else {
+                const canvas = document.getElementById('barcodeCanvas');
+                graphicHtml = `<img src="${canvas.toDataURL('image/png')}" style="max-width:100%; height:auto;" />`;
+            }
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print Label - ${value}</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                            font-family: monospace;
+                        }
+                        .label-container {
+                            text-align: center;
+                            padding: 20px;
+                        }
+                        .sku-text {
+                            margin-top: 10px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            letter-spacing: 1px;
+                        }
+                        @media print {
+                            body { background: white; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="label-container">
+                        ${graphicHtml}
+                        <div class="sku-text">${value}</div>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        let html5QrCode = null;
+        function initCameraScanner() {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 130 } }, (text) => {
+                    document.getElementById('cameraScanResultContainer').classList.remove('hidden');
+                    document.getElementById('cameraScanResultText').innerText = text;
+                    logScannedItem(text, 'Camera');
+                    showToast("Pallet Scanned Successfully!");
+                }, () => {});
+            }
+        }
+
+        function stopCameraScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; });
+            }
+        }
+
+        async function scanUploadedFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const text = await Html5Qrcode.scanFile(file, true);
+                document.getElementById('fileScanResultContainer').classList.remove('hidden');
+                document.getElementById('fileScanResultText').innerText = text;
+                logScannedItem(text, 'Upload');
+                showToast("Image Decoded Successfully!");
+            } catch (e) {
+                alert("Could not detect a valid barcode or QR code in this image file.");
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        window.onload = generateBarcode;
+    </script>
+</body>
+</html>

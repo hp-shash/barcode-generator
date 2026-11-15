@@ -43,13 +43,14 @@
     <style>
         :root, html[data-theme="dark"] {
             --bg-main: #09090b;
-            --bg-card: #121215;
+            --bg-card: rgba(24, 24, 27, 0.65);
             --bg-input: #09090b;
             --bg-elevated: #18181b;
             --text-main: #f4f4f5;
             --text-muted: #a1a1aa;
             --text-dim: #71717a;
             --border-color: #27272a;
+            --grid-dot: #27272a;
             --stage-bg: #0c0c0e;
         }
 
@@ -62,6 +63,7 @@
             --text-muted: #475569;
             --text-dim: #64748b;
             --border-color: #cbd5e1;
+            --grid-dot: #cbd5e1;
             --stage-bg: #f1f5f9;
         }
 
@@ -74,6 +76,7 @@
             --text-muted: #5c5343;
             --text-dim: #7c7260;
             --border-color: #d3cbb7;
+            --grid-dot: #d3cbb7;
             --stage-bg: #efe8d4;
         }
 
@@ -89,175 +92,337 @@
         .theme-border { border-color: var(--border-color); }
         .theme-text-muted { color: var(--text-muted); }
         .theme-text-dim { color: var(--text-dim); }
-        .stage-surface { background-color: var(--stage-bg); }
+
+        .canvas-grid {
+            background-color: var(--stage-bg);
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg-main); }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
         input[type="range"] { accent-color: #10b981; }
+
+        @keyframes pulse-flash {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+        }
+        .scan-flash { animation: pulse-flash 0.22s ease-out; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-500">
 
-    <!-- CLEAN MINIMALIST HEADER -->
-    <header class="border-b theme-border theme-card sticky top-0 z-50 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+    <!-- TOP NAVIGATION BAR -->
+    <header class="border-b theme-border theme-card backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
         
-        <!-- Brand Title -->
+        <!-- Brand + Workspace File Manager Trigger -->
         <div class="flex items-center gap-2.5">
-            <div class="h-7 w-7 rounded-md bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-                <i data-lucide="barcode" class="w-4 h-4"></i>
+            <button onclick="toggleFileManager()" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition shadow-sm" title="Open Folder & Task File Manager">
+                <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-500"></i>
+                <span class="text-xs font-semibold" id="active-task-label">Files & Tasks</span>
+                <span id="nav-file-count" class="px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-500 font-mono text-[10px]">2</span>
+            </button>
+
+            <div class="h-4 w-[1px] bg-zinc-700/50 hidden sm:block"></div>
+
+            <div class="flex items-center gap-2">
+                <div class="h-6 w-6 rounded bg-emerald-600 flex items-center justify-center text-white shadow-sm">
+                    <i data-lucide="scan-barcode" class="w-3.5 h-3.5"></i>
+                </div>
+                <span class="text-xs sm:text-sm font-bold tracking-tight">BARCODE GENERATOR</span>
             </div>
-            <span class="text-sm font-bold tracking-tight">BARCODE GENERATOR</span>
-            <span id="gun-status-pill" title="Global USB/Bluetooth Gun Interceptor Active" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Global Gun Ready
-            </span>
         </div>
 
-        <!-- Clean 4-Tab Navigation -->
+        <!-- Master 4-Tab Navigation -->
         <nav class="flex flex-wrap items-center gap-1 theme-input p-1 rounded-lg border">
-            <button onclick="switchTab('bulk')" id="tab-bulk" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white transition">
-                Bulk & Labels
+            <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk & Labels
             </button>
-            <button onclick="switchTab('audit')" id="tab-audit" class="px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition flex items-center gap-1.5">
-                Audit & Cycle <span id="nav-audit-badge" class="px-1.5 py-0.2 bg-amber-500/20 text-amber-500 rounded text-[10px] font-mono">0/0</span>
+            <button onclick="switchTab('audit')" id="tab-audit" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Audit & Cycle
+                <span id="nav-audit-badge" class="px-1.5 py-0.2 bg-amber-500/20 text-amber-500 rounded text-[10px] font-mono">0/0</span>
             </button>
-            <button onclick="switchTab('single')" id="tab-single" class="px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition">
-                Single & Macros
+            <button onclick="switchTab('single')" id="tab-single" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Single & Macros
             </button>
-            <button onclick="switchTab('tools')" id="tab-tools" class="px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition flex items-center gap-1.5">
-                Consolidate & Log <span id="nav-scan-count" class="px-1.5 py-0.2 theme-elevated rounded text-[10px] font-mono">0</span>
+            <button onclick="switchTab('tools')" id="tab-tools" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="boxes" class="w-3.5 h-3.5"></i> Consolidate & Log
+                <span id="nav-scan-count" class="px-1.5 py-0.2 theme-elevated rounded text-[10px] font-mono">0</span>
             </button>
         </nav>
 
-        <!-- Compact Controls: Audio, Voice TTS & Theme -->
-        <div class="flex items-center gap-1.5">
-            <button onclick="toggleAudio()" id="btn-audio" title="Toggle Beep & Buzzer" class="p-1.5 rounded-lg border theme-elevated transition">
-                <i data-lucide="volume-2" id="icon-audio" class="w-4 h-4 text-emerald-500"></i>
+        <!-- Right Controls: Global Gun Status, Audio Toggle & Segmented Theme Icons -->
+        <div class="flex items-center gap-2">
+            <!-- Global Scanner Status Pill -->
+            <div title="Hardware USB/Bluetooth Scanner Active Anywhere on Page" class="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-md border theme-input text-[11px] font-mono theme-text-muted">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Gun Ready</span>
+            </div>
+
+            <!-- Audio Beep Toggle -->
+            <button onclick="toggleAudio()" id="btn-audio-toggle" title="Toggle Beep & Buzzer Sounds" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated transition">
+                <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
+                <span id="lbl-audio" class="hidden md:inline text-[11px]">Audio ON</span>
             </button>
-            <button onclick="toggleVoice()" id="btn-voice" title="Toggle Hands-Free Voice Readback" class="p-1.5 rounded-lg border theme-elevated transition">
-                <i data-lucide="mic-off" id="icon-voice" class="w-4 h-4 theme-text-dim"></i>
-            </button>
-            <select id="theme-select" onchange="setTheme(this.value)" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none cursor-pointer">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="eye-protect">Eye Protect</option>
-            </select>
+
+            <!-- Restored 3-Button Segmented Theme Icon Bar -->
+            <div class="flex items-center theme-input p-0.5 rounded-lg border">
+                <button onclick="setTheme('dark')" id="theme-dark" title="Dark Studio Mode (Default)" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition">
+                    <i data-lucide="moon" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Dark</span>
+                </button>
+                <button onclick="setTheme('light')" id="theme-light" title="Daylight High-Contrast Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition">
+                    <i data-lucide="sun" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Light</span>
+                </button>
+                <button onclick="setTheme('eye-protect')" id="theme-eye-protect" title="Warm Amber Eye-Protect Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition">
+                    <i data-lucide="eye" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Eye Care</span>
+                </button>
+            </div>
         </div>
     </header>
 
+    <!-- ==========================================
+         SLIDE-OVER FOLDER & TASK FILE MANAGER DRAWER
+         ========================================== -->
+    <div id="file-manager-backdrop" onclick="toggleFileManager()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden transition-opacity"></div>
+    <aside id="file-manager-drawer" class="fixed top-0 left-0 bottom-0 w-full max-w-md theme-card border-r theme-border z-50 transform -translate-x-full transition-transform duration-200 flex flex-col shadow-2xl">
+        
+        <!-- Drawer Header -->
+        <div class="p-4 border-b theme-border flex items-center justify-between theme-elevated">
+            <div class="flex items-center gap-2">
+                <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-500"></i>
+                <h2 class="text-xs font-bold uppercase tracking-wider">Workspace File & Task Manager</h2>
+            </div>
+            <button onclick="toggleFileManager()" class="p-1 rounded hover:opacity-75">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Create Folder & Save Current Task Bar -->
+        <div class="p-4 border-b theme-border space-y-3">
+            <!-- Create Folder -->
+            <div>
+                <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">1. Select or Create Folder</label>
+                <div class="flex gap-1.5">
+                    <select id="fm-folder-select" onchange="renderFileManager()" class="flex-grow theme-input border rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none"></select>
+                    <button onclick="createNewFolder()" class="px-2.5 py-1.5 rounded-lg theme-elevated border text-xs font-medium hover:border-emerald-500 flex items-center gap-1 shrink-0">
+                        <i data-lucide="folder-plus" class="w-3.5 h-3.5 text-emerald-500"></i> New Folder
+                    </button>
+                    <button onclick="deleteCurrentFolder()" title="Delete Selected Folder" class="px-2 py-1.5 rounded-lg theme-input border text-red-400 hover:bg-red-950/30">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Save Active Task into Folder -->
+            <div class="pt-2 border-t theme-border">
+                <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">2. Save Current Work as Task File</label>
+                <div class="flex gap-1.5">
+                    <input type="text" id="fm-task-name" placeholder="e.g. Inbound Lane 1 Pallets..." class="flex-grow theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-emerald-500">
+                    <select id="fm-task-type" class="theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                        <option value="bulk">Bulk List (Default)</option>
+                        <option value="audit">Audit Manifest</option>
+                        <option value="lpn">LPN Consolidation</option>
+                    </select>
+                </div>
+                <button onclick="saveCurrentTaskToFile()" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg shadow flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i> Save Task to Folder
+                </button>
+            </div>
+        </div>
+
+        <!-- File List Explorer -->
+        <div class="flex-grow p-4 overflow-y-auto space-y-2" id="fm-file-list"></div>
+
+        <!-- Drawer Footer: Backup Export / Import -->
+        <div class="p-3.5 border-t theme-border theme-elevated flex items-center justify-between gap-2 text-xs">
+            <button onclick="exportWorkspaceJSON()" class="flex-1 py-1.5 px-2.5 rounded border theme-input hover:border-emerald-500 flex items-center justify-center gap-1.5 font-medium">
+                <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-500"></i> Backup (.JSON)
+            </button>
+            <label class="flex-1 py-1.5 px-2.5 rounded border theme-input hover:border-emerald-500 flex items-center justify-center gap-1.5 font-medium cursor-pointer">
+                <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-500"></i> Restore (.JSON)
+                <input type="file" accept=".json" onchange="importWorkspaceJSON(event)" class="hidden">
+            </label>
+        </div>
+    </aside>
+
     <!-- MAIN WORKSPACE -->
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+    <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6">
 
         <!-- ==========================================
-             TAB 1: BULK GENERATOR, EXCEL/CSV & SPECIALTY LABELS
+             TAB 1: BULK GENERATOR, MULTI-COL CSV & SCAN-TO-ADVANCE
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- Left Column: Input, Sequence & Templates (5 Cols) -->
+            <!-- LEFT COLUMN: BULK FEEDER, SEQUENCE & SPECIALTY LABELS (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 
-                <!-- Bulk Feeder Card -->
+                <!-- Bulk & Multi-Column CSV Feeder Card -->
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Bulk Data & Excel Feeder</h2>
-                        <div class="flex items-center gap-3 text-xs">
+                    <div class="flex items-center justify-between border-b theme-border pb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Multi-Column Feeder
+                        </span>
+                        <div class="flex items-center gap-2.5 text-xs">
                             <label class="text-emerald-500 hover:underline cursor-pointer font-medium flex items-center gap-1">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Import .XLSX / .CSV
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> .XLSX / .CSV
                                 <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'batch-input')" class="hidden">
                             </label>
-                            <button onclick="clearBulkInput()" class="theme-text-dim hover:text-red-400">Clear</button>
+                            <button onclick="quickSavePrompt('bulk')" class="theme-text-muted hover:text-emerald-500 flex items-center gap-1" title="Save list to Task Manager">
+                                <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> Save Task
+                            </button>
+                            <button onclick="loadMultiColSample()" class="theme-text-muted hover:underline">Reset</button>
+                            <button onclick="clearBulkInput()" class="text-red-400 hover:underline">Clear</button>
                         </div>
                     </div>
 
-                    <textarea id="batch-input" rows="6" oninput="loadBulkDeck(false)" placeholder="Pallet_ID, SKU, Qty, Destination_Lane" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition">FF-RM028262738, SKU-8821, 48, LANE-01
+                    <div>
+                        <div class="flex justify-between text-[11px] theme-text-muted mb-1.5">
+                            <span>Columns: <code class="font-mono text-emerald-500">Pallet_ID, SKU, Qty, Lane</code></span>
+                            <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">4 items</span>
+                        </div>
+                        <textarea id="batch-input" rows="6" oninput="loadBulkDeck(false)" placeholder="FF-RM028262738, SKU-901, 48, LANE-01" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition leading-relaxed">FF-RM028262738, SKU-8821, 48, LANE-01
 FF-RM028262739, SKU-8821, 48, LANE-01
 FF-RM028262740, SKU-4410, 24, LANE-04
 FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
+                    </div>
 
-                    <div class="grid grid-cols-2 gap-3">
+                    <!-- Symbology, Suffix, Scale & Height Customization with Defaults -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
-                            <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none">
-                                <option value="code128" selected>Code 128</option>
-                                <option value="gs1-128">GS1-128</option>
-                                <option value="code39">Code 39</option>
-                                <option value="qrcode">QR Code</option>
-                                <option value="datamatrix">Data Matrix</option>
+                            <label class="block text-[10px] uppercase tracking-wider theme-text-dim mb-1">Symbology</label>
+                            <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-emerald-500">
+                                <option value="code128" selected>Code 128 (Default)</option>
+                                <option value="gs1-128">GS1-128 (SSCC Logistics)</option>
+                                <option value="code39">Code 39 (Industrial)</option>
+                                <option value="qrcode">QR Code (2D Matrix)</option>
+                                <option value="datamatrix">Data Matrix (2D ECC200)</option>
+                                <option value="itf14">ITF-14 (Carton/Pallet)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Keystroke Suffix (JDA)</label>
-                            <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none">
-                                <option value="none" selected>None (Standard)</option>
+                            <label class="block text-[10px] uppercase tracking-wider theme-text-dim mb-1">JDA Keystroke Suffix</label>
+                            <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-emerald-500">
+                                <option value="none" selected>None (Default)</option>
                                 <option value="enter">Auto-Enter (\r)</option>
                                 <option value="tab">Auto-Tab (\t)</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between text-xs pt-1 border-t theme-border">
-                        <span id="bulk-line-count" class="font-mono text-emerald-500 font-semibold">4 items</span>
-                        <div class="flex gap-1 theme-input p-0.5 rounded-md border">
-                            <button onclick="setBulkViewMode('carousel')" id="btn-mode-carousel" class="px-2.5 py-1 rounded text-xs font-medium bg-emerald-600 text-white">1-by-1 Scan</button>
-                            <button onclick="setBulkViewMode('grid')" id="btn-mode-grid" class="px-2.5 py-1 rounded text-xs font-medium theme-text-muted">Grid All</button>
+                    <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Scale</label>
+                            <select id="batch-scale" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-md px-2 py-1 text-xs outline-none">
+                                <option value="2">2x (Compact)</option>
+                                <option value="3">3x (Standard)</option>
+                                <option value="4" selected>4x (Default Scan)</option>
+                                <option value="5">5x (Wide)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Height</label>
+                            <select id="batch-height" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-md px-2 py-1 text-xs outline-none">
+                                <option value="12">12mm (Short)</option>
+                                <option value="18" selected>18mm (Default)</option>
+                                <option value="25">25mm (Tall)</option>
+                                <option value="32">32mm (Max)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">View Mode</label>
+                            <div class="grid grid-cols-2 theme-input p-0.5 rounded-md border">
+                                <button onclick="setBulkViewMode('carousel')" id="btn-mode-carousel" class="text-[11px] font-semibold py-1 rounded bg-emerald-600 text-white transition">1-by-1</button>
+                                <button onclick="setBulkViewMode('grid')" id="btn-mode-grid" class="text-[11px] font-medium py-1 rounded theme-text-muted transition">Grid</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Collapsible Sequence Generator -->
-                <details class="theme-card border rounded-xl p-4 shadow-sm group">
-                    <summary class="text-xs font-semibold uppercase tracking-wider theme-text-muted cursor-pointer list-none flex items-center justify-between">
-                        <span class="flex items-center gap-2"><i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-500"></i> Auto-Sequence Generator</span>
+                <!-- Customizable Sequential Range Generator -->
+                <details class="theme-card border rounded-xl p-4 shadow-sm group" open>
+                    <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-500"></i> Auto-Sequence Range Builder</span>
                         <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition"></i>
                     </summary>
-                    <div class="pt-4 space-y-3">
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <input type="text" id="seq-prefix" value="FF-RM" placeholder="Prefix" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            <input type="text" id="seq-start" value="028262738" placeholder="Start #" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            <input type="number" id="seq-count" value="10" min="1" max="500" placeholder="Qty" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            <input type="text" id="seq-lane" value="LANE-01" placeholder="Lane" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                    <div class="pt-3.5 space-y-3 border-t theme-border mt-3">
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Prefix</label>
+                                <input type="text" id="seq-prefix" value="FF-RM" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Start Number</label>
+                                <input type="text" id="seq-start" value="028262738" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Suffix (Opt)</label>
+                                <input type="text" id="seq-suffix" value="" placeholder="None (Default)" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                            </div>
                         </div>
-                        <button onclick="generateSequenceList()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition">
-                            Generate Sequence
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Qty (10 Default)</label>
+                                <input type="number" id="seq-count" value="10" min="1" max="500" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Step (1 Default)</label>
+                                <input type="number" id="seq-step" value="1" min="1" max="100" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Default Lane</label>
+                                <input type="text" id="seq-lane" value="LANE-01" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                            </div>
+                        </div>
+                        <button onclick="generateSequenceList()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition shadow-sm">
+                            Generate Sequence into Bulk Deck
                         </button>
                     </div>
                 </details>
 
-                <!-- Collapsible Warehouse Specialty Labels (Racking & Quarantine Hold Tags) -->
+                <!-- Specialty Warehouse Labels (Racking & Quarantine Hold Tags) -->
                 <details class="theme-card border rounded-xl p-4 shadow-sm group">
-                    <summary class="text-xs font-semibold uppercase tracking-wider theme-text-muted cursor-pointer list-none flex items-center justify-between">
+                    <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
                         <span class="flex items-center gap-2"><i data-lucide="tag" class="w-3.5 h-3.5 text-amber-500"></i> Racking Signs & Quarantine Hold Tags</span>
                         <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition"></i>
                     </summary>
-                    <div class="pt-4 space-y-4">
-                        <!-- Racking Sign Quick Print -->
+                    <div class="pt-3.5 space-y-4 border-t theme-border mt-3">
+                        <!-- Racking Sign -->
                         <div class="space-y-2 pb-3 border-b theme-border">
                             <span class="text-[11px] font-semibold block">Warehouse Location / Racking Sign</span>
                             <div class="grid grid-cols-3 gap-2">
-                                <input type="text" id="rack-code" value="A-12-04-B" placeholder="Location" class="col-span-2 theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                                <input type="text" id="rack-code" value="A-12-04-B" placeholder="Location" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                                 <select id="rack-arrow" class="theme-input border rounded px-2 py-1.5 text-xs font-bold">
-                                    <option value="↑">↑ Upper</option>
-                                    <option value="↓">↓ Ground</option>
-                                    <option value="←">← Left</option>
-                                    <option value="→">→ Right</option>
+                                    <option value="↑" selected>↑ Upper (Default)</option>
+                                    <option value="↓">↓ Ground Pick</option>
+                                    <option value="←">← Left Bay</option>
+                                    <option value="→">→ Right Bay</option>
+                                    <option value="">No Arrow</option>
+                                </select>
+                                <select id="rack-theme" class="theme-input border rounded px-2 py-1.5 text-xs">
+                                    <option value="#ffeb3b" selected>Yellow (Default)</option>
+                                    <option value="#ffffff">White Crisp</option>
+                                    <option value="#86efac">Green Pick</option>
+                                    <option value="#93c5fd">Blue Bulk</option>
                                 </select>
                             </div>
-                            <button onclick="printRackingSign()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg hover:opacity-90">
+                            <button onclick="printRackingSign()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg hover:border-emerald-500 transition">
                                 Print Location Sign
                             </button>
                         </div>
 
-                        <!-- Quarantine / QA Hold Tag Quick Print -->
+                        <!-- Quarantine Hold Tag -->
                         <div class="space-y-2">
                             <span class="text-[11px] font-semibold text-red-400 block">4×6 Quarantine / Damaged Hold Tag</span>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-3 gap-2">
                                 <input type="text" id="hold-pallet" value="FF-RM028262738" placeholder="Pallet ID" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                                 <select id="hold-reason" class="theme-input border rounded px-2 py-1.5 text-xs">
-                                    <option value="DAMAGED STOCK">Damaged Stock</option>
+                                    <option value="DAMAGED STOCK" selected>Damaged (Default)</option>
                                     <option value="QA QUARANTINE">QA Quarantine</option>
-                                    <option value="COUNT DISCREPANCY">Count Discrepancy</option>
+                                    <option value="COUNT VARIANCE">Count Variance</option>
                                     <option value="AWAITING RETURN">Awaiting Return</option>
                                 </select>
+                                <input type="text" id="hold-operator" placeholder="Operator ID / Notes" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                             <button onclick="printHoldTag()" class="w-full bg-red-600/90 hover:bg-red-500 text-white text-xs font-semibold py-1.5 rounded-lg transition">
                                 Print 4×6 Hold Tag
@@ -268,75 +433,109 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             </div>
 
-            <!-- Right Column: 1-by-1 Interactive Scanner Stage (7 Cols) -->
-            <div class="lg:col-span-7">
-                
-                <!-- 1-by-1 Carousel Panel -->
-                <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-sm flex flex-col">
+            <!-- RIGHT COLUMN: 1-BY-1 CAROUSEL WITH RESTORED STATUS PILLS & CUSTOM TIMER (7 Cols) -->
+            <div class="lg:col-span-7 space-y-4">
+
+                <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
-                    <div class="px-5 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <span id="deck-counter" class="px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-mono text-xs font-bold">1 / 4</span>
-                            <span id="deck-scanned-badge" class="text-xs theme-text-muted font-mono">Ready to scan</span>
+                    <!-- Deck Header & Custom Timer Controls -->
+                    <div class="px-5 py-3.5 border-b theme-border flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold" id="deck-counter">1 / 4</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider">One-by-One Scan Stage</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <label class="flex items-center gap-1.5 text-xs theme-text-muted cursor-pointer">
-                                <input type="checkbox" id="chk-scan-advance" checked class="accent-emerald-500"> Auto-Next on Scan
+
+                        <!-- Customizable Timer Controls -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded border theme-input cursor-pointer" title="Automatically advance slide when scanned">
+                                <input type="checkbox" id="chk-scan-advance" checked class="accent-emerald-500">
+                                <span>Auto-Next (Default)</span>
                             </label>
-                            <button onclick="toggleAutoPlay()" id="btn-autoplay" class="px-2.5 py-1 rounded text-xs font-medium theme-elevated border">
-                                Auto-Timer (2.5s)
+
+                            <!-- Custom Interval & Loop Controls -->
+                            <div class="flex items-center theme-input border rounded-lg px-2 py-1 gap-1.5">
+                                <i data-lucide="timer" class="w-3.5 h-3.5 text-emerald-500"></i>
+                                <input type="number" id="custom-timer-sec" value="2.5" min="0.5" max="60" step="0.5" onchange="restartAutoPlayIfActive()" title="Custom Timer Seconds (2.5s Default)" class="w-12 bg-transparent text-xs font-mono font-bold text-center outline-none">
+                                <span class="text-[10px] font-mono theme-text-dim">sec</span>
+                                <label class="flex items-center gap-1 text-[10px] theme-text-muted pl-1.5 border-l theme-border cursor-pointer" title="Loop back to item #1 after reaching the end">
+                                    <input type="checkbox" id="chk-timer-loop" checked class="accent-emerald-500"> Loop
+                                </label>
+                            </div>
+
+                            <button onclick="toggleAutoPlay()" id="btn-autoplay" class="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold theme-elevated border hover:border-emerald-500 transition">
+                                <i data-lucide="play" class="w-3.5 h-3.5"></i> Start Timer
                             </button>
                         </div>
                     </div>
 
-                    <!-- Progress Bar -->
-                    <div class="w-full theme-input h-1">
-                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-150" style="width: 25%"></div>
+                    <!-- Progress Bar Strip -->
+                    <div class="w-full theme-input h-1.5 overflow-hidden">
+                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 25%"></div>
                     </div>
 
-                    <!-- Clean Barcode Display Stage -->
-                    <div class="stage-surface min-h-[310px] p-6 flex flex-col items-center justify-center">
-                        <div class="bg-white text-zinc-950 p-6 rounded-xl shadow-md flex flex-col items-center justify-center max-w-md w-full border border-zinc-200">
-                            <div id="deck-routing-header" class="w-full border-b border-zinc-300 pb-2 mb-4 flex justify-between items-center text-xs font-mono font-bold">
+                    <!-- Center Stage with Restored Floating Scanning Status Pill -->
+                    <div id="deck-stage-box" class="canvas-grid min-h-[340px] p-6 sm:p-8 flex flex-col items-center justify-center relative">
+                        
+                        <!-- RESTORED FLOATING SCANNING STATUS PILL -->
+                        <div id="deck-scanned-badge" class="mb-4 px-3.5 py-1 rounded-full text-xs font-mono uppercase tracking-wider theme-elevated border flex items-center gap-2 shadow-sm">
+                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span> Ready to Scan (1 of 4)
+                        </div>
+
+                        <!-- Crisp White Label Card -->
+                        <div class="bg-white text-zinc-950 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center max-w-md w-full border-2 border-zinc-200">
+                            <div id="deck-routing-header" class="w-full border-b-2 border-zinc-900 pb-2 mb-4 flex justify-between items-center text-xs font-mono font-bold">
                                 <span id="deck-meta-sku">SKU: --</span>
-                                <span id="deck-meta-qty">QTY: --</span>
-                                <span id="deck-meta-lane" class="px-2 py-0.5 bg-zinc-900 text-white rounded">LANE: --</span>
+                                <span id="deck-meta-qty" class="px-2 py-0.5 bg-zinc-900 text-white rounded">QTY: --</span>
+                                <span id="deck-meta-lane" class="px-2 py-0.5 bg-emerald-600 text-white rounded">LANE: --</span>
                             </div>
                             <canvas id="deck-canvas" class="max-w-full"></canvas>
                         </div>
 
+                        <!-- Large Monospace Payload Readout -->
                         <div class="mt-4 flex items-center gap-2">
-                            <span id="deck-current-text" class="text-lg font-mono font-bold tracking-wider select-all">FF-RM028262738</span>
-                            <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1 rounded theme-elevated border text-xs">Copy</button>
+                            <span id="deck-current-text" class="text-lg sm:text-xl font-mono font-bold tracking-wider select-all">FF-RM028262738</span>
+                            <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1.5 rounded theme-elevated border hover:opacity-80" title="Copy ID">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Scan-to-Advance Bar -->
-                    <div class="px-5 py-3 border-t theme-border theme-elevated flex flex-col sm:flex-row items-center gap-2">
-                        <input type="text" id="deck-scan-input" placeholder="Scan current barcode with gun (or hit Enter) to verify & advance..." onkeydown="if(event.key==='Enter') handleDeckScanVerify()" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-500">
+                    <!-- Hardware Gun Scan-to-Advance Verification Input -->
+                    <div class="px-5 py-3 border-t theme-border theme-elevated flex flex-col sm:flex-row items-center gap-2.5">
+                        <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-500 shrink-0">
+                            <i data-lucide="zap" class="w-4 h-4"></i>
+                            <span>Scan-to-Advance:</span>
+                        </div>
+                        <input type="text" id="deck-scan-input" placeholder="Scan current barcode with gun (or hit Enter) to verify & show next..." onkeydown="if(event.key==='Enter') handleDeckScanVerify()" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-500">
                         <div class="flex gap-1.5 w-full sm:w-auto">
-                            <button onclick="stepDeck(-1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-medium">Prev</button>
-                            <button onclick="markAndNextDeck()" class="flex-grow sm:flex-none px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">Scanned & Next</button>
-                            <button onclick="stepDeck(1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-medium">Next</button>
+                            <button onclick="stepDeck(-1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-semibold hover:opacity-90 flex items-center gap-1">
+                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Prev
+                            </button>
+                            <button onclick="markAndNextDeck()" class="flex-grow sm:flex-none px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow flex items-center justify-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Scanned & Next
+                            </button>
+                            <button onclick="stepDeck(1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-semibold hover:opacity-90 flex items-center gap-1">
+                                Next <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Export & Print Footer -->
-                    <div class="px-5 py-3 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <div id="deck-pills" class="flex flex-wrap gap-1 max-h-20 overflow-y-auto"></div>
+                    <!-- Queue Pills & Print Bar -->
+                    <div class="px-5 py-3 border-t theme-border flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div id="deck-pills" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto"></div>
                         <div class="flex gap-2 shrink-0 ml-auto">
-                            <button onclick="exportZPL(bulkRecords[currentDeckIndex]?.id)" class="px-2.5 py-1.5 rounded theme-elevated border font-mono text-[11px]">Export .ZPL</button>
-                            <button onclick="printCurrentDeckLabel()" class="px-3 py-1.5 rounded theme-elevated border font-medium">Print Current</button>
-                            <button onclick="printBatchSheet()" class="px-3 py-1.5 rounded bg-emerald-600 text-white font-semibold">Print All 4×6</button>
+                            <button onclick="exportZPL(bulkRecords[currentDeckIndex]?.id)" class="px-2.5 py-1.5 rounded-lg theme-elevated border font-mono text-[11px] hover:border-emerald-500">.ZPL</button>
+                            <button onclick="printCurrentDeckLabel()" class="px-3 py-1.5 rounded-lg theme-elevated border font-medium hover:border-emerald-500">Print Current</button>
+                            <button onclick="printBatchSheet()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">Print All 4×6</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Grid All Panel -->
-                <div id="bulk-grid-panel" class="hidden theme-card border rounded-xl p-5 space-y-4 shadow-sm">
+                <div id="bulk-grid-panel" class="hidden theme-card border rounded-xl p-5 space-y-4 shadow-lg">
                     <div class="flex justify-between items-center border-b theme-border pb-3">
-                        <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">All Generated Labels</span>
-                        <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Print All 4×6</button>
+                        <span class="text-xs font-semibold uppercase tracking-wider">Complete Batch Grid</span>
+                        <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print All 4×6</button>
                     </div>
                     <div id="batch-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto"></div>
                 </div>
@@ -345,101 +544,121 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 2: MANIFEST AUDIT, BLIND CYCLE COUNT & GUARDRAILS
+             TAB 2: MANIFEST AUDIT & BLIND CYCLE COUNT
              ========================================== -->
         <section id="view-audit" class="hidden space-y-6">
             
-            <!-- KPI Strip & Mode Switcher -->
+            <!-- KPI Strip -->
             <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 <div class="theme-card border rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase theme-text-dim block">Expected</span>
-                    <span id="audit-kpi-total" class="text-xl font-mono font-bold">0</span>
+                    <span class="text-[10px] font-mono uppercase theme-text-dim block">Expected Manifest</span>
+                    <span id="audit-kpi-total" class="text-2xl font-mono font-bold">0</span>
                 </div>
                 <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase text-emerald-500 block">Verified</span>
-                    <span id="audit-kpi-matched" class="text-xl font-mono font-bold text-emerald-500">0</span>
+                    <span class="text-[10px] font-mono uppercase text-emerald-500 block">Verified (Matched)</span>
+                    <span id="audit-kpi-matched" class="text-2xl font-mono font-bold text-emerald-500">0</span>
                 </div>
                 <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase text-amber-500 block">Pending</span>
-                    <span id="audit-kpi-missing" class="text-xl font-mono font-bold text-amber-500">0</span>
+                    <span class="text-[10px] font-mono uppercase text-amber-500 block">Missing (Pending)</span>
+                    <span id="audit-kpi-missing" class="text-2xl font-mono font-bold text-amber-500">0</span>
                 </div>
                 <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase text-red-400 block">Rogue / Variance</span>
-                    <span id="audit-kpi-rogue" class="text-xl font-mono font-bold text-red-400">0</span>
+                    <span class="text-[10px] font-mono uppercase text-red-400 block">Rogue / Rejected</span>
+                    <span id="audit-kpi-rogue" class="text-2xl font-mono font-bold text-red-400">0</span>
                 </div>
-                <div class="col-span-2 sm:col-span-1 theme-card border rounded-xl p-3 flex flex-col justify-between">
-                    <span class="text-[10px] font-mono uppercase theme-text-dim">Operation Mode</span>
+                <div class="col-span-2 sm:col-span-1 theme-card border rounded-xl p-3.5 flex flex-col justify-between">
+                    <span class="text-[10px] font-mono uppercase theme-text-dim">Audit Mode</span>
                     <select id="audit-mode-select" onchange="renderAuditState()" class="theme-input border rounded px-2 py-1 text-xs font-semibold outline-none mt-1">
-                        <option value="manifest">1. Manifest Check-Off</option>
-                        <option value="blind">2. Blind Cycle Count</option>
+                        <option value="manifest" selected>Manifest Check (Default)</option>
+                        <option value="blind">Blind Cycle Count</option>
                     </select>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                <!-- Left: Manifest Input & Guardrails (4 Cols) -->
+                <!-- Left: Manifest Loader & Guardrails (4 Cols) -->
                 <div class="lg:col-span-4 space-y-4">
                     <div class="theme-card border rounded-xl p-5 space-y-3 shadow-sm">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Expected JDA Manifest</span>
-                            <label class="text-xs text-emerald-500 hover:underline cursor-pointer font-medium">
-                                Upload .XLSX / .CSV
-                                <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'audit-manifest-input', true)" class="hidden">
-                            </label>
+                            <span class="text-xs font-semibold uppercase tracking-wider">1. Expected JDA Manifest</span>
+                            <div class="flex gap-2 text-xs">
+                                <label class="text-emerald-500 hover:underline cursor-pointer font-medium">
+                                    .XLSX / .CSV
+                                    <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'audit-manifest-input', true)" class="hidden">
+                                </label>
+                                <button onclick="quickSavePrompt('audit')" class="theme-text-muted hover:text-emerald-500">Save Task</button>
+                            </div>
                         </div>
                         <textarea id="audit-manifest-input" rows="7" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none">FF-RM028262738, SKU-8821, 48, LANE-01
 FF-RM028262739, SKU-8821, 48, LANE-01
 FF-RM028262740, SKU-4410, 24, LANE-04
 FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
-                        <button onclick="loadAuditManifest()" class="w-full bg-emerald-600 text-white text-xs font-semibold py-2 rounded-lg">Load / Reset Manifest</button>
+                        <button onclick="loadAuditManifest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition">Load / Reset Manifest</button>
                     </div>
 
-                    <!-- Prefix & Length Validation Guardrails -->
+                    <!-- Customizable Scan Validation Guardrails -->
                     <div class="theme-card border rounded-xl p-4 space-y-3 shadow-sm">
-                        <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted block">Scan Validation Guardrails</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Validation Guardrails</span>
+                            <button onclick="document.getElementById('guard-prefix').value=''; document.getElementById('guard-len').value='0';" class="text-[11px] theme-text-muted hover:underline">Reset (Default)</button>
+                        </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="text-[10px] theme-text-dim block mb-1">Required Prefix</label>
-                                <input type="text" id="guard-prefix" placeholder="e.g. FF-RM" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                                <input type="text" id="guard-prefix" placeholder="Any (Default)" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                             <div>
-                                <label class="text-[10px] theme-text-dim block mb-1">Exact Length (0=Any)</label>
+                                <label class="text-[10px] theme-text-dim block mb-1">Exact Length (0 = Default)</label>
                                 <input type="number" id="guard-len" value="0" min="0" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                         </div>
+                        <label class="flex items-center gap-2 text-xs theme-text-muted pt-1 cursor-pointer">
+                            <input type="checkbox" id="guard-case" checked class="accent-emerald-500"> Case-Insensitive Match (Default)
+                        </label>
                     </div>
 
-                    <!-- Shift Handover Summary Generator -->
+                    <!-- Shift Handover Summary -->
                     <div class="theme-card border rounded-xl p-4 space-y-2 shadow-sm">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Shift Handover Report</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider">Shift Handover Report</span>
                             <button onclick="copyShiftHandover()" class="text-xs text-emerald-500 font-semibold hover:underline">Copy Summary</button>
                         </div>
-                        <p class="text-[11px] theme-text-dim">Copies a formatted Start/End-of-Shift KPI & exception block for Teams, Slack, or email.</p>
-                        <button onclick="exportAuditReportCSV()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg mt-1">Download Full Audit CSV</button>
+                        <button onclick="exportAuditReportCSV()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg mt-1">Export Audit Report (.CSV)</button>
                     </div>
                 </div>
 
-                <!-- Right: Live Scanner & Verification Table (8 Cols) -->
+                <!-- Right: Live Gun Verification & Status Table (8 Cols) -->
                 <div class="lg:col-span-8 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="audit-scan-gun" placeholder="Scan Pallet ID with gun (Global listener active)..." onkeydown="if(event.key==='Enter') processAuditScan()" class="flex-grow theme-input border-2 border-emerald-500/50 rounded-lg px-3.5 py-2.5 text-sm font-mono font-bold outline-none focus:border-emerald-500">
+                        <input type="text" id="audit-scan-gun" placeholder="Scan physical pallet barcode with gun (or type & press Enter)..." onkeydown="if(event.key==='Enter') processAuditScan()" class="flex-grow theme-input border-2 border-emerald-500/60 rounded-lg px-3.5 py-2.5 text-sm font-mono font-bold outline-none focus:border-emerald-500">
                         <input type="number" id="audit-blind-qty" placeholder="Count Qty" class="hidden w-28 theme-input border rounded-lg px-3 py-2.5 text-sm font-mono">
-                        <button onclick="processAuditScan()" class="bg-emerald-600 text-white text-xs font-semibold px-5 py-2.5 rounded-lg shrink-0">Verify Scan</button>
+                        <button onclick="processAuditScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2.5 rounded-lg shrink-0">Verify Scan</button>
                     </div>
 
+                    <!-- Live Status Alert Banner -->
                     <div id="audit-alert-banner" class="hidden p-3 rounded-lg font-mono text-xs font-semibold flex justify-between items-center">
                         <span id="audit-alert-text"></span>
                         <span id="audit-alert-time" class="text-[10px] opacity-75"></span>
                     </div>
 
+                    <!-- Rogue Pallets Box -->
                     <div id="audit-rogue-box" class="hidden bg-red-950/30 border border-red-500/40 rounded-lg p-3 space-y-1.5">
-                        <span class="text-[11px] font-bold uppercase text-red-400 block">Rogue / Guardrail Rejected Scans:</span>
+                        <span class="text-[11px] font-bold uppercase text-red-400 block">Unexpected Rogue / Rejected Scans:</span>
                         <div id="audit-rogue-list" class="flex flex-wrap gap-1.5"></div>
                     </div>
 
-                    <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-[420px]">
+                    <!-- Filter Tabs for Audit Table -->
+                    <div class="flex items-center justify-between border-b theme-border pb-2 text-xs">
+                        <div class="flex gap-1">
+                            <button onclick="setAuditFilter('all')" id="af-all" class="px-2.5 py-1 rounded bg-emerald-600 text-white font-medium">All</button>
+                            <button onclick="setAuditFilter('missing')" id="af-missing" class="px-2.5 py-1 rounded theme-elevated theme-text-muted">Missing Only</button>
+                            <button onclick="setAuditFilter('verified')" id="af-verified" class="px-2.5 py-1 rounded theme-elevated theme-text-muted">Verified Only</button>
+                        </div>
+                        <span class="text-[11px] font-mono theme-text-dim">Green = Matched • Amber = Missing</span>
+                    </div>
+
+                    <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-[400px]">
                         <table class="w-full text-left border-collapse text-xs font-mono">
                             <thead class="sticky top-0 theme-elevated border-b theme-border">
                                 <tr>
@@ -447,6 +666,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                                     <th class="p-3">Pallet ID</th>
                                     <th class="p-3">SKU / Lane</th>
                                     <th class="p-3" id="th-qty-col">Expected Qty</th>
+                                    <th class="p-3">Verified Time</th>
                                     <th class="p-3 text-right">Action</th>
                                 </tr>
                             </thead>
@@ -459,26 +679,29 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 3: SINGLE GENERATOR, ZPL & TERMINAL MACROS
+             TAB 3: SINGLE STUDIO, ZPL & TERMINAL MACROS
              ========================================== -->
         <section id="view-single" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Left Controls (5 Cols) -->
+            <!-- Left Controls with Explicit Defaults (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted block">Single Barcode Parameters</span>
+                    <div class="flex justify-between items-center border-b theme-border pb-2.5">
+                        <span class="text-xs font-semibold uppercase tracking-wider">Single Barcode Parameters</span>
+                        <button onclick="resetSingleStudioDefaults()" class="text-xs text-emerald-500 hover:underline">Reset to Defaults</button>
+                    </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
                             <select id="bc-type" onchange="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none">
-                                <option value="code128" selected>Code 128</option>
-                                <option value="gs1-128">GS1-128 / SSCC</option>
+                                <option value="code128" selected>Code 128 (Default)</option>
+                                <option value="gs1-128">GS1-128 / SSCC-18</option>
                                 <option value="itf14">ITF-14</option>
                                 <option value="code39">Code 39</option>
-                                <option value="qrcode">QR Code</option>
-                                <option value="datamatrix">Data Matrix</option>
-                                <option value="pdf417">PDF417</option>
+                                <option value="qrcode">QR Code (2D)</option>
+                                <option value="datamatrix">Data Matrix (2D)</option>
+                                <option value="pdf417">PDF417 (Stacked)</option>
                                 <option value="ean13">EAN-13</option>
                                 <option value="upca">UPC-A</option>
                             </select>
@@ -486,68 +709,112 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Control Suffix</label>
                             <select id="bc-suffix" onchange="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none">
-                                <option value="none" selected>No Suffix</option>
-                                <option value="enter">Append Enter (\r)</option>
-                                <option value="tab">Append Tab (\t)</option>
+                                <option value="none" selected>None (Default)</option>
+                                <option value="enter">Auto-Enter (\r)</option>
+                                <option value="tab">Auto-Tab (\t)</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-[10px] uppercase theme-text-dim mb-1">Payload Data</label>
-                        <input type="text" id="bc-data" value="FF-RM028262738" oninput="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono outline-none">
+                        <input type="text" id="bc-data" value="FF-RM028262738" oninput="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Custom Label Text Override (Optional)</label>
-                        <input type="text" id="bc-alttext" oninput="renderSingleBarcode()" placeholder="Custom human-readable text..." class="w-full theme-input border rounded-lg px-3 py-1.5 text-xs font-mono outline-none">
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Custom Label Text Override</label>
+                        <input type="text" id="bc-alttext" oninput="renderSingleBarcode()" placeholder="Blank = Encoded Data (Default)" class="w-full theme-input border rounded-lg px-3 py-1.5 text-xs font-mono outline-none">
+                    </div>
+
+                    <!-- Scale, Height, Quiet Zone with Default Indicators -->
+                    <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
+                        <div>
+                            <span class="text-[10px] theme-text-dim block mb-1">Scale: <b id="lbl-scale">3x (Default)</b></span>
+                            <input type="range" id="bc-scale" min="1" max="6" value="3" oninput="document.getElementById('lbl-scale').innerText=this.value+(this.value=='3'?'x (Default)':'x'); renderSingleBarcode();" class="w-full">
+                        </div>
+                        <div>
+                            <span class="text-[10px] theme-text-dim block mb-1">Height: <b id="lbl-height">15mm (Default)</b></span>
+                            <input type="range" id="bc-height" min="5" max="40" value="15" oninput="document.getElementById('lbl-height').innerText=this.value+(this.value=='15'?'mm (Default)':'mm'); renderSingleBarcode();" class="w-full">
+                        </div>
+                        <div>
+                            <span class="text-[10px] theme-text-dim block mb-1">Quiet Zone: <b id="lbl-pad">10px (Default)</b></span>
+                            <input type="range" id="bc-pad" min="0" max="30" value="10" oninput="document.getElementById('lbl-pad').innerText=this.value+(this.value=='10'?'px (Default)':'px'); renderSingleBarcode();" class="w-full">
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
                         <div>
-                            <span class="text-[10px] theme-text-dim block mb-1">Scale (<span id="lbl-scale">3x</span>)</span>
-                            <input type="range" id="bc-scale" min="1" max="6" value="3" oninput="document.getElementById('lbl-scale').innerText=this.value+'x'; renderSingleBarcode();" class="w-full">
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Text Pos</label>
+                            <select id="bc-textpos" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                                <option value="below" selected>Below (Default)</option>
+                                <option value="above">Above Bars</option>
+                                <option value="none">Hidden</option>
+                            </select>
                         </div>
                         <div>
-                            <span class="text-[10px] theme-text-dim block mb-1">Height (<span id="lbl-height">15mm</span>)</span>
-                            <input type="range" id="bc-height" min="5" max="40" value="15" oninput="document.getElementById('lbl-height').innerText=this.value+'mm'; renderSingleBarcode();" class="w-full">
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Text Size</label>
+                            <select id="bc-textsize" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                                <option value="8">8pt (Small)</option>
+                                <option value="10" selected>10pt (Default)</option>
+                                <option value="13">13pt (Large)</option>
+                                <option value="16">16pt (XL)</option>
+                            </select>
                         </div>
                         <div>
-                            <span class="text-[10px] theme-text-dim block mb-1">Rotation</span>
-                            <select id="bc-rotate" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1 text-xs">
-                                <option value="N" selected>0°</option>
-                                <option value="R">90°</option>
-                                <option value="I">180°</option>
-                                <option value="L">270°</option>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Rotation</label>
+                            <select id="bc-rotate" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                                <option value="N" selected>0° (Default)</option>
+                                <option value="R">90° CW</option>
+                                <option value="I">180° Invert</option>
+                                <option value="L">270° CCW</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ZPL Customization Settings -->
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t theme-border">
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Zebra ZPL Resolution</label>
+                            <select id="zpl-dpi" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                                <option value="203" selected>203 DPI (Default)</option>
+                                <option value="300">300 DPI (High-Res)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">ZPL Darkness (~SD)</label>
+                            <select id="zpl-darkness" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                                <option value="10">10 (Light)</option>
+                                <option value="15" selected>15 (Default)</option>
+                                <option value="22">22 (Dark Thermal)</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- WMS Multi-Step Macro Cheat Sheet Builder -->
-                <div class="theme-card border rounded-xl p-4 space-y-3 shadow-sm">
-                    <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted block">WMS Terminal Macro Presets</span>
+                <!-- WMS Multi-Step Macro Presets -->
+                <div class="theme-card border rounded-xl p-4 space-y-2.5 shadow-sm">
+                    <span class="text-xs font-semibold uppercase tracking-wider block">WMS Terminal Macro Presets</span>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="loadMacroPreset('PART-01\\t48\\r', 'Auto-Fill SKU + Tab + Qty 48 + Enter')" class="theme-elevated border text-left p-2 rounded-lg text-xs hover:border-emerald-500">
+                        <button onclick="loadMacroPreset('PART-01\\t48\\r', 'SKU + Tab + Qty 48 + Enter')" class="theme-elevated border text-left p-2.5 rounded-lg text-xs hover:border-emerald-500 transition">
                             <span class="font-mono font-bold text-emerald-500 block">SKU + Tab + Qty</span>
-                            <span class="text-[10px] theme-text-dim">Single-scan form submit</span>
+                            <span class="text-[10px] theme-text-dim">Auto-fills JDA form</span>
                         </button>
-                        <button onclick="loadMacroPreset('CONFIRMED\\r', 'CONFIRM + Enter')" class="theme-elevated border text-left p-2 rounded-lg text-xs hover:border-emerald-500">
+                        <button onclick="loadMacroPreset('CONFIRMED\\r', 'CONFIRM + Enter')" class="theme-elevated border text-left p-2.5 rounded-lg text-xs hover:border-emerald-500 transition">
                             <span class="font-mono font-bold text-emerald-500 block">Confirm + Enter</span>
-                            <span class="text-[10px] theme-text-dim">Instant terminal accept</span>
+                            <span class="text-[10px] theme-text-dim">Instant screen accept</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Preview & ZPL / Vector Export (7 Cols) -->
+            <!-- Right Preview Stage (7 Cols) -->
             <div class="lg:col-span-7 theme-card border rounded-xl overflow-hidden shadow-sm flex flex-col">
-                <div class="px-5 py-3 border-b theme-border flex justify-between items-center">
-                    <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Live Preview</span>
+                <div class="px-5 py-3.5 border-b theme-border flex justify-between items-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Live Vector & Raster Stage</span>
                     <span id="badge-dims" class="text-[10px] font-mono px-2 py-0.5 rounded theme-elevated border">0 × 0 px</span>
                 </div>
-                <div class="stage-surface min-h-[300px] p-8 flex items-center justify-center relative">
-                    <div class="rounded-xl shadow-md p-6 bg-white">
+                <div class="canvas-grid min-h-[340px] p-8 flex items-center justify-center relative">
+                    <div class="rounded-xl shadow-2xl p-6 bg-white">
                         <canvas id="barcode-canvas" class="max-w-full"></canvas>
                     </div>
                     <div id="render-error" class="hidden absolute bottom-4 left-4 right-4 bg-red-950 border border-red-800 text-red-200 px-4 py-2 rounded-lg text-xs font-mono">
@@ -555,11 +822,11 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </div>
                 </div>
                 <div class="p-4 border-t theme-border grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    <button onclick="exportPNG()" class="bg-emerald-600 text-white text-xs font-semibold py-2 rounded-lg">PNG</button>
-                    <button onclick="exportSVG()" class="theme-elevated border text-xs font-medium py-2 rounded-lg">SVG</button>
-                    <button onclick="exportPDF()" class="theme-elevated border text-xs font-medium py-2 rounded-lg">PDF</button>
-                    <button onclick="exportZPL(document.getElementById('bc-data').value)" class="theme-elevated border text-xs font-mono py-2 rounded-lg">.ZPL Code</button>
-                    <button onclick="printSingleLabel()" class="col-span-2 sm:col-span-1 bg-zinc-100 text-zinc-950 text-xs font-semibold py-2 rounded-lg">Print</button>
+                    <button onclick="exportPNG()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-lg shadow">Download PNG</button>
+                    <button onclick="exportSVG()" class="theme-elevated border text-xs font-medium py-2.5 rounded-lg">Vector SVG</button>
+                    <button onclick="exportPDF()" class="theme-elevated border text-xs font-medium py-2.5 rounded-lg">Export PDF</button>
+                    <button onclick="exportZPL(document.getElementById('bc-data').value)" class="theme-elevated border text-xs font-mono py-2.5 rounded-lg">.ZPL Code</button>
+                    <button onclick="printSingleLabel()" class="col-span-2 sm:col-span-1 bg-zinc-100 text-zinc-950 text-xs font-semibold py-2.5 rounded-lg shadow">Print Label</button>
                 </div>
             </div>
         </section>
@@ -568,29 +835,39 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
              TAB 4: LPN CONSOLIDATION, IMAGE DECODE & MASTER LOG
              ========================================== -->
         <section id="view-tools" class="hidden space-y-6">
-            
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                <!-- Master LPN / Pallet Consolidation Builder (7 Cols) -->
+                <!-- Master LPN Consolidation Builder (7 Cols) -->
                 <div class="lg:col-span-7 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <div class="flex justify-between items-center border-b theme-border pb-3">
+                    <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
                         <div>
-                            <h2 class="text-xs font-semibold uppercase tracking-wider">Parent-Child Pallet Consolidation (LPN Builder)</h2>
-                            <p class="text-[11px] theme-text-dim">Link individual cartons to a Master Pallet ID & generate a 2D manifest QR</p>
+                            <h2 class="text-xs font-semibold uppercase tracking-wider">Parent-Child Pallet Consolidation (LPN)</h2>
+                            <p class="text-[11px] theme-text-dim">Scan individual cartons into a Master Pallet LPN</p>
                         </div>
-                        <button onclick="printConsolidatedSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Print Master Sheet</button>
+                        <div class="flex gap-2">
+                            <button onclick="quickSavePrompt('lpn')" class="theme-elevated border text-xs font-medium px-3 py-1.5 rounded-lg">Save LPN Task</button>
+                            <button onclick="printConsolidatedSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Print Master Sheet</button>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label class="text-[10px] uppercase theme-text-dim block mb-1">1. Master Pallet LPN</label>
+                            <label class="text-[10px] uppercase theme-text-dim block mb-1">Master Pallet LPN</label>
                             <input type="text" id="lpn-master" value="PLT-MASTER-001" oninput="renderLpnQr()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold">
                         </div>
                         <div>
-                            <label class="text-[10px] uppercase theme-text-dim block mb-1">2. Scan Child Carton to Add</label>
+                            <label class="text-[10px] uppercase theme-text-dim block mb-1">Delimiter</label>
+                            <select id="lpn-delim" onchange="renderLpnQr()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs">
+                                <option value="," selected>Comma (Default)</option>
+                                <option value="|">Pipe (|)</option>
+                                <option value=";">Semicolon (;)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase theme-text-dim block mb-1">Add Child Carton</label>
                             <div class="flex gap-1.5">
-                                <input type="text" id="lpn-child-input" placeholder="Scan carton & hit Enter..." onkeydown="if(event.key==='Enter') addLpnChild()" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono">
-                                <button onclick="addLpnChild()" class="bg-emerald-600 text-white text-xs font-semibold px-3 rounded-lg">+ Add</button>
+                                <input type="text" id="lpn-child-input" placeholder="Scan carton..." onkeydown="if(event.key==='Enter') addLpnChild()" class="flex-grow theme-input border rounded-lg px-2.5 py-2 text-xs font-mono">
+                                <button onclick="addLpnChild()" class="bg-emerald-600 text-white text-xs font-semibold px-3 rounded-lg">+</button>
                             </div>
                         </div>
                     </div>
@@ -605,17 +882,17 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         </div>
                         <div class="bg-white p-3 rounded-lg flex flex-col items-center justify-center">
                             <canvas id="lpn-qr-canvas" class="max-w-full"></canvas>
-                            <span class="text-[10px] font-mono text-zinc-800 mt-1 font-bold">2D Manifest QR</span>
+                            <span class="text-[10px] font-mono text-zinc-800 mt-1 font-bold">Consolidated 2D QR</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Static Image File Decoder (5 Cols) -->
+                <!-- Image File Decoder (5 Cols) -->
                 <div class="lg:col-span-5 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Decode Barcode from Image File</h2>
+                    <h2 class="text-xs font-semibold uppercase tracking-wider">Decode Barcode from Image File</h2>
                     <label class="flex flex-col items-center justify-center border-2 border-dashed theme-border hover:border-emerald-500 rounded-xl p-6 cursor-pointer transition theme-input">
                         <i data-lucide="upload-cloud" class="w-7 h-7 text-emerald-500 mb-2"></i>
-                        <span class="text-xs font-medium">Select PNG / JPG / Screenshot</span>
+                        <span class="text-xs font-medium">Upload PNG / JPG / Screenshot</span>
                         <input type="file" accept="image/*" onchange="scanUploadedFile(event)" class="hidden">
                     </label>
                     <div id="file-scan-box" class="hidden theme-input p-3 rounded-lg border flex justify-between items-center">
@@ -629,7 +906,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             <!-- Master Session Scan Log -->
             <div class="theme-card border rounded-xl p-5 space-y-3 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
-                    <span class="text-xs font-semibold uppercase tracking-wider theme-text-muted">Master Session Activity Log</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider">Master Session Activity Log</span>
                     <div class="flex gap-2">
                         <button onclick="shareUrlSnapshot()" class="theme-elevated border text-xs font-medium px-3 py-1.5 rounded-lg">Copy Share Link</button>
                         <button onclick="exportHistoryCSV()" class="theme-elevated border text-xs font-medium px-3 py-1.5 rounded-lg">Export CSV</button>
@@ -650,7 +927,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </table>
                 </div>
             </div>
-
         </section>
 
     </main>
@@ -664,15 +940,223 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         <span id="toast-text">Action completed</span>
     </div>
 
-    <!-- APPLICATION LOGIC -->
+    <!-- APPLICATION SCRIPT -->
     <script>
         lucide.createIcons();
 
         // ==========================================
-        // 1. AUDIO SYNTHESIZER & VOICE TTS ENGINE
+        // 1. WORKSPACE FOLDER & TASK FILE MANAGER
+        // ==========================================
+        const DEFAULT_WORKSPACE = {
+            folders: ['Default Shift', 'Inbound Pallets', 'Outbound Lanes', 'QA & Holds'],
+            activeFolder: 'Default Shift',
+            files: [
+                {
+                    id: 'task-1',
+                    folder: 'Default Shift',
+                    name: 'Morning Inbound Batch',
+                    type: 'bulk',
+                    updated: 'Today',
+                    content: "FF-RM028262738, SKU-8821, 48, LANE-01\nFF-RM028262739, SKU-8821, 48, LANE-01\nFF-RM028262740, SKU-4410, 24, LANE-04\nFF-RM028262741, SKU-9012, 96, DOCK-NORTH"
+                },
+                {
+                    id: 'task-2',
+                    folder: 'Default Shift',
+                    name: 'Dock Door 4 Audit Manifest',
+                    type: 'audit',
+                    updated: 'Today',
+                    content: "FF-RM028262738, SKU-8821, 48, LANE-01\nFF-RM028262739, SKU-8821, 48, LANE-01\nFF-RM028262740, SKU-4410, 24, LANE-04\nFF-RM028262741, SKU-9012, 96, DOCK-NORTH"
+                }
+            ]
+        };
+
+        let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || JSON.stringify(DEFAULT_WORKSPACE));
+
+        function saveWorkspaceState() {
+            localStorage.setItem('wmsWorkspaceFilesV1', JSON.stringify(workspace));
+            document.getElementById('nav-file-count').innerText = workspace.files.length;
+        }
+
+        function toggleFileManager() {
+            const drawer = document.getElementById('file-manager-drawer');
+            const backdrop = document.getElementById('file-manager-backdrop');
+            const isOpen = !drawer.classList.contains('-translate-x-full');
+            if (isOpen) {
+                drawer.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            } else {
+                renderFolderDropdown();
+                renderFileManager();
+                drawer.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+        }
+
+        function renderFolderDropdown() {
+            const sel = document.getElementById('fm-folder-select');
+            sel.innerHTML = workspace.folders.map(f => `<option value="${escapeHtml(f)}" ${f === workspace.activeFolder ? 'selected' : ''}>📁 ${escapeHtml(f)}</option>`).join('');
+        }
+
+        function createNewFolder() {
+            const name = prompt("Enter new folder name (e.g., Night Shift, Carrier X):");
+            if (!name || !name.trim()) return;
+            const clean = name.trim();
+            if (!workspace.folders.includes(clean)) {
+                workspace.folders.push(clean);
+            }
+            workspace.activeFolder = clean;
+            saveWorkspaceState();
+            renderFolderDropdown();
+            renderFileManager();
+            showToast(`Created folder: ${clean}`);
+        }
+
+        function deleteCurrentFolder() {
+            const folder = document.getElementById('fm-folder-select').value;
+            if (workspace.folders.length <= 1) return alert("Cannot delete the last remaining folder.");
+            if (!confirm(`Delete folder "${folder}" and all tasks inside it?`)) return;
+            workspace.folders = workspace.folders.filter(f => f !== folder);
+            workspace.files = workspace.files.filter(file => file.folder !== folder);
+            workspace.activeFolder = workspace.folders[0];
+            saveWorkspaceState();
+            renderFolderDropdown();
+            renderFileManager();
+        }
+
+        function saveCurrentTaskToFile(overrideType = null, overrideName = null) {
+            const folder = document.getElementById('fm-folder-select').value || workspace.folders[0];
+            const type = overrideType || document.getElementById('fm-task-type').value;
+            const nameInput = document.getElementById('fm-task-name');
+            const name = overrideName || nameInput.value.trim() || `Task-${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
+
+            let content = '';
+            if (type === 'bulk') content = document.getElementById('batch-input').value;
+            else if (type === 'audit') content = document.getElementById('audit-manifest-input').value;
+            else if (type === 'lpn') content = JSON.stringify({ master: document.getElementById('lpn-master').value, children: lpnChildren });
+
+            workspace.files.unshift({
+                id: 'task-' + Date.now(),
+                folder,
+                name,
+                type,
+                updated: new Date().toLocaleString('en-GB', { hour12: false }),
+                content
+            });
+
+            if (nameInput) nameInput.value = '';
+            document.getElementById('active-task-label').innerText = name;
+            saveWorkspaceState();
+            renderFileManager();
+            playTone('success');
+            showToast(`Saved "${name}" in ${folder}`);
+        }
+
+        function quickSavePrompt(type) {
+            const name = prompt(`Save current ${type.toUpperCase()} list as a Task File. Enter task name:`);
+            if (!name || !name.trim()) return;
+            saveCurrentTaskToFile(type, name.trim());
+        }
+
+        function loadTaskFile(id) {
+            const file = workspace.files.find(f => f.id === id);
+            if (!file) return;
+            document.getElementById('active-task-label').innerText = file.name;
+
+            if (file.type === 'bulk') {
+                document.getElementById('batch-input').value = file.content;
+                scannedSet.clear();
+                switchTab('bulk');
+                loadBulkDeck(false);
+            } else if (file.type === 'audit') {
+                document.getElementById('audit-manifest-input').value = file.content;
+                switchTab('audit');
+                loadAuditManifest();
+            } else if (file.type === 'lpn') {
+                try {
+                    const data = JSON.parse(file.content);
+                    document.getElementById('lpn-master').value = data.master || 'PLT-MASTER-001';
+                    lpnChildren = Array.isArray(data.children) ? data.children : [];
+                    switchTab('tools');
+                    renderLpnQr();
+                } catch (e) {}
+            }
+            toggleFileManager();
+            playTone('success');
+            showToast(`Loaded task: ${file.name}`);
+        }
+
+        function deleteTaskFile(id) {
+            workspace.files = workspace.files.filter(f => f.id !== id);
+            saveWorkspaceState();
+            renderFileManager();
+        }
+
+        function renderFileManager() {
+            const folder = document.getElementById('fm-folder-select').value;
+            workspace.activeFolder = folder;
+            const list = document.getElementById('fm-file-list');
+            const folderFiles = workspace.files.filter(f => f.folder === folder);
+
+            if (folderFiles.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-xs theme-text-dim font-mono">No task files in "${escapeHtml(folder)}" yet.</div>`;
+                return;
+            }
+
+            const badgeMap = {
+                bulk: '<span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[10px] font-mono">BULK DECK</span>',
+                audit: '<span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 text-[10px] font-mono">AUDIT</span>',
+                lpn: '<span class="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-mono">LPN</span>'
+            };
+
+            list.innerHTML = folderFiles.map(f => `
+                <div class="p-3 rounded-lg border theme-input hover:border-emerald-500/60 transition flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-grow cursor-pointer" onclick="loadTaskFile('${f.id}')">
+                        <div class="flex items-center gap-2">
+                            ${badgeMap[f.type] || ''}
+                            <span class="text-xs font-semibold truncate">${escapeHtml(f.name)}</span>
+                        </div>
+                        <span class="text-[10px] font-mono theme-text-dim block mt-1">${escapeHtml(f.updated)}</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="loadTaskFile('${f.id}')" class="px-2.5 py-1 rounded bg-emerald-600 text-white text-xs font-semibold">Open</button>
+                        <button onclick="deleteTaskFile('${f.id}')" class="p-1.5 rounded theme-elevated text-red-400 hover:opacity-80">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exportWorkspaceJSON() {
+            const blob = new Blob([JSON.stringify(workspace, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.download = `barcode-workspace-${Date.now()}.json`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            showToast("Workspace backup exported");
+        }
+
+        function importWorkspaceJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.folders && parsed.files) {
+                        workspace = parsed;
+                        saveWorkspaceState();
+                        renderFolderDropdown();
+                        renderFileManager();
+                        showToast("Workspace restored!");
+                    }
+                } catch (err) { alert("Invalid workspace JSON file."); }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==========================================
+        // 2. AUDIO SYNTHESIZER & SEGMENTED THEME BAR
         // ==========================================
         let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true');
-        let voiceEnabled = JSON.parse(localStorage.getItem('wmsVoiceEnabled') ?? 'false');
         let audioCtx = null;
 
         function playTone(type) {
@@ -689,6 +1173,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                     osc.connect(gain); gain.connect(audioCtx.destination);
                     osc.start(now); osc.stop(now + 0.08);
+                    if (navigator.vibrate) navigator.vibrate(35);
                 } else {
                     [0, 0.15].forEach(offset => {
                         const osc = audioCtx.createOscillator();
@@ -700,48 +1185,43 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         osc.connect(gain); gain.connect(audioCtx.destination);
                         osc.start(now + offset); osc.stop(now + offset + 0.12);
                     });
+                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 }
             } catch (e) {}
-        }
-
-        function speakText(msg) {
-            if (!voiceEnabled || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utter = new SpeechSynthesisUtterance(msg);
-            utter.rate = 1.15;
-            window.speechSynthesis.speak(utter);
         }
 
         function toggleAudio() {
             audioEnabled = !audioEnabled;
             localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled));
-            const icon = document.getElementById('icon-audio');
-            icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
-            icon.className = audioEnabled ? "w-4 h-4 text-emerald-500" : "w-4 h-4 text-red-400";
-            lucide.createIcons();
+            updateAudioUI();
             if (audioEnabled) playTone('success');
             showToast(audioEnabled ? "Audio Beeps ON" : "Audio Muted");
         }
 
-        function toggleVoice() {
-            voiceEnabled = !voiceEnabled;
-            localStorage.setItem('wmsVoiceEnabled', JSON.stringify(voiceEnabled));
-            const icon = document.getElementById('icon-voice');
-            icon.setAttribute('data-lucide', voiceEnabled ? 'mic' : 'mic-off');
-            icon.className = voiceEnabled ? "w-4 h-4 text-emerald-500" : "w-4 h-4 theme-text-dim";
+        function updateAudioUI() {
+            const lbl = document.getElementById('lbl-audio');
+            const icon = document.getElementById('icon-audio');
+            lbl.innerText = audioEnabled ? "Audio ON" : "Muted";
+            icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
+            icon.className = audioEnabled ? "w-3.5 h-3.5 text-emerald-500" : "w-3.5 h-3.5 text-red-400";
             lucide.createIcons();
-            if (voiceEnabled) speakText("Voice readback active");
-            showToast(voiceEnabled ? "Hands-Free Voice ON" : "Voice Readback OFF");
         }
 
         function setTheme(mode) {
             document.documentElement.setAttribute('data-theme', mode);
             localStorage.setItem('wmsThemeMode', mode);
-            document.getElementById('theme-select').value = mode;
+            ['dark', 'light', 'eye-protect'].forEach(m => {
+                const btn = document.getElementById(`theme-${m}`);
+                if (m === mode) {
+                    btn.className = "px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 bg-emerald-600 text-white transition";
+                } else {
+                    btn.className = "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition";
+                }
+            });
         }
 
         // ==========================================
-        // 2. GLOBAL "NO-CLICK" HARDWARE GUN INTERCEPTOR
+        // 3. GLOBAL HARDWARE GUN INTERCEPTOR
         // ==========================================
         let gunBuffer = '';
         let lastKeyTime = 0;
@@ -750,7 +1230,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
             const isTypingInInput = (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select');
 
-            // Global high-speed scanner interceptor when no input is focused
             if (!isTypingInInput) {
                 const now = Date.now();
                 if (now - lastKeyTime > 60) gunBuffer = '';
@@ -766,7 +1245,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     gunBuffer += e.key;
                 }
 
-                // Keyboard arrow navigation for Bulk Deck
                 if (!document.getElementById('view-bulk').classList.contains('hidden')) {
                     if (e.key === 'ArrowRight') { e.preventDefault(); stepDeck(1); }
                     else if (e.key === 'ArrowLeft') { e.preventDefault(); stepDeck(-1); }
@@ -785,46 +1263,11 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             } else if (!document.getElementById('view-tools').classList.contains('hidden')) {
                 document.getElementById('lpn-child-input').value = code;
                 addLpnChild();
-            } else {
-                logItem(code, 'Global Gun Scan', true);
-                playTone('success');
-                showToast(`Global Scan Logged: ${code}`);
             }
         }
 
         // ==========================================
-        // 3. DIRECT EXCEL (.XLSX) & CSV IMPORTER
-        // ==========================================
-        function importSpreadsheet(event, targetTextareaId, isAudit = false) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const ext = file.name.split('.').pop().toLowerCase();
-
-            if (ext === 'xlsx' || ext === 'xls') {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const csvText = XLSX.utils.sheet_to_csv(firstSheet);
-                    document.getElementById(targetTextareaId).value = csvText.trim();
-                    if (isAudit) loadAuditManifest(); else loadBulkDeck(false);
-                    showToast(`Imported Excel sheet: ${file.name}`);
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById(targetTextareaId).value = e.target.result.trim();
-                    if (isAudit) loadAuditManifest(); else loadBulkDeck(false);
-                    showToast(`Imported file: ${file.name}`);
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        // ==========================================
-        // 4. BULK DECK, ASCII SUFFIXES & SPECIALTY LABELS
+        // 4. BULK DECK, CUSTOM TIMER & STATUS PILLS
         // ==========================================
         let bulkRecords = [];
         let scannedSet = new Set();
@@ -848,7 +1291,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         function loadBulkDeck(preserveIndex = false) {
             const raw = document.getElementById('batch-input').value;
             bulkRecords = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(parseCsvLine).filter(r => r.id);
-            document.getElementById('bulk-line-count').innerText = `${bulkRecords.length} items`;
+            document.getElementById('bulk-line-count').innerText = `${bulkRecords.length} item${bulkRecords.length === 1 ? '' : 's'}`;
             if (!preserveIndex || currentDeckIndex >= bulkRecords.length) currentDeckIndex = 0;
             renderCurrentDeckSlide();
             if (bulkViewMode === 'grid') generateBatchGrid();
@@ -863,10 +1306,12 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const routingHeader = document.getElementById('deck-routing-header');
             const sym = document.getElementById('batch-type').value;
             const suffix = document.getElementById('batch-suffix').value;
+            const scale = parseInt(document.getElementById('batch-scale').value) || 4;
+            const height = parseInt(document.getElementById('batch-height').value) || 18;
 
             if (bulkRecords.length === 0) {
                 counter.innerText = "0 / 0";
-                currentText.innerText = "Empty List";
+                currentText.innerText = "No items in list";
                 progress.style.width = "0%";
                 routingHeader.classList.add('hidden');
                 canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
@@ -888,18 +1333,23 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 routingHeader.classList.add('hidden');
             }
 
-            badge.innerText = scannedSet.has(currentDeckIndex) ? "✓ Verified" : "Awaiting Scan";
-            badge.className = scannedSet.has(currentDeckIndex) ? "text-xs text-emerald-500 font-mono font-bold" : "text-xs theme-text-muted font-mono";
+            // RESTORED RICH SCANNING STATUS PILLS
+            if (scannedSet.has(currentDeckIndex)) {
+                badge.className = "mb-4 px-3.5 py-1 rounded-full text-xs font-mono uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/50 text-emerald-500 font-bold flex items-center gap-2 shadow-sm";
+                badge.innerHTML = `<span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Scanned & Verified (${currentDeckIndex + 1} of ${bulkRecords.length})`;
+            } else {
+                badge.className = "mb-4 px-3.5 py-1 rounded-full text-xs font-mono uppercase tracking-wider theme-elevated border flex items-center gap-2 shadow-sm";
+                badge.innerHTML = `<span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span> Ready to Scan (${currentDeckIndex + 1} of ${bulkRecords.length})`;
+            }
 
             try {
-                const encodedText = formatPayloadWithSuffix(rec.id, suffix);
                 bwipjs.toCanvas(canvas, {
                     bcid: sym,
-                    text: encodedText,
+                    text: formatPayloadWithSuffix(rec.id, suffix),
                     alttext: rec.id,
                     parse: true,
-                    scale: 4,
-                    height: 18,
+                    scale: scale,
+                    height: height,
                     includetext: true,
                     textxalign: 'center',
                     textsize: 12,
@@ -908,7 +1358,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     backgroundcolor: 'ffffff'
                 });
             } catch (e) {
-                currentText.innerText = `${rec.id} (Format Error)`;
+                currentText.innerText = `${rec.id} (Invalid ${sym.toUpperCase()})`;
             }
             renderDeckPills();
         }
@@ -924,9 +1374,8 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 markAndNextDeck();
             } else {
                 playTone('error');
-                speakText("Mismatch error");
                 inp.value = '';
-                showToast(`Mismatch! Expected ${expected}`);
+                showToast(`Mismatch! Expected ${expected}, scanned ${val}`);
             }
         }
 
@@ -935,20 +1384,54 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const rec = bulkRecords[currentDeckIndex];
             scannedSet.add(currentDeckIndex);
             playTone('success');
-            speakText(rec.id.slice(-4));
             logItem(rec.id, 'Bulk 1-by-1 Scan', true);
 
-            if (document.getElementById('chk-scan-advance').checked && currentDeckIndex < bulkRecords.length - 1) {
-                currentDeckIndex++;
+            const stage = document.getElementById('deck-stage-box');
+            stage.classList.remove('scan-flash');
+            void stage.offsetWidth;
+            stage.classList.add('scan-flash');
+
+            if (document.getElementById('chk-scan-advance').checked) {
+                if (currentDeckIndex < bulkRecords.length - 1) {
+                    currentDeckIndex++;
+                } else {
+                    showToast("Completed all items in bulk deck!");
+                }
             }
             renderCurrentDeckSlide();
         }
 
         function stepDeck(delta) {
             if (bulkRecords.length === 0) return;
+            const loop = document.getElementById('chk-timer-loop').checked;
+            if (!loop && currentDeckIndex + delta >= bulkRecords.length) {
+                if (autoPlayTimer) toggleAutoPlay();
+                showToast("Reached end of deck");
+                return;
+            }
             currentDeckIndex = (currentDeckIndex + delta + bulkRecords.length) % bulkRecords.length;
             playTone('success');
             renderCurrentDeckSlide();
+        }
+
+        function toggleAutoPlay() {
+            const btn = document.getElementById('btn-autoplay');
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+                btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Start Timer`;
+                btn.className = "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold theme-elevated border hover:border-emerald-500 transition";
+            } else {
+                const sec = Math.max(0.5, parseFloat(document.getElementById('custom-timer-sec').value) || 2.5);
+                autoPlayTimer = setInterval(() => stepDeck(1), sec * 1000);
+                btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> Pause (${sec}s)`;
+                btn.className = "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white shadow transition";
+            }
+            lucide.createIcons();
+        }
+
+        function restartAutoPlayIfActive() {
+            if (autoPlayTimer) { toggleAutoPlay(); toggleAutoPlay(); }
         }
 
         function renderDeckPills() {
@@ -958,10 +1441,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 const btn = document.createElement('button');
                 btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
                 btn.className = idx === currentDeckIndex
-                    ? "px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-600 text-white"
+                    ? "px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white shadow"
                     : scannedSet.has(idx)
-                        ? "px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
-                        : "px-2 py-0.5 rounded text-[11px] font-mono theme-elevated border opacity-70";
+                        ? "px-2.5 py-1 rounded text-xs font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
+                        : "px-2.5 py-1 rounded text-xs font-mono theme-elevated border opacity-75 hover:opacity-100";
                 btn.innerText = `${idx + 1}. ${rec.id}`;
                 container.appendChild(btn);
             });
@@ -970,72 +1453,41 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         function generateSequenceList() {
             const prefix = document.getElementById('seq-prefix').value;
             const startStr = document.getElementById('seq-start').value.trim();
+            const suffix = document.getElementById('seq-suffix').value.trim();
             const count = Math.min(500, Math.max(1, parseInt(document.getElementById('seq-count').value) || 10));
+            const step = BigInt(Math.max(1, parseInt(document.getElementById('seq-step').value) || 1));
             const lane = document.getElementById('seq-lane').value.trim();
+
             const startNum = BigInt(startStr.replace(/\D/g, '') || '1');
             const padLen = startStr.length;
             const lines = [];
             for (let i = 0n; i < BigInt(count); i++) {
-                const id = `${prefix}${(startNum + i).toString().padStart(padLen, '0')}`;
+                const id = `${prefix}${(startNum + (i * step)).toString().padStart(padLen, '0')}${suffix}`;
                 lines.push(lane ? `${id}, SKU-STD, 1, ${lane}` : id);
             }
             document.getElementById('batch-input').value = lines.join('\n');
             scannedSet.clear();
             loadBulkDeck(false);
             playTone('success');
-        }
-
-        // Print Racking Location Sign
-        function printRackingSign() {
-            const loc = document.getElementById('rack-code').value.trim() || 'A-01-01';
-            const arrow = document.getElementById('rack-arrow').value;
-            const offCanvas = document.getElementById('offscreen-canvas');
-            bwipjs.toCanvas(offCanvas, { bcid: 'code128', text: loc, scale: 4, height: 20, includetext: false, backgroundcolor: 'ffffff' });
-            const win = window.open('', '_blank');
-            win.document.write(`
-                <html><body style="margin:0;padding:20px;font-family:sans-serif;text-align:center;">
-                <div style="border:6px solid #000;padding:25px;max-width:500px;margin:auto;background:#ffeb3b;">
-                    <div style="font-size:64px;font-weight:900;line-height:1;">${arrow} ${escapeHtml(loc)}</div>
-                    <div style="background:#fff;padding:15px;margin-top:15px;border:3px solid #000;">
-                        <img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;"/>
-                    </div>
-                </div>
-                <script>window.onload=function(){window.print();window.close();}<\/script>
-                </body></html>
-            `);
-            win.document.close();
-        }
-
-        // Print 4x6 Quarantine / Damaged Hold Tag
-        function printHoldTag() {
-            const pallet = document.getElementById('hold-pallet').value.trim() || 'HOLD-001';
-            const reason = document.getElementById('hold-reason').value;
-            const now = new Date().toLocaleString('en-GB');
-            const offCanvas = document.getElementById('offscreen-canvas');
-            bwipjs.toCanvas(offCanvas, { bcid: 'code128', text: pallet, scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
-            const win = window.open('', '_blank');
-            win.document.write(`
-                <html><body style="margin:0;padding:20px;font-family:monospace;text-align:center;">
-                <div style="border:5px solid #000;padding:20px;width:360px;margin:auto;">
-                    <div style="background:#000;color:#fff;font-size:24px;font-weight:bold;padding:10px;">⚠ ${escapeHtml(reason)}</div>
-                    <div style="margin:15px 0;font-size:14px;text-align:left;border-bottom:2px solid #000;padding-bottom:10px;">
-                        <div><b>PALLET ID:</b> ${escapeHtml(pallet)}</div>
-                        <div><b>TIMESTAMP:</b> ${now}</div>
-                        <div><b>STATUS:</b> DO NOT SHIP / HOLD</div>
-                    </div>
-                    <img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;"/>
-                </div>
-                <script>window.onload=function(){window.print();window.close();}<\/script>
-                </body></html>
-            `);
-            win.document.close();
+            showToast(`Generated ${count} sequential items`);
         }
 
         // ==========================================
-        // 5. AUDIT, BLIND CYCLE COUNT & GUARDRAILS
+        // 5. AUDIT, BLIND CYCLE COUNT & FILTERS
         // ==========================================
         let auditManifest = new Map();
         let auditRogues = [];
+        let auditFilter = 'all';
+
+        function setAuditFilter(f) {
+            auditFilter = f;
+            ['all', 'missing', 'verified'].forEach(k => {
+                document.getElementById(`af-${k}`).className = k === f
+                    ? "px-2.5 py-1 rounded bg-emerald-600 text-white font-medium"
+                    : "px-2.5 py-1 rounded theme-elevated theme-text-muted";
+            });
+            renderAuditState();
+        }
 
         function loadAuditManifest() {
             const raw = document.getElementById('audit-manifest-input').value;
@@ -1060,7 +1512,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             if (!rawScan) return;
             gunInput.value = '';
 
-            // 1. Check Prefix & Length Guardrails
             const reqPrefix = document.getElementById('guard-prefix').value.trim().toUpperCase();
             const reqLen = parseInt(document.getElementById('guard-len').value) || 0;
             const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
@@ -1070,10 +1521,9 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             if ((reqPrefix && !rawScan.toUpperCase().startsWith(reqPrefix)) || (reqLen > 0 && rawScan.length !== reqLen)) {
                 playTone('error');
-                speakText("Guardrail rejected");
                 auditRogues.unshift({ id: `${rawScan} (Rule Reject)`, time: now });
                 banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-red-500/20 border border-red-500 text-red-400 flex justify-between";
-                bannerText.innerText = `✕ GUARDRAIL REJECT: "${rawScan}" failed prefix/length check!`;
+                bannerText.innerText = `✕ GUARDRAIL REJECT: "${rawScan}" failed prefix/length rule!`;
                 renderAuditState();
                 return;
             }
@@ -1089,16 +1539,14 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 item.time = now;
                 item.countedQty = isBlind ? blindQtyVal : item.expectedQty;
                 playTone('success');
-                speakText(`Verified ${item.lane}`);
                 banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-emerald-500/20 border border-emerald-500 text-emerald-400 flex justify-between";
-                bannerText.innerText = `✓ VERIFIED: ${item.id} | Route: ${item.lane}`;
+                bannerText.innerText = `✓ VERIFIED MATCH: ${item.id} (${item.lane})`;
                 logItem(item.id, 'Audit Verified', true);
             } else {
                 playTone('error');
-                speakText("Rogue pallet alert");
                 auditRogues.unshift({ id: rawScan, time: now });
                 banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-red-500/20 border border-red-500 text-red-400 flex justify-between";
-                bannerText.innerText = `✕ ROGUE PALLET: "${rawScan}" NOT ON MANIFEST!`;
+                bannerText.innerText = `✕ ROGUE PALLET ALERT: "${rawScan}" NOT ON MANIFEST!`;
                 logItem(rawScan, 'Audit ROGUE', true);
             }
             renderAuditState();
@@ -1128,22 +1576,30 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const tbody = document.getElementById('audit-tbody');
             tbody.innerHTML = '';
             auditManifest.forEach((item, key) => {
+                if (auditFilter === 'missing' && item.verified) return;
+                if (auditFilter === 'verified' && !item.verified) return;
+
                 const tr = document.createElement('tr');
                 tr.className = item.verified ? "bg-emerald-500/10" : "";
                 let qtyDisplay = item.expectedQty;
                 if (isBlind) {
-                    if (!item.verified) qtyDisplay = `<span class="theme-text-dim">Hidden (Blind)</span>`;
+                    if (!item.verified) qtyDisplay = `<span class="theme-text-dim">Hidden</span>`;
                     else {
                         const diff = (item.countedQty || 0) - item.expectedQty;
-                        qtyDisplay = `${item.countedQty} / Exp: ${item.expectedQty} (${diff === 0 ? 'OK' : (diff > 0 ? '+'+diff : diff)})`;
+                        qtyDisplay = `${item.countedQty} / Exp:${item.expectedQty} (${diff === 0 ? 'OK' : (diff > 0 ? '+'+diff : diff)})`;
                     }
                 }
+                const statusBadge = item.verified
+                    ? `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 font-bold text-[10px]">✓ VERIFIED</span>`
+                    : `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40 font-semibold text-[10px]">⏳ MISSING</span>`;
+
                 tr.innerHTML = `
-                    <td class="p-3">${item.verified ? '<span class="text-emerald-500 font-bold">✓ DONE</span>' : '<span class="text-amber-500">⏳ WAIT</span>'}</td>
+                    <td class="p-3">${statusBadge}</td>
                     <td class="p-3 font-bold">${escapeHtml(item.id)}</td>
                     <td class="p-3 theme-text-muted">${escapeHtml(item.sku)} | ${escapeHtml(item.lane)}</td>
                     <td class="p-3">${qtyDisplay}</td>
-                    <td class="p-3 text-right"><button onclick="toggleManualAudit('${escapeHtml(key)}')" class="underline text-[11px]">${item.verified ? 'Undo' : 'Verify'}</button></td>
+                    <td class="p-3 theme-text-dim">${item.time || '--:--:--'}</td>
+                    <td class="p-3 text-right"><button onclick="toggleManualAudit('${escapeHtml(key)}')" class="underline text-[11px] hover:text-emerald-500">${item.verified ? 'Undo' : 'Verify'}</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1154,41 +1610,149 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             if (!item) return;
             item.verified = !item.verified;
             item.countedQty = item.expectedQty;
-            item.time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            item.time = item.verified ? new Date().toLocaleTimeString('en-GB', { hour12: false }) : null;
+            if (item.verified) playTone('success');
             renderAuditState();
         }
 
-        function copyShiftHandover() {
-            let matched = 0;
-            auditManifest.forEach(v => { if (v.verified) matched++; });
-            const missing = auditManifest.size - matched;
-            const summary = [
-                `=== WMS SHIFT HANDOVER SUMMARY ===`,
-                `Timestamp: ${new Date().toLocaleString('en-GB')}`,
-                `Expected Pallets: ${auditManifest.size}`,
-                `Verified Pallets: ${matched}`,
-                `Missing / Pending: ${missing}`,
-                `Rogue / Exceptions: ${auditRogues.length}`,
-                auditRogues.length > 0 ? `Rogue IDs: ${auditRogues.map(r => r.id).join(', ')}` : `All scans clean.`
-            ].join('\n');
-            navigator.clipboard.writeText(summary);
-            showToast("Shift Handover Summary copied to clipboard!");
+        // ==========================================
+        // 6. SPECIALTY PRINTS, ZPL & SINGLE STUDIO
+        // ==========================================
+        function printRackingSign() {
+            const loc = document.getElementById('rack-code').value.trim() || 'A-01-01';
+            const arrow = document.getElementById('rack-arrow').value;
+            const bg = document.getElementById('rack-theme').value;
+            const offCanvas = document.getElementById('offscreen-canvas');
+            bwipjs.toCanvas(offCanvas, { bcid: 'code128', text: loc, scale: 4, height: 20, includetext: false, backgroundcolor: 'ffffff' });
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html><body style="margin:0;padding:20px;font-family:sans-serif;text-align:center;">
+                <div style="border:6px solid #000;padding:25px;max-width:500px;margin:auto;background:${bg};color:#000;">
+                    <div style="font-size:64px;font-weight:900;line-height:1;">${arrow} ${escapeHtml(loc)}</div>
+                    <div style="background:#fff;padding:15px;margin-top:15px;border:3px solid #000;">
+                        <img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;"/>
+                    </div>
+                </div>
+                <script>window.onload=function(){window.print();window.close();}<\/script>
+                </body></html>
+            `);
+            win.document.close();
         }
 
-        // ==========================================
-        // 6. ZPL RAW CODE EXPORTER & LPN CONSOLIDATION
-        // ==========================================
+        function printHoldTag() {
+            const pallet = document.getElementById('hold-pallet').value.trim() || 'HOLD-001';
+            const reason = document.getElementById('hold-reason').value;
+            const operator = document.getElementById('hold-operator').value.trim() || 'Shift Control';
+            const now = new Date().toLocaleString('en-GB');
+            const offCanvas = document.getElementById('offscreen-canvas');
+            bwipjs.toCanvas(offCanvas, { bcid: 'code128', text: pallet, scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html><body style="margin:0;padding:20px;font-family:monospace;text-align:center;">
+                <div style="border:5px solid #000;padding:20px;width:360px;margin:auto;">
+                    <div style="background:#000;color:#fff;font-size:22px;font-weight:bold;padding:10px;">⚠ ${escapeHtml(reason)}</div>
+                    <div style="margin:15px 0;font-size:13px;text-align:left;border-bottom:2px solid #000;padding-bottom:10px;line-height:1.6;">
+                        <div><b>PALLET ID:</b> ${escapeHtml(pallet)}</div>
+                        <div><b>LOGGED BY:</b> ${escapeHtml(operator)}</div>
+                        <div><b>TIMESTAMP:</b> ${now}</div>
+                        <div><b>ACTION:</b> DO NOT SHIP / HOLD</div>
+                    </div>
+                    <img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;"/>
+                </div>
+                <script>window.onload=function(){window.print();window.close();}<\/script>
+                </body></html>
+            `);
+            win.document.close();
+        }
+
         function exportZPL(code) {
             const val = code || 'FF-RM028262738';
-            const zpl = `^XA\n^FO50,50^ADN,36,20^FD${val}^FS\n^FO50,100^BY3^BCN,120,Y,N,N^FD${val}^FS\n^XZ`;
+            const darkness = document.getElementById('zpl-darkness')?.value || '15';
+            const zpl = `^XA\n~SD${darkness}\n^FO50,50^ADN,36,20^FD${val}^FS\n^FO50,100^BY3^BCN,120,Y,N,N^FD${val}^FS\n^XZ`;
             const blob = new Blob([zpl], { type: 'text/plain' });
             const link = document.createElement('a');
             link.download = `${val}.zpl`;
             link.href = URL.createObjectURL(blob);
             link.click();
-            showToast(`Exported Zebra .ZPL file for ${val}`);
+            showToast(`Exported .ZPL (${darkness} Darkness)`);
         }
 
+        function resetSingleStudioDefaults() {
+            document.getElementById('bc-type').value = 'code128';
+            document.getElementById('bc-suffix').value = 'none';
+            document.getElementById('bc-data').value = 'FF-RM028262738';
+            document.getElementById('bc-alttext').value = '';
+            document.getElementById('bc-scale').value = 3;
+            document.getElementById('lbl-scale').innerText = '3x (Default)';
+            document.getElementById('bc-height').value = 15;
+            document.getElementById('lbl-height').innerText = '15mm (Default)';
+            document.getElementById('bc-pad').value = 10;
+            document.getElementById('lbl-pad').innerText = '10px (Default)';
+            document.getElementById('bc-textpos').value = 'below';
+            document.getElementById('bc-textsize').value = '10';
+            document.getElementById('bc-rotate').value = 'N';
+            renderSingleBarcode();
+            showToast("Single Studio reset to defaults");
+        }
+
+        function getSingleBwipOpts() {
+            const bcid = document.getElementById('bc-type').value;
+            const raw = document.getElementById('bc-data').value.trim();
+            const suffix = document.getElementById('bc-suffix').value;
+            const alt = document.getElementById('bc-alttext').value.trim();
+            const scale = parseInt(document.getElementById('bc-scale').value) || 3;
+            const height = parseInt(document.getElementById('bc-height').value) || 15;
+            const pad = parseInt(document.getElementById('bc-pad').value) || 10;
+            const textpos = document.getElementById('bc-textpos').value;
+            const textsize = parseInt(document.getElementById('bc-textsize').value) || 10;
+            const rotate = document.getElementById('bc-rotate').value;
+            const is2D = ['qrcode', 'datamatrix'].includes(bcid);
+
+            const opts = {
+                bcid,
+                text: formatPayloadWithSuffix(raw, suffix),
+                alttext: alt || raw,
+                parse: true,
+                scale,
+                height,
+                rotate,
+                paddingwidth: pad,
+                paddingheight: pad,
+                backgroundcolor: 'ffffff'
+            };
+            if (!is2D && textpos !== 'none') {
+                opts.includetext = true;
+                opts.textxalign = 'center';
+                opts.textyalign = textpos;
+                opts.textsize = textsize;
+            }
+            return opts;
+        }
+
+        function renderSingleBarcode() {
+            const canvas = document.getElementById('barcode-canvas');
+            const err = document.getElementById('render-error');
+            try {
+                bwipjs.toCanvas(canvas, getSingleBwipOpts());
+                err.classList.add('hidden');
+                document.getElementById('badge-dims').innerText = `${canvas.width} × ${canvas.height} px`;
+            } catch (e) {
+                err.classList.remove('hidden');
+                document.getElementById('render-error-text').innerText = e.message || String(e);
+            }
+        }
+
+        function loadMacroPreset(rawCode, label) {
+            document.getElementById('bc-type').value = 'code128';
+            document.getElementById('bc-data').value = rawCode;
+            document.getElementById('bc-alttext').value = label;
+            renderSingleBarcode();
+            showToast(`Loaded Macro: ${label}`);
+        }
+
+        // ==========================================
+        // 7. LPN CONSOLIDATION, EXCEL & SHARED HELPERS
+        // ==========================================
         let lpnChildren = ['CTN-00192', 'CTN-00193'];
         function addLpnChild() {
             const inp = document.getElementById('lpn-child-input');
@@ -1202,11 +1766,14 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
         function renderLpnQr() {
             const master = document.getElementById('lpn-master').value.trim() || 'PLT-MASTER';
+            const delim = document.getElementById('lpn-delim')?.value || ',';
             document.getElementById('lpn-child-count').innerText = `Child Cartons (${lpnChildren.length})`;
             document.getElementById('lpn-child-list').innerHTML = lpnChildren.map((c, i) => `
-                <span class="px-2 py-0.5 rounded theme-elevated border text-[11px] font-mono">${escapeHtml(c)}</span>
+                <span class="px-2 py-0.5 rounded theme-elevated border text-[11px] font-mono flex items-center gap-1">
+                    ${escapeHtml(c)} <button onclick="lpnChildren.splice(${i},1); renderLpnQr();" class="text-red-400">×</button>
+                </span>
             `).join('');
-            const payload = `MASTER:${master}|QTY:${lpnChildren.length}|ITEMS:${lpnChildren.join(',')}`;
+            const payload = `MASTER:${master}|QTY:${lpnChildren.length}|ITEMS:${lpnChildren.join(delim)}`;
             try {
                 bwipjs.toCanvas(document.getElementById('lpn-qr-canvas'), { bcid: 'qrcode', text: payload, scale: 3, backgroundcolor: 'ffffff' });
             } catch (e) {}
@@ -1230,62 +1797,38 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             win.document.close();
         }
 
-        // ==========================================
-        // 7. SINGLE STUDIO, PRINT & GENERAL HELPERS
-        // ==========================================
-        function loadMacroPreset(rawCode, label) {
-            document.getElementById('bc-type').value = 'code128';
-            document.getElementById('bc-data').value = rawCode;
-            document.getElementById('bc-alttext').value = label;
-            renderSingleBarcode();
-            showToast(`Loaded Macro: ${label}`);
-        }
-
-        function getSingleBwipOpts() {
-            const bcid = document.getElementById('bc-type').value;
-            const raw = document.getElementById('bc-data').value.trim();
-            const suffix = document.getElementById('bc-suffix').value;
-            const alt = document.getElementById('bc-alttext').value.trim();
-            const scale = parseInt(document.getElementById('bc-scale').value) || 3;
-            const height = parseInt(document.getElementById('bc-height').value) || 15;
-            const rotate = document.getElementById('bc-rotate').value;
-
-            return {
-                bcid,
-                text: formatPayloadWithSuffix(raw, suffix),
-                alttext: alt || raw,
-                parse: true,
-                scale,
-                height,
-                rotate,
-                includetext: !['qrcode', 'datamatrix'].includes(bcid),
-                textxalign: 'center',
-                paddingwidth: 10,
-                paddingheight: 10,
-                backgroundcolor: 'ffffff'
-            };
-        }
-
-        function renderSingleBarcode() {
-            const canvas = document.getElementById('barcode-canvas');
-            const err = document.getElementById('render-error');
-            try {
-                bwipjs.toCanvas(canvas, getSingleBwipOpts());
-                err.classList.add('hidden');
-                document.getElementById('badge-dims').innerText = `${canvas.width} × ${canvas.height} px`;
-            } catch (e) {
-                err.classList.remove('hidden');
-                document.getElementById('render-error-text').innerText = e.message || String(e);
+        function importSpreadsheet(event, targetTextareaId, isAudit = false) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'xlsx' || ext === 'xls') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                    const csvText = XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
+                    document.getElementById(targetTextareaId).value = csvText.trim();
+                    if (isAudit) loadAuditManifest(); else loadBulkDeck(false);
+                    showToast(`Imported Excel: ${file.name}`);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById(targetTextareaId).value = e.target.result.trim();
+                    if (isAudit) loadAuditManifest(); else loadBulkDeck(false);
+                    showToast(`Imported: ${file.name}`);
+                };
+                reader.readAsText(file);
             }
         }
 
         function switchTab(tab) {
             ['bulk', 'audit', 'single', 'tools'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).className = "px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition flex items-center gap-1.5";
+                document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all";
             });
             document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).className = "px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white transition flex items-center gap-1.5";
+            document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all";
 
             if (tab === 'bulk') loadBulkDeck(true);
             if (tab === 'audit' && auditManifest.size === 0) loadAuditManifest();
@@ -1297,6 +1840,8 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             bulkViewMode = mode;
             document.getElementById('bulk-carousel-panel').classList.toggle('hidden', mode !== 'carousel');
             document.getElementById('bulk-grid-panel').classList.toggle('hidden', mode !== 'grid');
+            document.getElementById('btn-mode-carousel').className = mode === 'carousel' ? "text-[11px] font-semibold py-1 rounded bg-emerald-600 text-white transition" : "text-[11px] font-medium py-1 rounded theme-text-muted transition";
+            document.getElementById('btn-mode-grid').className = mode === 'grid' ? "text-[11px] font-semibold py-1 rounded bg-emerald-600 text-white transition" : "text-[11px] font-medium py-1 rounded theme-text-muted transition";
             if (mode === 'grid') generateBatchGrid();
         }
 
@@ -1309,25 +1854,19 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 try {
                     bwipjs.toCanvas(offCanvas, { bcid: sym, text: rec.id, scale: 2, height: 12, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
                     const card = document.createElement('div');
-                    card.className = "theme-input border rounded-lg p-3 flex flex-col items-center gap-2 cursor-pointer";
+                    card.className = "theme-input border rounded-lg p-3 flex flex-col items-center gap-2 cursor-pointer hover:border-emerald-500";
                     card.onclick = () => { currentDeckIndex = idx; setBulkViewMode('carousel'); };
-                    card.innerHTML = `<div class="w-full flex justify-between text-[10px] font-mono"><span>#${idx+1} ${escapeHtml(rec.id)}</span><span>${escapeHtml(rec.lane)}</span></div><div class="bg-white p-2 rounded w-full flex justify-center"><img src="${offCanvas.toDataURL('image/png')}" class="max-h-16"/></div>`;
+                    card.innerHTML = `<div class="w-full flex justify-between text-[10px] font-mono"><span>#${idx+1} ${escapeHtml(rec.id)}</span><span class="text-emerald-500 font-bold">${escapeHtml(rec.lane)}</span></div><div class="bg-white p-2 rounded w-full flex justify-center"><img src="${offCanvas.toDataURL('image/png')}" class="max-h-16"/></div>`;
                     grid.appendChild(card);
                 } catch (e) {}
             });
         }
 
-        function toggleAutoPlay() {
-            const btn = document.getElementById('btn-autoplay');
-            if (autoPlayTimer) {
-                clearInterval(autoPlayTimer); autoPlayTimer = null;
-                btn.innerText = "Auto-Timer (2.5s)";
-                btn.className = "px-2.5 py-1 rounded text-xs font-medium theme-elevated border";
-            } else {
-                autoPlayTimer = setInterval(() => stepDeck(1), 2500);
-                btn.innerText = "Pause Timer";
-                btn.className = "px-2.5 py-1 rounded text-xs font-semibold bg-emerald-600 text-white";
-            }
+        function loadMultiColSample() {
+            document.getElementById('batch-input').value = "FF-RM028262738, SKU-8821, 48, LANE-01\nFF-RM028262739, SKU-8821, 48, LANE-01\nFF-RM028262740, SKU-4410, 24, LANE-04\nFF-RM028262741, SKU-9012, 96, DOCK-NORTH";
+            scannedSet.clear();
+            loadBulkDeck(false);
+            showToast("Reset to default sample list");
         }
 
         function printCurrentDeckLabel() { if (bulkRecords.length) printRoutingBatch([bulkRecords[currentDeckIndex]]); }
@@ -1401,8 +1940,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         function renderHistoryTable() {
-            const tbody = document.getElementById('history-tbody');
-            tbody.innerHTML = scanHistory.map((item, idx) => `
+            document.getElementById('history-tbody').innerHTML = scanHistory.map((item, idx) => `
                 <tr>
                     <td class="p-2.5 theme-text-dim">${scanHistory.length - idx}</td>
                     <td class="p-2.5 font-bold">${escapeHtml(item.data)}</td>
@@ -1410,6 +1948,19 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     <td class="p-2.5 theme-text-dim">${item.timestamp}</td>
                 </tr>
             `).join('');
+        }
+
+        function copyShiftHandover() {
+            let matched = 0;
+            auditManifest.forEach(v => { if (v.verified) matched++; });
+            const summary = [
+                `=== BARCODE GENERATOR // SHIFT HANDOVER ===`,
+                `Time: ${new Date().toLocaleString('en-GB')}`,
+                `Task: ${document.getElementById('active-task-label').innerText}`,
+                `Expected: ${auditManifest.size} | Verified: ${matched} | Missing: ${auditManifest.size - matched} | Rogue: ${auditRogues.length}`
+            ].join('\n');
+            navigator.clipboard.writeText(summary);
+            showToast("Shift Handover Summary copied!");
         }
 
         function exportHistoryCSV() {
@@ -1442,6 +1993,8 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
         window.onload = function() {
             setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
+            updateAudioUI();
+            saveWorkspaceState();
             loadBulkDeck(false);
             loadAuditManifest();
             document.getElementById('nav-scan-count').innerText = scanHistory.length;

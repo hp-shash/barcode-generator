@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BARCODE GENERATOR // Architected by Shash</title>
+    <title>BARCODE GENERATOR // shash</title>
 
     <!-- PWA Manifest & Mobile Meta -->
     <link rel="manifest" href="./manifest.json">
@@ -116,7 +116,7 @@
     <!-- TOP NAVIGATION BAR -->
     <header class="border-b theme-border theme-card backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
         
-        <!-- Brand + Workspace File Manager Trigger + Created by Shash Badge -->
+        <!-- Brand + Workspace File Manager Trigger + SHASH Badge -->
         <div class="flex items-center gap-2.5">
             <button onclick="toggleFileManager()" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition shadow-sm" title="Open Local & Cloud File Manager">
                 <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-500"></i>
@@ -131,8 +131,8 @@
                     <i data-lucide="scan-barcode" class="w-3.5 h-3.5"></i>
                 </div>
                 <span class="text-xs sm:text-sm font-bold tracking-tight">BARCODE GENERATOR</span>
-                <span class="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 font-semibold">
-                    Architected by Shash
+                <span class="inline-flex items-center text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/25 font-bold">
+                    SHASH
                 </span>
             </div>
         </div>
@@ -155,8 +155,14 @@
             </button>
         </nav>
 
-        <!-- Right Controls: Audio Toggle & Segmented Theme Icons -->
+        <!-- Right Controls: Quick Feedback Jump, Audio Toggle & Segmented Theme Icons -->
         <div class="flex items-center gap-2">
+            <!-- Jump to Feedback Button -->
+            <button onclick="scrollToFeedback()" title="Leave Feedback or Feature Request" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+                <i data-lucide="message-square-plus" class="w-3.5 h-3.5 text-emerald-500"></i>
+                <span class="hidden xl:inline text-[11px]">Feedback</span>
+            </button>
+
             <!-- Audio Beep Toggle -->
             <button onclick="toggleAudio()" id="btn-audio-toggle" title="Toggle Beep & Buzzer Sounds" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated transition">
                 <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
@@ -283,7 +289,7 @@
     </aside>
 
     <!-- MAIN WORKSPACE -->
-    <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6">
+    <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
              TAB 1: BULK GENERATOR, MULTI-COL CSV & SCAN-TO-ADVANCE
@@ -962,7 +968,96 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             </div>
         </section>
 
+        <!-- ==========================================
+             COMMUNITY FEEDBACK & IMPROVEMENT BOARD
+             ========================================== -->
+        <section id="feedback-section" class="pt-4 border-t theme-border">
+            <div class="theme-card border rounded-xl p-5 sm:p-6 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b theme-border pb-4 mb-5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+                            <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider">Community Feedback & Feature Requests</h2>
+                            <p class="text-[11px] theme-text-dim">Share suggestions, report bugs, or request new warehouse tools to improve this platform</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportFeedbackCSV()" class="px-3 py-1.5 rounded-lg border theme-elevated text-xs font-medium hover:border-emerald-500 transition flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-500"></i> Export Feedback (.CSV)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- Left: Submit Comment Form (5 Cols) -->
+                    <div class="lg:col-span-5 space-y-3.5 theme-input p-4 rounded-xl border">
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Your Name / Role</label>
+                                <input type="text" id="fb-name" placeholder="e.g. Alex (Shift Lead)" class="w-full theme-card border rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Category</label>
+                                <select id="fb-category" class="w-full theme-card border rounded-lg px-2.5 py-2 text-xs outline-none focus:border-emerald-500">
+                                    <option value="Feature Request" selected>Feature Request (Default)</option>
+                                    <option value="UI / Ergonomics">UI / Ergonomics</option>
+                                    <option value="Printer / Label">Printer / Label Layout</option>
+                                    <option value="Bug Report">Bug Report</option>
+                                    <option value="General Praise">General Feedback</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Star Rating -->
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Experience Rating</label>
+                            <div class="flex items-center gap-1.5" id="fb-star-bar">
+                                <button type="button" onclick="setFeedbackRating(1)" class="fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono">1 ★</button>
+                                <button type="button" onclick="setFeedbackRating(2)" class="fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono">2 ★</button>
+                                <button type="button" onclick="setFeedbackRating(3)" class="fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono">3 ★</button>
+                                <button type="button" onclick="setFeedbackRating(4)" class="fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono">4 ★</button>
+                                <button type="button" onclick="setFeedbackRating(5)" class="fb-star px-2.5 py-1 rounded border bg-emerald-600 text-white border-emerald-500 text-xs font-mono font-bold">5 ★ (Default)</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Comment / Suggestion</label>
+                            <textarea id="fb-comment" rows="3" placeholder="Tell Shash what feature or improvement would help your workflow..." class="w-full theme-card border rounded-lg p-3 text-xs outline-none focus:border-emerald-500"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            <button onclick="submitFeedbackComment()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i> Post Comment
+                            </button>
+                            <button onclick="submitFeedbackToGitHub()" class="theme-elevated border hover:border-emerald-500 text-xs font-medium py-2.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5" title="Open pre-filled GitHub Issue on hp-shash/barcode-generator">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i> Send to GitHub Issues
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Comments Feed (7 Cols) -->
+                    <div class="lg:col-span-7 space-y-3">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-mono uppercase text-[11px] theme-text-muted" id="fb-count-label">Recent Suggestions & Comments</span>
+                            <button onclick="clearFeedbackBoard()" class="text-[11px] theme-text-dim hover:text-red-400">Reset Board</button>
+                        </div>
+                        <div id="fb-comments-list" class="space-y-2.5 max-h-[310px] overflow-y-auto pr-1"></div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
     </main>
+
+    <!-- Footer -->
+    <footer class="border-t theme-border py-4 px-6 text-center text-[11px] font-mono theme-text-dim flex flex-wrap items-center justify-between max-w-[1440px] w-full mx-auto">
+        <span>BARCODE GENERATOR // SHASH</span>
+        <span>Offline-Ready PWA • Local & Cloud File Manager</span>
+    </footer>
 
     <!-- Offscreen Canvas -->
     <canvas id="offscreen-canvas" class="hidden"></canvas>
@@ -1087,7 +1182,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             showToast(`Saved "${name}" in ${folder}`);
         }
 
-        // Save directly to Local Disk (or synced OneDrive / Google Drive desktop folder) via Native File System API
         async function saveActiveTaskToLocalDisk(fileObj = null) {
             const type = fileObj ? fileObj.type : document.getElementById('fm-task-type').value;
             const rawName = fileObj ? fileObj.name : (document.getElementById('fm-task-name').value.trim() || `wms-${type}-${Date.now()}`);
@@ -1115,7 +1209,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 if (err.name === 'AbortError') return;
             }
 
-            // Fallback standard download
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.download = filename;
@@ -1165,11 +1258,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             }
         }
 
-        // Cloud Sync (REST / Webhook / Supabase) & Native Cloud Drive Share Sheet
         async function pushWorkspaceToCloud() {
             const url = document.getElementById('cloud-sync-url').value.trim();
             const key = document.getElementById('cloud-sync-key').value.trim();
-            if (!url) return alert("Enter a Cloud Endpoint URL (e.g., Supabase, JSONBin, or Webhook URL) first.");
+            if (!url) return alert("Enter a Cloud Endpoint URL first.");
             try {
                 const headers = { 'Content-Type': 'application/json' };
                 if (key) { headers['Authorization'] = `Bearer ${key}`; headers['apikey'] = key; }
@@ -1312,7 +1404,140 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 2. AUDIO SYNTHESIZER & SEGMENTED THEME BAR
+        // 2. COMMUNITY FEEDBACK & IMPROVEMENT BOARD
+        // ==========================================
+        const DEFAULT_FEEDBACK = [
+            {
+                id: 'fb-1',
+                name: 'Warehouse Ops Team',
+                category: 'Feature Request',
+                rating: 5,
+                comment: 'The 1-by-1 Scan-to-Advance deck and 4x6 routing labels save huge time during morning dispatch.',
+                time: 'Pinned',
+                likes: 4
+            }
+        ];
+
+        let feedbackList = JSON.parse(localStorage.getItem('wmsFeedbackBoardV1') || JSON.stringify(DEFAULT_FEEDBACK));
+        let currentFbRating = 5;
+
+        function scrollToFeedback() {
+            document.getElementById('feedback-section').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => document.getElementById('fb-comment').focus(), 400);
+        }
+
+        function setFeedbackRating(stars) {
+            currentFbRating = stars;
+            const btns = document.querySelectorAll('#fb-star-bar .fb-star');
+            btns.forEach((btn, idx) => {
+                const s = idx + 1;
+                if (s === stars) {
+                    btn.className = "fb-star px-2.5 py-1 rounded border bg-emerald-600 text-white border-emerald-500 text-xs font-mono font-bold transition";
+                } else {
+                    btn.className = "fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono opacity-75 hover:opacity-100 transition";
+                }
+            });
+        }
+
+        function submitFeedbackComment() {
+            const nameInp = document.getElementById('fb-name');
+            const catInp = document.getElementById('fb-category');
+            const commInp = document.getElementById('fb-comment');
+            const comment = commInp.value.trim();
+
+            if (!comment) return alert("Please enter a comment or suggestion before posting.");
+
+            feedbackList.unshift({
+                id: 'fb-' + Date.now(),
+                name: nameInp.value.trim() || 'Anonymous Operator',
+                category: catInp.value,
+                rating: currentFbRating,
+                comment: comment,
+                time: new Date().toLocaleString('en-GB', { hour12: false }),
+                likes: 1
+            });
+
+            localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
+            commInp.value = '';
+            playTone('success');
+            renderFeedbackBoard();
+            showToast("Thank you! Your feedback has been posted.");
+        }
+
+        function submitFeedbackToGitHub() {
+            const name = document.getElementById('fb-name').value.trim() || 'User';
+            const cat = document.getElementById('fb-category').value;
+            const comment = document.getElementById('fb-comment').value.trim() || 'Describe your suggestion here...';
+            const title = encodeURIComponent(`[${cat}] Feedback from ${name}`);
+            const body = encodeURIComponent(`**Submitted by:** ${name}\n**Category:** ${cat}\n**Rating:** ${currentFbRating}/5 ★\n\n**Suggestion / Details:**\n${comment}`);
+            window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=${title}&body=${body}`, '_blank');
+        }
+
+        function likeFeedback(id) {
+            const item = feedbackList.find(f => f.id === id);
+            if (item) {
+                item.likes = (item.likes || 0) + 1;
+                localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
+                renderFeedbackBoard();
+            }
+        }
+
+        function deleteFeedbackItem(id) {
+            feedbackList = feedbackList.filter(f => f.id !== id);
+            localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
+            renderFeedbackBoard();
+        }
+
+        function clearFeedbackBoard() {
+            if (confirm("Reset feedback board to default?")) {
+                feedbackList = [...DEFAULT_FEEDBACK];
+                localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
+                renderFeedbackBoard();
+            }
+        }
+
+        function exportFeedbackCSV() {
+            if (feedbackList.length === 0) return alert("No feedback entries to export.");
+            let csv = "data:text/csv;charset=utf-8,Author,Category,Rating,Comment,Timestamp,Upvotes\n";
+            feedbackList.forEach(f => {
+                csv += `"${f.name.replace(/"/g, '""')}","${f.category}","${f.rating}","${f.comment.replace(/"/g, '""')}","${f.time}","${f.likes || 0}"\n`;
+            });
+            const link = document.createElement('a');
+            link.href = encodeURI(csv);
+            link.download = `shash-barcode-feedback-${Date.now()}.csv`;
+            link.click();
+        }
+
+        function renderFeedbackBoard() {
+            const list = document.getElementById('fb-comments-list');
+            document.getElementById('fb-count-label').innerText = `Suggestions & Comments (${feedbackList.length})`;
+
+            if (feedbackList.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-xs theme-text-dim font-mono">No comments yet. Be the first to suggest an improvement!</div>`;
+                return;
+            }
+
+            list.innerHTML = feedbackList.map(f => `
+                <div class="p-3.5 rounded-xl border theme-input space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold">${escapeHtml(f.name)}</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-mono text-[10px] font-semibold">${escapeHtml(f.category)}</span>
+                            <span class="text-amber-400 font-mono text-xs">${'★'.repeat(f.rating || 5)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] font-mono theme-text-dim">
+                            <span>${escapeHtml(f.time)}</span>
+                            <button onclick="likeFeedback('${f.id}')" class="px-2 py-0.5 rounded theme-elevated border hover:border-emerald-500 text-emerald-500 font-semibold">▲ ${f.likes || 0}</button>
+                            <button onclick="deleteFeedbackItem('${f.id}')" class="hover:text-red-400 px-1">×</button>
+                        </div>
+                    </div>
+                    <p class="text-xs theme-text-muted leading-relaxed">${escapeHtml(f.comment)}</p>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // 3. AUDIO SYNTHESIZER & SEGMENTED THEME BAR
         // ==========================================
         let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true');
         let audioCtx = null;
@@ -1379,7 +1604,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 3. GLOBAL HARDWARE GUN INTERCEPTOR
+        // 4. GLOBAL HARDWARE GUN INTERCEPTOR
         // ==========================================
         let gunBuffer = '';
         let lastKeyTime = 0;
@@ -1425,7 +1650,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 4. BULK DECK, CUSTOM TIMER & STATUS PILLS
+        // 5. BULK DECK, CUSTOM TIMER & STATUS PILLS
         // ==========================================
         let bulkRecords = [];
         let scannedSet = new Set();
@@ -1630,7 +1855,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 5. AUDIT, BLIND CYCLE COUNT & FILTERS
+        // 6. AUDIT, BLIND CYCLE COUNT & FILTERS
         // ==========================================
         let auditManifest = new Map();
         let auditRogues = [];
@@ -1773,7 +1998,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 6. SPECIALTY PRINTS, ZPL & SINGLE STUDIO
+        // 7. SPECIALTY PRINTS, ZPL & SINGLE STUDIO
         // ==========================================
         function printRackingSign() {
             const loc = document.getElementById('rack-code').value.trim() || 'A-01-01';
@@ -1908,7 +2133,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 7. LPN CONSOLIDATION, EXCEL & SHARED HELPERS
+        // 8. LPN CONSOLIDATION, EXCEL & SHARED HELPERS
         // ==========================================
         let lpnChildren = ['CTN-00192', 'CTN-00193'];
         function addLpnChild() {
@@ -2111,7 +2336,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             let matched = 0;
             auditManifest.forEach(v => { if (v.verified) matched++; });
             const summary = [
-                `=== BARCODE GENERATOR // SHIFT HANDOVER ===`,
+                `=== BARCODE GENERATOR // SHASH ===`,
                 `Time: ${new Date().toLocaleString('en-GB')}`,
                 `Task: ${document.getElementById('active-task-label').innerText}`,
                 `Expected: ${auditManifest.size} | Verified: ${matched} | Missing: ${auditManifest.size - matched} | Rogue: ${auditRogues.length}`
@@ -2152,6 +2377,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
             updateAudioUI();
             saveWorkspaceState();
+            renderFeedbackBoard();
             document.getElementById('cloud-sync-url').value = localStorage.getItem('wmsCloudUrl') || '';
             document.getElementById('cloud-sync-key').value = localStorage.getItem('wmsCloudKey') || '';
             loadBulkDeck(false);

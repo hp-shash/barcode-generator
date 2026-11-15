@@ -1,34 +1,32 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BARCODE.STUDIO // Enterprise Symbology & WMS Suite</title>
+    <title>BARCODE.STUDIO // Enterprise WMS & Audit Suite</title>
 
-    <!-- PWA Manifest & Standalone Mobile App Meta Tags -->
+    <!-- PWA Manifest & Mobile Meta -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#09090b">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BarcodeStudio">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%2309090b'/%3E%3Crect x='32' y='32' width='448' height='448' rx='88' fill='none' stroke='%2327272a' stroke-width='12'/%3E%3Cpath d='M120 140v232M168 140v232M200 140v232M248 140v232M312 140v232M344 140v232M392 140v232' stroke='%2310b981' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- BWIP-JS: Industrial Barcode & 2D Symbology Engine (100+ formats + SVG/Canvas) -->
+    <!-- BWIP-JS: Industrial Barcode Engine -->
     <script src="https://cdn.jsdelivr.net/npm/bwip-js@4.3.0/dist/bwip-js-min.js"></script>
     <!-- jsPDF: Client-Side PDF Label Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Html5-Qrcode: Camera & Image File Decoder -->
+    <!-- Html5-Qrcode (Static Image File Decoding Only) -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -39,359 +37,460 @@
             }
         }
     </script>
+
     <style>
-        body { background-color: #09090b; color: #f4f4f5; }
+        /* ==========================================
+           DYNAMIC THEME ENGINE (Dark / Light / Eye-Protect)
+           ========================================== */
+        :root, html[data-theme="dark"] {
+            --bg-main: #09090b;
+            --bg-card: rgba(24, 24, 27, 0.55);
+            --bg-input: #09090b;
+            --bg-elevated: #18181b;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --text-dim: #71717a;
+            --border-color: #27272a;
+            --grid-dot: #27272a;
+            --stage-bg: #0c0c0e;
+        }
+
+        html[data-theme="light"] {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --bg-elevated: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #64748b;
+            --border-color: #cbd5e1;
+            --grid-dot: #cbd5e1;
+            --stage-bg: #f1f5f9;
+        }
+
+        html[data-theme="eye-protect"] {
+            --bg-main: #f4ecd8;
+            --bg-card: #fdf6e3;
+            --bg-input: #eee8d5;
+            --bg-elevated: #e6dfcb;
+            --text-main: #2b2518;
+            --text-muted: #5c5343;
+            --text-dim: #7c7260;
+            --border-color: #d3cbb7;
+            --grid-dot: #d3cbb7;
+            --stage-bg: #efe8d4;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Remap core zinc utility classes to theme variables */
+        .theme-card { background-color: var(--bg-card); border-color: var(--border-color); }
+        .theme-input { background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-main); }
+        .theme-elevated { background-color: var(--bg-elevated); border-color: var(--border-color); color: var(--text-main); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-text-muted { color: var(--text-muted); }
+        .theme-text-dim { color: var(--text-dim); }
+
         .canvas-grid {
-            background-color: #0c0c0e;
-            background-image: radial-gradient(#27272a 1px, transparent 1px);
+            background-color: var(--stage-bg);
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
             background-size: 16px 16px;
         }
-        /* Custom minimalist scrollbars */
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #09090b; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
         input[type="range"] { accent-color: #10b981; }
+
+        @keyframes pulse-flash {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .scan-flash { animation: pulse-flash 0.25s ease-out; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-400">
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-500">
 
     <!-- TOP NAVIGATION BAR -->
-    <header class="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 px-6 h-14 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="h-7 w-7 rounded-md bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400 shadow-inner">
+    <header class="border-b theme-border theme-card backdrop-blur-md sticky top-0 z-50 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Brand -->
+        <div class="flex items-center gap-2.5">
+            <div class="h-7 w-7 rounded-md theme-elevated border flex items-center justify-center text-emerald-500 shadow-sm">
                 <i data-lucide="scan-barcode" class="w-4 h-4"></i>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs font-bold tracking-wider uppercase text-zinc-100">BARCODE.STUDIO</span>
-                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PWA v4.1</span>
+                <span class="text-xs font-bold tracking-wider uppercase">BARCODE.STUDIO</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">WMS v6.0</span>
             </div>
         </div>
 
-        <!-- Master Workspace Switcher -->
-        <nav class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-lg border border-zinc-800">
-            <button onclick="switchTab('generator')" id="tab-generator" class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md bg-zinc-100 text-zinc-950 shadow-sm transition-all">
-                <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Studio Generator
+        <!-- Master Workspace Switcher (4 Tabs) -->
+        <nav class="flex flex-wrap items-center gap-1 theme-input p-1 rounded-lg border">
+            <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i> 1. Bulk Deck & CSV
             </button>
-            <button onclick="switchTab('batch')" id="tab-batch" class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-100 transition-all">
-                <i data-lucide="layers" class="w-3.5 h-3.5"></i> WMS Batch & CSV
+            <button onclick="switchTab('audit')" id="tab-audit" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> 2. Manifest Audit
+                <span id="nav-audit-badge" class="px-1.5 py-0.2 bg-amber-500/20 text-amber-500 rounded text-[10px] font-mono">0/0</span>
             </button>
-            <button onclick="switchTab('scanner')" id="tab-scanner" class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-100 transition-all">
-                <i data-lucide="camera" class="w-3.5 h-3.5"></i> Scanner & Log
-                <span id="nav-scan-count" class="ml-1 px-1.5 py-0.2 bg-zinc-800 text-zinc-300 rounded text-[10px] font-mono">0</span>
+            <button onclick="switchTab('generator')" id="tab-generator" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="sliders" class="w-3.5 h-3.5"></i> 3. Single Studio
+            </button>
+            <button onclick="switchTab('scanner')" id="tab-scanner" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> 4. File Decode & Log
+                <span id="nav-scan-count" class="px-1.5 py-0.2 theme-elevated rounded text-[10px] font-mono">0</span>
             </button>
         </nav>
 
-        <!-- Quick Shared Sync / Export Action -->
-        <div class="hidden sm:flex items-center gap-2">
-            <button onclick="exportHistoryCSV()" class="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1.5 rounded-md transition">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Log CSV
+        <!-- Global Utilities: Audio Beep Toggle & Theme Switcher -->
+        <div class="flex items-center gap-2">
+            <!-- Audio & Haptics Toggle -->
+            <button onclick="toggleAudio()" id="btn-audio-toggle" title="Toggle Beep & Buzzer Sounds" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated transition">
+                <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
+                <span id="lbl-audio" class="hidden md:inline text-[11px]">Audio ON</span>
             </button>
+
+            <!-- Theme Selector (Dark / Light / Eye-Protect) -->
+            <div class="flex items-center theme-input p-0.5 rounded-lg border">
+                <button onclick="setTheme('dark')" id="theme-dark" title="Dark Studio Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition">
+                    <i data-lucide="moon" class="w-3 h-3"></i><span class="hidden xl:inline">Dark</span>
+                </button>
+                <button onclick="setTheme('light')" id="theme-light" title="Daylight High-Contrast Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition">
+                    <i data-lucide="sun" class="w-3 h-3"></i><span class="hidden xl:inline">Light</span>
+                </button>
+                <button onclick="setTheme('eye-protect')" id="theme-eye-protect" title="Warm Amber Eye-Protect Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition">
+                    <i data-lucide="eye" class="w-3 h-3"></i><span class="hidden xl:inline">Eye Care</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- MAIN WORKSPACE CONTAINER -->
+    <!-- MAIN WORKSPACE -->
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6">
 
         <!-- ==========================================
-             TAB 1: PRO GENERATOR STUDIO (barcodes.pro parity)
+             TAB 1: BULK GENERATOR, MULTI-COL CSV & SCAN-TO-ADVANCE
              ========================================== -->
-        <section id="view-generator" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- LEFT COLUMN: SYMBOLOGY & PARAMETERS (5 Cols) -->
-            <div class="lg:col-span-5 bg-zinc-900/40 border border-zinc-800/80 rounded-xl overflow-hidden shadow-2xl">
+        <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- LEFT COLUMN: BULK / MULTI-COLUMN CSV INPUT & SEQUENCE BUILDER (5 Cols) -->
+            <div class="lg:col-span-5 space-y-5">
                 
-                <!-- Panel Header -->
-                <div class="px-5 py-3.5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/60">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i> Symbology Engine
-                    </span>
-                    <button onclick="resetDefaults()" class="text-[11px] text-zinc-500 hover:text-zinc-300 transition">Reset Defaults</button>
+                <!-- Multi-Column CSV & Bulk Input Card -->
+                <div class="theme-card border rounded-xl p-5 space-y-4 shadow-lg">
+                    <div class="flex items-center justify-between border-b theme-border pb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Multi-Column CSV Feeder
+                        </span>
+                        <div class="flex items-center gap-3">
+                            <label class="text-xs text-emerald-500 hover:underline cursor-pointer flex items-center gap-1 font-medium">
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload CSV
+                                <input type="file" accept=".csv,.txt" onchange="importBatchCSV(event)" class="hidden">
+                            </label>
+                            <button onclick="loadMultiColSample()" class="text-xs theme-text-muted hover:underline">Sample CSV</button>
+                            <button onclick="clearBulkInput()" class="text-xs text-red-400 hover:underline">Clear</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-[11px] theme-text-muted mb-1.5">
+                            <span>Format: <code class="font-mono text-emerald-500">Pallet_ID, SKU, Qty, Lane</code> (or single ID per line)</span>
+                            <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">4 items</span>
+                        </div>
+                        <textarea id="batch-input" rows="7" oninput="loadBulkDeck(false)" placeholder="FF-RM028262738, SKU-901, 48, LANE-A1&#10;FF-RM028262739, SKU-902, 24, LANE-B4" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition leading-relaxed">FF-RM028262738, SKU-8821, 48, LANE-01
+FF-RM028262739, SKU-8821, 48, LANE-01
+FF-RM028262740, SKU-4410, 24, LANE-04
+FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
+                    </div>
+
+                    <!-- Symbology & Display Mode -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-wider theme-text-dim mb-1">Symbology</label>
+                            <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none focus:border-emerald-500">
+                                <option value="code128" selected>Code 128 (Standard)</option>
+                                <option value="gs1-128">GS1-128 (Logistics)</option>
+                                <option value="code39">Code 39</option>
+                                <option value="qrcode">QR Code (2D)</option>
+                                <option value="datamatrix">Data Matrix (2D)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-wider theme-text-dim mb-1">Presentation Mode</label>
+                            <div class="grid grid-cols-2 theme-input p-1 rounded-lg border">
+                                <button onclick="setBulkViewMode('carousel')" id="btn-mode-carousel" class="text-xs font-semibold py-1 rounded bg-emerald-600 text-white transition">1-by-1 Scan</button>
+                                <button onclick="setBulkViewMode('grid')" id="btn-mode-grid" class="text-xs font-medium py-1 rounded theme-text-muted transition">All Grid</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="p-5 space-y-5">
-                    <!-- Categorized Symbology Selector -->
-                    <div>
-                        <label class="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1.5">Barcode Standard / Symbology</label>
-                        <select id="bc-type" onchange="renderSingleBarcode()" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 font-medium outline-none focus:border-emerald-500 transition">
-                            <optgroup label="Logistics, Warehouse & GS1">
-                                <option value="code128" selected>Code 128 (Auto A/B/C - Standard Logistics)</option>
-                                <option value="gs1-128">GS1-128 / UCC/EAN-128 (SSCC Pallet Labels)</option>
-                                <option value="itf14">ITF-14 (Shipping Cartons & Pallets)</option>
-                                <option value="code39">Code 39 (Industrial / Automotive)</option>
-                                <option value="code93">Code 93 (Compact Alphanumeric)</option>
-                                <option value="interleaved2of5">Interleaved 2 of 5 (ITF)</option>
-                            </optgroup>
-                            <optgroup label="2D Matrix & High-Capacity">
-                                <option value="qrcode">QR Code (2D ISO/IEC 18004)</option>
-                                <option value="datamatrix">Data Matrix (2D ECC 200 - Small Parts/Pharma)</option>
-                                <option value="pdf417">PDF417 (2D Stacked - Manifests/IDs)</option>
-                                <option value="azteccode">Aztec Code (2D Transport/Ticketing)</option>
-                            </optgroup>
-                            <optgroup label="Retail, POS & Commercial">
-                                <option value="ean13">EAN-13 (International Retail GTIN)</option>
-                                <option value="ean8">EAN-8 (Compact Retail)</option>
-                                <option value="upca">UPC-A (North America Retail)</option>
-                                <option value="upce">UPC-E (Compressed UPC)</option>
-                                <option value="isbn">ISBN (Books & Publishing)</option>
-                            </optgroup>
-                            <optgroup label="Healthcare, Lab & Postal">
-                                <option value="rationalizedCodabar">Codabar (Clinical Labs & Blood Banks)</option>
-                                <option value="pharmacode">Pharmacode (Pharmaceutical Packaging)</option>
-                                <option value="royalmail">Royal Mail 4-State (UK Mailmark)</option>
-                                <option value="postnet">USPS POSTNET</option>
-                            </optgroup>
-                        </select>
-                        <p id="sym-hint" class="text-[11px] text-zinc-500 mt-1.5 font-mono">Supports full ASCII character set. Ideal for warehouse SKUs & containers.</p>
+                <!-- Auto-Sequence Builder Card -->
+                <div class="theme-card border rounded-xl p-5 space-y-4 shadow-lg">
+                    <div class="flex items-center justify-between border-b theme-border pb-2.5">
+                        <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-500"></i> Sequential Range Generator
+                        </span>
+                        <span class="text-[10px] font-mono theme-text-dim">Auto-pads leading zeros</span>
                     </div>
 
-                    <!-- Data Input & Checksum Info -->
-                    <div>
-                        <div class="flex justify-between items-center mb-1.5">
-                            <label class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Payload Data / Pallet ID</label>
-                            <button onclick="generateRandomSample()" class="text-[11px] text-emerald-400 hover:underline flex items-center gap-1">
-                                <i data-lucide="sparkles" class="w-3 h-3"></i> Sample Data
-                            </button>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Prefix</label>
+                            <input type="text" id="seq-prefix" value="FF-RM" class="w-full theme-input border rounded-md px-2.5 py-1.5 text-xs font-mono outline-none focus:border-emerald-500">
                         </div>
-                        <div class="relative">
-                            <input type="text" id="bc-data" value="PLT-UK-0098421" oninput="renderSingleBarcode()" placeholder="Enter code payload..." class="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-3 pr-9 py-2.5 text-sm text-zinc-100 font-mono outline-none focus:border-emerald-500 transition">
-                            <button onclick="copyValue('bc-data')" title="Copy Data" class="absolute right-2.5 top-2.5 text-zinc-500 hover:text-zinc-200">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                            </button>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Start Num</label>
+                            <input type="text" id="seq-start" value="028262738" class="w-full theme-input border rounded-md px-2.5 py-1.5 text-xs font-mono outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Qty</label>
+                            <input type="number" id="seq-count" value="10" min="1" max="500" class="w-full theme-input border rounded-md px-2.5 py-1.5 text-xs font-mono outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Default Lane</label>
+                            <input type="text" id="seq-lane" value="LANE-01" class="w-full theme-input border rounded-md px-2.5 py-1.5 text-xs font-mono outline-none focus:border-emerald-500">
                         </div>
                     </div>
 
-                    <!-- Custom Alt Text Override -->
-                    <div>
-                        <label class="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1.5">Custom Label Text Override <span class="text-zinc-600">(Optional)</span></label>
-                        <input type="text" id="bc-alttext" oninput="renderSingleBarcode()" placeholder="Leave blank to use default encoded data..." class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 font-mono outline-none focus:border-zinc-600 transition">
-                    </div>
-
-                    <!-- Sliders: Scale, Height, Padding -->
-                    <div class="grid grid-cols-3 gap-3 pt-2 border-t border-zinc-800/80">
-                        <div>
-                            <div class="flex justify-between text-[11px] text-zinc-400 mb-1">
-                                <span>Scale</span>
-                                <span id="lbl-scale" class="font-mono text-zinc-200">3x</span>
-                            </div>
-                            <input type="range" id="bc-scale" min="1" max="6" value="3" oninput="document.getElementById('lbl-scale').innerText=this.value+'x'; renderSingleBarcode();" class="w-full cursor-pointer">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[11px] text-zinc-400 mb-1">
-                                <span>Height</span>
-                                <span id="lbl-height" class="font-mono text-zinc-200">15mm</span>
-                            </div>
-                            <input type="range" id="bc-height" min="5" max="40" value="15" oninput="document.getElementById('lbl-height').innerText=this.value+'mm'; renderSingleBarcode();" class="w-full cursor-pointer">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[11px] text-zinc-400 mb-1">
-                                <span>Quiet Zone</span>
-                                <span id="lbl-pad" class="font-mono text-zinc-200">10px</span>
-                            </div>
-                            <input type="range" id="bc-pad" min="0" max="30" value="10" oninput="document.getElementById('lbl-pad').innerText=this.value+'px'; renderSingleBarcode();" class="w-full cursor-pointer">
-                        </div>
-                    </div>
-
-                    <!-- Typography & Orientation Controls -->
-                    <div class="grid grid-cols-3 gap-3 pt-2 border-t border-zinc-800/80">
-                        <div>
-                            <label class="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Text Position</label>
-                            <select id="bc-textpos" onchange="renderSingleBarcode()" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-200 outline-none">
-                                <option value="below" selected>Below Bars</option>
-                                <option value="above">Above Bars</option>
-                                <option value="none">Hidden</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Text Size</label>
-                            <select id="bc-textsize" onchange="renderSingleBarcode()" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-200 outline-none">
-                                <option value="8">Small (8pt)</option>
-                                <option value="10" selected>Medium (10pt)</option>
-                                <option value="13">Large (13pt)</option>
-                                <option value="16">Extra Large (16pt)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Rotation</label>
-                            <select id="bc-rotate" onchange="renderSingleBarcode()" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-200 outline-none">
-                                <option value="N" selected>0° (Normal)</option>
-                                <option value="R">90° CW</option>
-                                <option value="I">180° Invert</option>
-                                <option value="L">270° CCW</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Colors: Bar Color & Background -->
-                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-800/80">
-                        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
-                            <span class="text-xs text-zinc-400">Bar Color</span>
-                            <div class="flex items-center gap-2">
-                                <input type="color" id="bc-fg" value="#000000" onchange="renderSingleBarcode()" class="w-5 h-5 rounded cursor-pointer bg-transparent border-0">
-                                <span id="fg-hex" class="text-[11px] font-mono text-zinc-400">#000000</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
-                            <span class="text-xs text-zinc-400">Background</span>
-                            <div class="flex items-center gap-2">
-                                <input type="color" id="bc-bg" value="#ffffff" onchange="renderSingleBarcode()" class="w-5 h-5 rounded cursor-pointer bg-transparent border-0">
-                                <span id="bg-hex" class="text-[11px] font-mono text-zinc-400">#FFFFFF</span>
-                            </div>
-                        </div>
-                    </div>
-
+                    <button onclick="generateSequenceList()" class="w-full theme-elevated hover:opacity-90 text-xs font-semibold py-2 px-3 rounded-lg border transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-500"></i> Generate Sequence into Deck
+                    </button>
                 </div>
+
             </div>
 
-            <!-- RIGHT COLUMN: LIVE STAGE & MULTI-FORMAT EXPORT (7 Cols) -->
-            <div class="lg:col-span-7 flex flex-col gap-6">
-                
-                <!-- Live Render Stage Card -->
-                <div class="bg-zinc-900/40 border border-zinc-800/80 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+            <!-- RIGHT COLUMN: 1-BY-1 CAROUSEL WITH SCAN-TO-ADVANCE (7 Cols) -->
+            <div class="lg:col-span-7 space-y-5">
+
+                <!-- CAROUSEL DECK PANEL -->
+                <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-xl flex flex-col">
                     
-                    <!-- Top Stage Status Bar -->
-                    <div class="px-5 py-3.5 border-b border-zinc-800/80 flex items-center justify-between bg-zinc-900/60">
-                        <div class="flex items-center gap-2">
-                            <span class="h-2 w-2 rounded-full bg-emerald-500" id="status-dot"></span>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Live Vector & Raster Stage</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span id="badge-sym" class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">CODE128</span>
-                            <span id="badge-dims" class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-950 text-zinc-400 border border-zinc-800">0 × 0 px</span>
-                        </div>
-                    </div>
-
-                    <!-- Blueprint Grid Canvas Viewport -->
-                    <div class="canvas-grid min-h-[320px] p-8 flex flex-col items-center justify-center relative overflow-auto">
-                        <div id="canvas-wrapper" class="rounded-lg shadow-2xl transition-all duration-150 flex items-center justify-center p-4 bg-white">
-                            <canvas id="barcode-canvas" class="max-w-full"></canvas>
+                    <!-- Deck Header -->
+                    <div class="px-5 py-3.5 border-b theme-border flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold" id="deck-counter">1 / 4</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider">1-by-1 Interactive Scan Stage</span>
                         </div>
 
-                        <!-- Error Banner Overlay -->
-                        <div id="render-error" class="hidden absolute bottom-4 left-4 right-4 bg-red-950/90 border border-red-800 text-red-200 px-4 py-2.5 rounded-lg text-xs font-mono flex items-center gap-2 shadow-lg">
-                            <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400 shrink-0"></i>
-                            <span id="render-error-text">Invalid input for selected symbology.</span>
-                        </div>
-                    </div>
-
-                    <!-- Print Preset & Export Action Bar -->
-                    <div class="p-5 bg-zinc-900/60 border-t border-zinc-800/80 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800/60">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="printer" class="w-4 h-4 text-zinc-400"></i>
-                                <span class="text-xs font-medium text-zinc-300">Target Label / Print Size:</span>
-                            </div>
-                            <select id="print-preset" class="bg-zinc-950 border border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-200 font-mono outline-none">
-                                <option value="thermal-4x6">4" × 6" (100×150mm) Logistics / Pallet Thermal</option>
-                                <option value="thermal-2x1">2" × 1" (50×25mm) SKU / Niimbot / Zebra Label</option>
-                                <option value="auto" selected>Auto-Fit Crisp Center (Standard Sheet)</option>
+                        <!-- Scan-to-Advance Mode & Timer Controls -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded border theme-input cursor-pointer">
+                                <input type="checkbox" id="chk-scan-advance" checked class="accent-emerald-500">
+                                <span>Auto-Next on Scan</span>
+                            </label>
+                            <select id="auto-play-speed" onchange="restartAutoPlayIfActive()" class="theme-input border rounded px-2 py-1 text-[11px] font-mono outline-none">
+                                <option value="1500">1.5s Timer</option>
+                                <option value="2500" selected>2.5s Timer</option>
+                                <option value="4000">4.0s Timer</option>
                             </select>
+                            <button onclick="toggleAutoPlay()" id="btn-autoplay" class="flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium theme-elevated border transition">
+                                <i data-lucide="play" class="w-3 h-3"></i> Timer
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full theme-input h-1.5 overflow-hidden">
+                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 25%"></div>
+                    </div>
+
+                    <!-- Center Barcode & Multi-Column Routing Card -->
+                    <div id="deck-stage-box" class="canvas-grid min-h-[340px] p-6 sm:p-8 flex flex-col items-center justify-center relative">
+                        
+                        <!-- Status Badge -->
+                        <div id="deck-scanned-badge" class="mb-3 px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider theme-elevated border flex items-center gap-1.5">
+                            <span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready to Scan
                         </div>
 
-                        <!-- 5-Action Export Bar -->
-                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                            <button onclick="exportPNG()" class="flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow transition">
-                                <i data-lucide="image" class="w-3.5 h-3.5"></i> PNG
-                            </button>
-                            <button onclick="exportSVG()" class="flex items-center justify-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium py-2.5 px-3 rounded-lg border border-zinc-700 transition">
-                                <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i> Vector SVG
-                            </button>
-                            <button onclick="exportPDF()" class="flex items-center justify-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium py-2.5 px-3 rounded-lg border border-zinc-700 transition">
-                                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> PDF
-                            </button>
-                            <button onclick="copyCanvasImage()" class="flex items-center justify-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium py-2.5 px-3 rounded-lg border border-zinc-700 transition">
-                                <i data-lucide="clipboard-copy" class="w-3.5 h-3.5"></i> Copy Img
-                            </button>
-                            <button onclick="printSingleLabel()" class="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold py-2.5 px-3 rounded-lg shadow transition">
-                                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print
+                        <!-- White Label Card (Shows Barcode + Optional Multi-Column Routing Info) -->
+                        <div class="bg-white text-zinc-950 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center max-w-md w-full border-2 border-zinc-200">
+                            <!-- Multi-Column Routing Header (Hidden if single column) -->
+                            <div id="deck-routing-header" class="w-full border-b-2 border-zinc-900 pb-2 mb-4 flex justify-between items-center text-xs font-mono font-bold">
+                                <span id="deck-meta-sku">SKU: --</span>
+                                <span id="deck-meta-qty" class="px-2 py-0.5 bg-zinc-900 text-white rounded">QTY: --</span>
+                                <span id="deck-meta-lane" class="px-2 py-0.5 bg-emerald-600 text-white rounded">LANE: --</span>
+                            </div>
+
+                            <canvas id="deck-canvas" class="max-w-full"></canvas>
+                        </div>
+
+                        <!-- Payload Readout -->
+                        <div class="mt-4 flex items-center gap-2">
+                            <span id="deck-current-text" class="text-lg sm:text-xl font-mono font-bold tracking-wider select-all">FF-RM028262738</span>
+                            <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1.5 rounded theme-elevated border hover:opacity-80">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                             </button>
                         </div>
+                    </div>
+
+                    <!-- SCAN-TO-ADVANCE HARDWARE GUN INPUT BAR -->
+                    <div class="px-5 py-3.5 border-t theme-border theme-elevated flex flex-col sm:flex-row items-center gap-3">
+                        <div class="flex items-center gap-2 text-xs font-semibold text-emerald-500 shrink-0">
+                            <i data-lucide="zap" class="w-4 h-4"></i>
+                            <span>Scan Current Barcode to Advance:</span>
+                        </div>
+                        <div class="flex w-full gap-2">
+                            <input type="text" id="deck-scan-input" placeholder="Click here & scan barcode on screen (or press Enter to simulate scan)..." onkeydown="if(event.key==='Enter') handleDeckScanVerify()" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-500">
+                            <button onclick="markAndNextDeck()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow shrink-0 flex items-center gap-1.5">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i> Scanned & Next
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual Prev/Next & Print Footer -->
+                    <div class="p-4 border-t theme-border flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex gap-2">
+                            <button onclick="stepDeck(-1)" class="flex items-center gap-1.5 theme-elevated border text-xs font-semibold py-2 px-4 rounded-lg hover:opacity-90">
+                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Prev
+                            </button>
+                            <button onclick="stepDeck(1)" class="flex items-center gap-1.5 theme-elevated border text-xs font-semibold py-2 px-4 rounded-lg hover:opacity-90">
+                                Next <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-3 text-xs">
+                            <button onclick="printCurrentDeckLabel()" class="theme-elevated border px-3 py-2 rounded-lg font-medium flex items-center gap-1.5 hover:opacity-90">
+                                <i data-lucide="printer" class="w-3.5 h-3.5 text-emerald-500"></i> Print Current 4×6
+                            </button>
+                            <button onclick="printBatchSheet()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg font-semibold shadow flex items-center gap-1.5">
+                                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print All Routing Labels
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Queue Pills -->
+                    <div class="px-5 py-3 border-t theme-border max-h-32 overflow-y-auto">
+                        <div id="deck-pills" class="flex flex-wrap gap-1.5"></div>
                     </div>
                 </div>
 
-                <!-- Quick Log To History Bar -->
-                <div class="bg-zinc-900/30 border border-zinc-800/60 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400">
-                            <i data-lucide="database" class="w-4 h-4"></i>
-                        </div>
+                <!-- GRID VIEW PANEL (Hidden unless toggled) -->
+                <div id="bulk-grid-panel" class="hidden theme-card border rounded-xl p-5 space-y-4 shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
                         <div>
-                            <h3 class="text-xs font-semibold text-zinc-200">Record to Session Pallet Log</h3>
-                            <p class="text-[11px] text-zinc-500">Save this generated barcode directly into your persistent scan/pallet table.</p>
+                            <h2 class="text-xs font-semibold uppercase tracking-wider">Multi-Column Routing Label Grid</h2>
+                            <p id="batch-count-label" class="text-[11px] theme-text-muted">Click any card to open in 1-by-1 scanner</p>
                         </div>
+                        <button onclick="printBatchSheet()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow flex items-center gap-1.5">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Full 4×6 Batch
+                        </button>
                     </div>
-                    <button onclick="logCurrentGenerated()" class="w-full sm:w-auto shrink-0 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium px-4 py-2 rounded-lg border border-zinc-700 transition flex items-center justify-center gap-1.5">
-                        <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Add to Pallet Log
-                    </button>
+                    <div id="batch-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[520px] overflow-y-auto p-1"></div>
                 </div>
 
             </div>
         </section>
 
         <!-- ==========================================
-             TAB 2: WMS / JDA BATCH PASTE & CSV IMPORTER
+             TAB 2: MANIFEST VERIFICATION & AUDIT CHECK-OFF MODE
              ========================================== -->
-        <section id="view-batch" class="hidden space-y-6">
+        <section id="view-audit" class="hidden space-y-6">
+            
+            <!-- Top KPI Counter Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="theme-card border rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono uppercase theme-text-dim block">Expected Manifest</span>
+                    <span id="audit-kpi-total" class="text-2xl font-mono font-bold mt-1 block">0</span>
+                </div>
+                <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono uppercase text-emerald-500 block">Verified (Matched)</span>
+                    <span id="audit-kpi-matched" class="text-2xl font-mono font-bold text-emerald-500 mt-1 block">0</span>
+                </div>
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono uppercase text-amber-500 block">Missing (Pending)</span>
+                    <span id="audit-kpi-missing" class="text-2xl font-mono font-bold text-amber-500 mt-1 block">0</span>
+                </div>
+                <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 shadow">
+                    <span class="text-[10px] font-mono uppercase text-red-400 block">Rogue / Unexpected</span>
+                    <span id="audit-kpi-rogue" class="text-2xl font-mono font-bold text-red-400 mt-1 block">0</span>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                <!-- Batch Input Controls (5 Cols) -->
-                <div class="lg:col-span-5 bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-5 space-y-4 shadow-xl">
-                    <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i> JDA / WMS Batch Feeder
-                        </h2>
-                        <label class="text-xs text-emerald-400 hover:underline cursor-pointer flex items-center gap-1">
-                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload CSV/TXT
-                            <input type="file" accept=".csv,.txt" onchange="importBatchCSV(event)" class="hidden">
+                <!-- Left: Manifest Loader (4 Cols) -->
+                <div class="lg:col-span-4 theme-card border rounded-xl p-5 space-y-4 shadow-lg">
+                    <div class="flex items-center justify-between border-b theme-border pb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="clipboard-list" class="w-4 h-4 text-emerald-500"></i> 1. Expected JDA Manifest
+                        </span>
+                        <label class="text-xs text-emerald-500 hover:underline cursor-pointer flex items-center gap-1 font-medium">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload CSV
+                            <input type="file" accept=".csv,.txt" onchange="importAuditCSV(event)" class="hidden">
                         </label>
                     </div>
 
                     <div>
-                        <label class="block text-[11px] text-zinc-400 mb-1.5">Paste Pallet Column / Container IDs (One per line):</label>
-                        <textarea id="batch-input" rows="8" placeholder="PLT-UK-100231&#10;PLT-UK-100232&#10;PLT-UK-100233&#10;PLT-UK-100234" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-xs font-mono text-zinc-100 outline-none focus:border-emerald-500 transition">PLT-UK-100231
-PLT-UK-100232
-PLT-UK-100233
-PLT-UK-100234</textarea>
+                        <label class="block text-[11px] theme-text-muted mb-1.5">Paste Expected Pallet IDs (e.g. 100 pallets from JDA):</label>
+                        <textarea id="audit-manifest-input" rows="9" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500">FF-RM028262738, SKU-8821, 48, LANE-01
+FF-RM028262739, SKU-8821, 48, LANE-01
+FF-RM028262740, SKU-4410, 24, LANE-04
+FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] uppercase text-zinc-500 mb-1">Batch Symbology</label>
-                            <select id="batch-type" class="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-2 text-xs text-zinc-200 outline-none">
-                                <option value="code128" selected>Code 128</option>
-                                <option value="gs1-128">GS1-128</option>
-                                <option value="qrcode">QR Code</option>
-                                <option value="datamatrix">Data Matrix</option>
-                                <option value="code39">Code 39</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end">
-                            <button onclick="generateBatchGrid()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 px-4 rounded-md shadow transition flex items-center justify-center gap-1.5">
-                                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Generate Batch
-                            </button>
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="loadAuditManifest()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow transition">
+                            Load / Reset Audit
+                        </button>
+                        <button onclick="exportAuditReportCSV()" class="theme-elevated border text-xs font-medium py-2.5 px-3 rounded-lg transition">
+                            Export Audit CSV
+                        </button>
                     </div>
                 </div>
 
-                <!-- Batch Output Preview & Print Grid (7 Cols) -->
-                <div class="lg:col-span-7 bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-5 space-y-4 shadow-xl">
-                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-3">
-                        <div>
-                            <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400">Generated Batch Queue</h2>
-                            <p id="batch-count-label" class="text-[11px] text-zinc-500">Ready to render batch labels</p>
+                <!-- Right: Live Gun Scanner Input & Color-Coded Verification Table (8 Cols) -->
+                <div class="lg:col-span-8 theme-card border rounded-xl p-5 space-y-4 shadow-lg">
+                    
+                    <!-- Gun Scanner Bar -->
+                    <div class="p-4 rounded-xl theme-elevated border space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2 text-emerald-500">
+                                <i data-lucide="radio" class="w-4 h-4"></i> 2. Live Bluetooth / USB Gun Verification Input
+                            </span>
+                            <span class="text-[11px] font-mono theme-text-muted">Auto-submits on Enter</span>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="saveBatchToHistory()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium px-3 py-1.5 rounded-md border border-zinc-700 transition flex items-center gap-1.5">
-                                <i data-lucide="save" class="w-3.5 h-3.5"></i> Log All to History
+                            <input type="text" id="audit-scan-gun" placeholder="Focus here & scan physical pallet labels with handheld gun..." onkeydown="if(event.key==='Enter') processAuditScan()" class="flex-grow theme-input border-2 border-emerald-500/60 rounded-lg px-4 py-3 text-sm font-mono font-bold outline-none focus:border-emerald-500">
+                            <button onclick="processAuditScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 rounded-lg shadow shrink-0">
+                                Verify Scan
                             </button>
-                            <button onclick="printBatchSheet()" class="bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold px-3 py-1.5 rounded-md shadow transition flex items-center gap-1.5">
-                                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Entire Batch
-                            </button>
+                        </div>
+
+                        <!-- Live Last Scan Feedback Banner -->
+                        <div id="audit-alert-banner" class="hidden p-3 rounded-lg font-mono text-xs font-semibold flex items-center justify-between">
+                            <span id="audit-alert-text">Ready</span>
+                            <span id="audit-alert-time" class="text-[10px] opacity-75"></span>
                         </div>
                     </div>
 
-                    <div id="batch-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[480px] overflow-y-auto p-2">
-                        <!-- Populated dynamically -->
+                    <!-- Rogue Pallets Box (Only appears if rogue pallets scanned) -->
+                    <div id="audit-rogue-box" class="hidden bg-red-950/30 border border-red-500/40 rounded-xl p-4 space-y-2">
+                        <div class="text-xs font-bold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+                            <i data-lucide="Octagon-alert" class="w-4 h-4"></i> Unexpected "Rogue" Pallets Scanned (Not on Manifest!)
+                        </div>
+                        <div id="audit-rogue-list" class="flex flex-wrap gap-2 pt-1"></div>
+                    </div>
+
+                    <!-- Expected Manifest Check-Off Table -->
+                    <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-[420px]">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 theme-elevated border-b theme-border">
+                                <tr>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Pallet ID</th>
+                                    <th class="p-3">SKU / Routing Details</th>
+                                    <th class="p-3">Verified Time</th>
+                                    <th class="p-3 text-right">Manual Override</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-tbody" class="divide-y theme-border font-mono"></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -399,251 +498,812 @@ PLT-UK-100234</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 3: CAMERA SCANNER, FILE DECODER & LOG
+             TAB 3: SINGLE STUDIO GENERATOR (barcodes.pro parity)
+             ========================================== -->
+        <section id="view-generator" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-5 theme-card border rounded-xl overflow-hidden shadow-lg p-5 space-y-4">
+                <div class="flex items-center justify-between border-b theme-border pb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4 text-emerald-500"></i> Single Studio Parameters
+                    </span>
+                    <button onclick="resetDefaults()" class="text-xs theme-text-muted hover:underline">Reset</button>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-medium uppercase theme-text-muted mb-1">Symbology</label>
+                    <select id="bc-type" onchange="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-medium outline-none">
+                        <option value="code128" selected>Code 128 (Standard Logistics)</option>
+                        <option value="gs1-128">GS1-128 / SSCC-18</option>
+                        <option value="itf14">ITF-14</option>
+                        <option value="code39">Code 39</option>
+                        <option value="qrcode">QR Code (2D)</option>
+                        <option value="datamatrix">Data Matrix (2D)</option>
+                        <option value="pdf417">PDF417 (Stacked)</option>
+                        <option value="ean13">EAN-13</option>
+                        <option value="upca">UPC-A</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-medium uppercase theme-text-muted mb-1">Payload Data</label>
+                    <input type="text" id="bc-data" value="FF-RM028262738" oninput="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-medium uppercase theme-text-muted mb-1">Custom Label Text Override</label>
+                    <input type="text" id="bc-alttext" oninput="renderSingleBarcode()" placeholder="Optional custom text below bars..." class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
+                    <div>
+                        <span class="text-[11px] theme-text-muted block mb-1">Scale (<span id="lbl-scale">3x</span>)</span>
+                        <input type="range" id="bc-scale" min="1" max="6" value="3" oninput="document.getElementById('lbl-scale').innerText=this.value+'x'; renderSingleBarcode();" class="w-full">
+                    </div>
+                    <div>
+                        <span class="text-[11px] theme-text-muted block mb-1">Height (<span id="lbl-height">15mm</span>)</span>
+                        <input type="range" id="bc-height" min="5" max="40" value="15" oninput="document.getElementById('lbl-height').innerText=this.value+'mm'; renderSingleBarcode();" class="w-full">
+                    </div>
+                    <div>
+                        <span class="text-[11px] theme-text-muted block mb-1">Padding (<span id="lbl-pad">10px</span>)</span>
+                        <input type="range" id="bc-pad" min="0" max="30" value="10" oninput="document.getElementById('lbl-pad').innerText=this.value+'px'; renderSingleBarcode();" class="w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Text Pos</label>
+                        <select id="bc-textpos" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                            <option value="below" selected>Below</option>
+                            <option value="above">Above</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Font Size</label>
+                        <select id="bc-textsize" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                            <option value="8">8pt</option>
+                            <option value="10" selected>10pt</option>
+                            <option value="13">13pt</option>
+                            <option value="16">16pt</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Rotation</label>
+                        <select id="bc-rotate" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
+                            <option value="N" selected>0°</option>
+                            <option value="R">90°</option>
+                            <option value="I">180°</option>
+                            <option value="L">270°</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t theme-border">
+                    <div class="flex items-center justify-between theme-input border rounded-lg px-3 py-2">
+                        <span class="text-xs">Bars</span>
+                        <input type="color" id="bc-fg" value="#000000" onchange="renderSingleBarcode()" class="w-5 h-5 cursor-pointer bg-transparent border-0">
+                    </div>
+                    <div class="flex items-center justify-between theme-input border rounded-lg px-3 py-2">
+                        <span class="text-xs">Bg</span>
+                        <input type="color" id="bc-bg" value="#ffffff" onchange="renderSingleBarcode()" class="w-5 h-5 cursor-pointer bg-transparent border-0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
+                <div class="px-5 py-3.5 border-b theme-border flex justify-between items-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Live Vector & Raster Preview</span>
+                    <span id="badge-dims" class="text-[10px] font-mono px-2 py-0.5 rounded theme-elevated border">0 × 0 px</span>
+                </div>
+                <div class="canvas-grid min-h-[320px] p-8 flex items-center justify-center relative">
+                    <div id="canvas-wrapper" class="rounded-lg shadow-xl p-4 bg-white">
+                        <canvas id="barcode-canvas" class="max-w-full"></canvas>
+                    </div>
+                    <div id="render-error" class="hidden absolute bottom-4 left-4 right-4 bg-red-950/90 border border-red-800 text-red-200 px-4 py-2 rounded-lg text-xs font-mono">
+                        <span id="render-error-text">Invalid input.</span>
+                    </div>
+                </div>
+                <div class="p-4 border-t theme-border grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <button onclick="exportPNG()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow">Download PNG</button>
+                    <button onclick="exportSVG()" class="theme-elevated border text-xs font-medium py-2.5 px-3 rounded-lg">Vector SVG</button>
+                    <button onclick="exportPDF()" class="theme-elevated border text-xs font-medium py-2.5 px-3 rounded-lg">Export PDF</button>
+                    <button onclick="printSingleLabel()" class="theme-elevated border text-xs font-semibold py-2.5 px-3 rounded-lg">Print Label</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             TAB 4: STATIC FILE DECODER & SESSION LOG
              ========================================== -->
         <section id="view-scanner" class="hidden space-y-6">
-            
-            <!-- Top Row: File Upload Decoder + Live Camera Scanner -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- File Upload Decoder Card -->
-                <div class="bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-5 flex flex-col justify-between shadow-xl">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                                <i data-lucide="file-up" class="w-4 h-4 text-emerald-400"></i> Decode Barcode from Image File
-                            </h2>
-                            <span class="text-[10px] font-mono text-zinc-500">PNG / JPG / WEBP</span>
-                        </div>
-                        <label class="flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 hover:border-emerald-500/60 rounded-xl p-8 cursor-pointer transition bg-zinc-950/60 group">
-                            <i data-lucide="upload-cloud" class="w-8 h-8 text-zinc-500 group-hover:text-emerald-400 mb-2 transition"></i>
-                            <span class="text-xs font-medium text-zinc-300">Click to select image or screenshot</span>
-                            <span class="text-[11px] text-zinc-500 mt-1">Automatically logs decoded Pallet ID to table</span>
-                            <input type="file" id="barcode-file-input" accept="image/*" onchange="scanUploadedFile(event)" class="hidden">
-                        </label>
-                    </div>
-
-                    <div id="file-scan-box" class="mt-4 hidden bg-zinc-950 p-3.5 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
-                        <div>
-                            <span class="text-[10px] font-mono uppercase text-emerald-400 block">Decoded from File:</span>
-                            <p id="file-scan-text" class="text-xs text-zinc-100 font-mono font-semibold break-all"></p>
-                        </div>
-                        <button onclick="copyTextValue(document.getElementById('file-scan-text').innerText)" class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded border border-zinc-800 text-xs">Copy</button>
+                <div class="theme-card border rounded-xl p-5 space-y-4 shadow-lg">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="file-up" class="w-4 h-4 text-emerald-500"></i> Upload Barcode Image to Decode
+                    </h2>
+                    <label class="flex flex-col items-center justify-center border-2 border-dashed theme-border hover:border-emerald-500 rounded-xl p-8 cursor-pointer transition theme-input">
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-emerald-500 mb-2"></i>
+                        <span class="text-xs font-medium">Select PNG / JPG / Screenshot</span>
+                        <input type="file" accept="image/*" onchange="scanUploadedFile(event)" class="hidden">
+                    </label>
+                    <div id="file-scan-box" class="hidden theme-input p-3 rounded-lg border flex justify-between items-center">
+                        <span id="file-scan-text" class="text-xs font-mono font-bold"></span>
+                        <button onclick="copyTextValue(document.getElementById('file-scan-text').innerText)" class="text-xs px-2 py-1 theme-elevated rounded border">Copy</button>
                     </div>
                 </div>
 
-                <!-- Optical Camera Scanner Card -->
-                <div class="bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-5 flex flex-col justify-between shadow-xl">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                                <i data-lucide="video" class="w-4 h-4 text-emerald-400"></i> Live Optical Camera Scanner
-                            </h2>
-                            <button onclick="toggleCamera()" id="btn-cam-toggle" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded border border-zinc-700 transition">
-                                Start Camera
-                            </button>
-                        </div>
-                        <div id="reader" class="w-full bg-zinc-950 rounded-lg overflow-hidden border border-zinc-800 min-h-[180px] flex items-center justify-center text-xs text-zinc-600 font-mono">
-                            Camera currently on standby
+                <div class="theme-card border rounded-xl p-5 flex flex-col justify-between shadow-lg">
+                    <div class="space-y-3">
+                        <h2 class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-emerald-500"></i> Quick Hardware Gun Log Input
+                        </h2>
+                        <p class="text-xs theme-text-muted">Scan any barcode directly into the persistent log table below:</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="manual-log-input" placeholder="Scan or type ID & hit Enter..." onkeydown="if(event.key==='Enter') manualAddLog()" class="flex-grow theme-input border rounded-lg px-3.5 py-2.5 text-sm font-mono outline-none focus:border-emerald-500">
+                            <button onclick="manualAddLog()" class="bg-emerald-600 text-white text-xs font-semibold px-4 rounded-lg">+ Log</button>
                         </div>
                     </div>
-
-                    <div id="cam-scan-box" class="mt-4 hidden bg-zinc-950 p-3.5 rounded-lg border border-zinc-800 flex items-center justify-between gap-2">
-                        <div>
-                            <span class="text-[10px] font-mono uppercase text-emerald-400 block">Captured via Camera:</span>
-                            <p id="cam-scan-text" class="text-xs text-zinc-100 font-mono font-semibold break-all"></p>
-                        </div>
-                        <button onclick="copyTextValue(document.getElementById('cam-scan-text').innerText)" class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded border border-zinc-800 text-xs">Copy</button>
+                    <div class="pt-3 border-t theme-border flex justify-between items-center text-xs">
+                        <span class="theme-text-muted">Share up to 50 logged pallets via URL</span>
+                        <button onclick="shareUrlSnapshot()" class="text-emerald-500 font-semibold hover:underline">Copy Shareable Link</button>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Bottom Row: Persistent Pallet History Log & Shareable Link Builder -->
-            <div class="bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-5 space-y-4 shadow-xl">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-zinc-800 pb-4">
-                    <div>
-                        <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                            <i data-lucide="list-checks" class="w-4 h-4 text-emerald-400"></i> Scanned & Generated Pallet Record Log
-                        </h2>
-                        <p class="text-[11px] text-zinc-500">Saved automatically in browser storage • Shareable via URL Snapshot or CSV</p>
-                    </div>
-                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <button onclick="shareUrlSnapshot()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-xs font-medium py-2 px-3 rounded-lg border border-zinc-700 transition flex items-center gap-1.5">
-                            <i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-400"></i> Copy Shareable Link
-                        </button>
-                        <button onclick="batchPrintSelectedHistory()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 px-3 rounded-lg shadow transition flex items-center gap-1.5">
-                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Selected
-                        </button>
-                        <button onclick="exportHistoryCSV()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium py-2 px-3 rounded-lg border border-zinc-700 transition">
-                            Export CSV
-                        </button>
-                        <button onclick="clearHistoryLog()" class="bg-zinc-950 hover:bg-red-950/40 text-zinc-400 hover:text-red-400 text-xs font-medium py-2 px-3 rounded-lg border border-zinc-800 transition">
-                            Clear
-                        </button>
+            <div class="theme-card border rounded-xl p-5 space-y-4 shadow-lg">
+                <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider">Master Session Scan History</h2>
+                    <div class="flex gap-2">
+                        <button onclick="exportHistoryCSV()" class="theme-elevated border text-xs font-medium px-3 py-1.5 rounded-lg">Export CSV</button>
+                        <button onclick="clearHistoryLog()" class="theme-input border text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg">Clear Log</button>
                     </div>
                 </div>
-
-                <!-- Filter & Manual Quick-Add Bar -->
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="manual-log-input" placeholder="Quick-type or scan with USB laser scanner & press Enter..." onkeydown="if(event.key==='Enter') manualAddLog()" class="flex-grow bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono text-zinc-100 outline-none focus:border-emerald-500">
-                    <button onclick="manualAddLog()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium px-4 py-2 rounded-lg border border-zinc-700 shrink-0">
-                        + Log Pallet ID
-                    </button>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto border border-zinc-800 rounded-lg bg-zinc-950">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="border-b border-zinc-800 text-zinc-500 font-medium bg-zinc-900/40">
-                                <th class="p-3 w-10 text-center"><input type="checkbox" id="master-check" onclick="toggleSelectAll(this)" class="accent-emerald-500 cursor-pointer"></th>
+                <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-80">
+                    <table class="w-full text-left border-collapse text-xs font-mono">
+                        <thead class="theme-elevated border-b theme-border">
+                            <tr>
                                 <th class="p-3">#</th>
-                                <th class="p-3">Pallet ID / Encoded Data</th>
-                                <th class="p-3">Source / Symbology</th>
+                                <th class="p-3">Pallet ID</th>
+                                <th class="p-3">Source</th>
                                 <th class="p-3">Timestamp</th>
-                                <th class="p-3 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="history-tbody" class="divide-y divide-zinc-900 font-mono text-zinc-300"></tbody>
+                        <tbody id="history-tbody" class="divide-y theme-border"></tbody>
                     </table>
                 </div>
-                <p id="empty-log-msg" class="text-xs text-zinc-600 text-center py-6">No pallet records logged yet.</p>
+                <p id="empty-log-msg" class="text-xs theme-text-dim text-center py-4">No scan records logged yet.</p>
             </div>
-
         </section>
 
     </main>
 
-    <!-- Hidden offscreen canvas for batch/print operations -->
+    <!-- Offscreen Canvas for Print & File Decode -->
     <canvas id="offscreen-canvas" class="hidden"></canvas>
 
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-zinc-900 text-zinc-100 text-xs font-medium px-4 py-2.5 rounded-lg shadow-2xl border border-zinc-700 flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
-        <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 theme-elevated border text-xs font-medium px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
         <span id="toast-text">Action completed</span>
     </div>
 
-    <!-- APPLICATION LOGIC -->
+    <!-- APPLICATION SCRIPT -->
     <script>
-        // Initialize Lucide icons
         lucide.createIcons();
 
-        // Symbology Helper Metadata & Sample Formats
-        const SYM_META = {
-            'code128': { sample: 'PLT-UK-0098421', desc: 'Full ASCII character set. Industry standard for logistics & inventory.' },
-            'gs1-128': { sample: '(00)123456789012345675', desc: 'Requires Application Identifiers in parentheses, e.g. (00) for SSCC-18.' },
-            'itf14': { sample: '1234567890123', desc: '13 or 14 numeric digits. Used on outer shipping cartons & pallets.' },
-            'code39': { sample: 'LOC-A12-B04', desc: 'Uppercase letters (A-Z), digits (0-9), and (- . $ / + % SPACE).' },
-            'code93': { sample: 'INV-99402-X', desc: 'High-density alphanumeric barcode used in logistics & postal.' },
-            'interleaved2of5': { sample: '1234567890', desc: 'Even number of numeric digits only.' },
-            'qrcode': { sample: 'https://github.com/', desc: '2D Matrix code capable of encoding URLs, JSON, or long SKU manifests.' },
-            'datamatrix': { sample: 'DM-PLT-2026-9981', desc: 'Compact 2D ECC-200 code for small components, electronics & pharma.' },
-            'pdf417': { sample: 'MANIFEST-ID:99812|QTY:48|DEST:LEICESTER', desc: '2D stacked linear barcode for shipping manifests and ID cards.' },
-            'azteccode': { sample: 'AZTEC-CARGO-88219', desc: 'High-density 2D matrix requiring zero surrounding quiet zone.' },
-            'ean13': { sample: '501234567890', desc: '12 or 13 numeric digits (Check digit auto-calculated).' },
-            'ean8': { sample: '5012345', desc: '7 or 8 numeric digits.' },
-            'upca': { sample: '01234567890', desc: '11 or 12 numeric digits (Standard US Retail).' },
-            'upce': { sample: '0123456', desc: '6, 7, or 8 numeric digits (Zero-suppressed UPC).' },
-            'isbn': { sample: '978-3-16-148410-0', desc: 'Valid ISBN-10 or ISBN-13 with hyphens.' },
-            'rationalizedCodabar': { sample: 'A40156B', desc: 'Digits plus start/stop characters (A, B, C, or D).' },
-            'pharmacode': { sample: '1234', desc: 'Numeric integer between 3 and 131070.' },
-            'royalmail': { sample: 'LE21TU1A', desc: 'Alphanumeric UK postcode & Delivery Point Suffix ( uppercase ).' },
-            'postnet': { sample: '123456789', desc: '5, 9, or 11 numeric digits.' }
-        };
+        // ==========================================
+        // 1. SYNTHESIZED WEB AUDIO & HAPTIC ENGINE
+        // ==========================================
+        let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true');
+        let audioCtx = null;
 
-        // Persistent History State
+        function initAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTone(type) {
+            if (!audioEnabled) return;
+            try {
+                initAudioContext();
+                if (!audioCtx) return;
+
+                const now = audioCtx.currentTime;
+                if (type === 'success') {
+                    // Crisp 2200Hz warehouse scanner high beep
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(2200, now);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.09);
+                    if (navigator.vibrate) navigator.vibrate(40);
+                } else if (type === 'error') {
+                    // Low-frequency double sawtooth error buzzer (180Hz)
+                    [0, 0.16].forEach(offset => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(180, now + offset);
+                        gain.gain.setValueAtTime(0.25, now + offset);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.13);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + offset);
+                        osc.stop(now + offset + 0.13);
+                    });
+                    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+                }
+            } catch (e) {}
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled));
+            updateAudioUI();
+            if (audioEnabled) playTone('success');
+            showToast(audioEnabled ? "Audio Beeps & Haptics Enabled" : "Audio Muted");
+        }
+
+        function updateAudioUI() {
+            const lbl = document.getElementById('lbl-audio');
+            const icon = document.getElementById('icon-audio');
+            lbl.innerText = audioEnabled ? "Audio ON" : "Muted";
+            icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
+            icon.className = audioEnabled ? "w-3.5 h-3.5 text-emerald-500" : "w-3.5 h-3.5 text-red-400";
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 2. THEME SWITCHER (Dark / Light / Eye-Protect)
+        // ==========================================
+        function setTheme(mode) {
+            document.documentElement.setAttribute('data-theme', mode);
+            localStorage.setItem('wmsThemeMode', mode);
+            ['dark', 'light', 'eye-protect'].forEach(m => {
+                const btn = document.getElementById(`theme-${m}`);
+                if (m === mode) {
+                    btn.className = "px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 bg-emerald-600 text-white transition";
+                } else {
+                    btn.className = "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition";
+                }
+            });
+        }
+
+        // ==========================================
+        // 3. BULK MULTI-COLUMN PARSER & SCAN-TO-ADVANCE
+        // ==========================================
+        let bulkRecords = []; // Array of { id, sku, qty, lane }
+        let scannedSet = new Set();
+        let currentDeckIndex = 0;
+        let autoPlayTimer = null;
+        let bulkViewMode = 'carousel';
         let scanHistory = JSON.parse(localStorage.getItem('palletScanHistoryPro') || '[]');
-        let html5QrCode = null;
-        let isCameraRunning = false;
 
-        // Check if URL has shared pallet snapshot (?pallets=...)
-        function checkSharedUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('pallets')) {
-                try {
-                    const decoded = JSON.parse(atob(params.get('pallets')));
-                    if (Array.isArray(decoded) && decoded.length > 0) {
-                        decoded.forEach(code => logItem(code, 'Shared Link'));
-                        showToast(`Loaded ${decoded.length} pallets from shared link!`);
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                    }
-                } catch (e) { console.warn("Invalid shared URL payload"); }
+        function parseCsvLine(line) {
+            const parts = line.split(',').map(s => s.trim());
+            return {
+                id: parts[0] || '',
+                sku: parts[1] || '',
+                qty: parts[2] || '',
+                lane: parts[3] || ''
+            };
+        }
+
+        function loadBulkDeck(preserveIndex = false) {
+            const raw = document.getElementById('batch-input').value;
+            bulkRecords = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(parseCsvLine).filter(r => r.id);
+            document.getElementById('bulk-line-count').innerText = `${bulkRecords.length} item${bulkRecords.length === 1 ? '' : 's'}`;
+
+            if (!preserveIndex || currentDeckIndex >= bulkRecords.length) {
+                currentDeckIndex = 0;
+            }
+            renderCurrentDeckSlide();
+            if (bulkViewMode === 'grid') generateBatchGrid();
+        }
+
+        function renderCurrentDeckSlide() {
+            const canvas = document.getElementById('deck-canvas');
+            const counter = document.getElementById('deck-counter');
+            const currentText = document.getElementById('deck-current-text');
+            const progress = document.getElementById('deck-progress');
+            const badge = document.getElementById('deck-scanned-badge');
+            const routingHeader = document.getElementById('deck-routing-header');
+            const sym = document.getElementById('batch-type').value;
+
+            if (bulkRecords.length === 0) {
+                counter.innerText = "0 / 0";
+                currentText.innerText = "No items in list";
+                progress.style.width = "0%";
+                routingHeader.classList.add('hidden');
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                renderDeckPills();
+                return;
+            }
+
+            const rec = bulkRecords[currentDeckIndex];
+            counter.innerText = `${currentDeckIndex + 1} / ${bulkRecords.length}`;
+            currentText.innerText = rec.id;
+            progress.style.width = `${((currentDeckIndex + 1) / bulkRecords.length) * 100}%`;
+
+            // Show or hide Multi-Column Routing Header
+            if (rec.sku || rec.qty || rec.lane) {
+                routingHeader.classList.remove('hidden');
+                document.getElementById('deck-meta-sku').innerText = `SKU: ${rec.sku || 'N/A'}`;
+                document.getElementById('deck-meta-qty').innerText = `QTY: ${rec.qty || '1'}`;
+                document.getElementById('deck-meta-lane').innerText = `${rec.lane || 'STD'}`;
+            } else {
+                routingHeader.classList.add('hidden');
+            }
+
+            if (scannedSet.has(currentDeckIndex)) {
+                badge.className = "mb-3 px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 font-semibold flex items-center gap-1.5";
+                badge.innerHTML = `<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Scanned & Verified`;
+            } else {
+                badge.className = "mb-3 px-3 py-1 rounded-full text-[11px] font-mono uppercase tracking-wider theme-elevated border flex items-center gap-1.5";
+                badge.innerHTML = `<span class="h-2 w-2 rounded-full bg-amber-400"></span> Awaiting Scan (${currentDeckIndex + 1} of ${bulkRecords.length})`;
+            }
+
+            try {
+                bwipjs.toCanvas(canvas, {
+                    bcid: sym,
+                    text: rec.id,
+                    scale: 4,
+                    height: 18,
+                    includetext: true,
+                    textxalign: 'center',
+                    textsize: 12,
+                    paddingwidth: 10,
+                    paddingheight: 8,
+                    backgroundcolor: 'ffffff'
+                });
+            } catch (e) {
+                currentText.innerText = `${rec.id} (Invalid ${sym.toUpperCase()})`;
+            }
+
+            renderDeckPills();
+        }
+
+        // Handle Hardware Scan Verification in Bulk Deck
+        function handleDeckScanVerify() {
+            if (bulkRecords.length === 0) return;
+            const inp = document.getElementById('deck-scan-input');
+            const scannedVal = inp.value.trim();
+            const expectedVal = bulkRecords[currentDeckIndex].id;
+
+            // If user pressed Enter on empty box or scanned exact match -> advance!
+            if (scannedVal === '' || scannedVal.toUpperCase() === expectedVal.toUpperCase()) {
+                inp.value = '';
+                markAndNextDeck();
+            } else {
+                // Mismatch scan! Play error buzz and keep current slide
+                playTone('error');
+                inp.value = '';
+                showToast(`Mismatch! Expected ${expectedVal}, but scanned ${scannedVal}`);
             }
         }
 
-        // Tab Navigation
-        function switchTab(tab) {
-            ['generator', 'batch', 'scanner'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                const btn = document.getElementById(`tab-${t}`);
-                btn.className = "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md text-zinc-400 hover:text-zinc-100 transition-all";
+        function markAndNextDeck() {
+            if (bulkRecords.length === 0) return;
+            const rec = bulkRecords[currentDeckIndex];
+            scannedSet.add(currentDeckIndex);
+            playTone('success');
+            logItem(rec.id, 'Bulk 1-by-1 Scan', true);
+
+            const stage = document.getElementById('deck-stage-box');
+            stage.classList.remove('scan-flash');
+            void stage.offsetWidth;
+            stage.classList.add('scan-flash');
+
+            if (document.getElementById('chk-scan-advance').checked) {
+                if (currentDeckIndex < bulkRecords.length - 1) {
+                    currentDeckIndex++;
+                } else {
+                    showToast("All items in bulk deck scanned!");
+                }
+            }
+            renderCurrentDeckSlide();
+        }
+
+        function stepDeck(delta) {
+            if (bulkRecords.length === 0) return;
+            currentDeckIndex = (currentDeckIndex + delta + bulkRecords.length) % bulkRecords.length;
+            playTone('success');
+            renderCurrentDeckSlide();
+        }
+
+        function renderDeckPills() {
+            const container = document.getElementById('deck-pills');
+            container.innerHTML = '';
+            bulkRecords.forEach((rec, idx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
+                if (idx === currentDeckIndex) {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white shadow";
+                } else if (scannedSet.has(idx)) {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded text-xs font-mono theme-elevated border opacity-75 hover:opacity-100";
+                }
+                btn.innerText = `${idx + 1}. ${rec.id}`;
+                container.appendChild(btn);
+            });
+        }
+
+        function loadMultiColSample() {
+            document.getElementById('batch-input').value = [
+                "FF-RM028262738, SKU-8821, 48, LANE-01",
+                "FF-RM028262739, SKU-8821, 48, LANE-01",
+                "FF-RM028262740, SKU-4410, 24, LANE-04",
+                "FF-RM028262741, SKU-9012, 96, DOCK-NORTH"
+            ].join('\n');
+            scannedSet.clear();
+            loadBulkDeck(false);
+            showToast("Loaded multi-column routing sample");
+        }
+
+        function generateSequenceList() {
+            const prefix = document.getElementById('seq-prefix').value;
+            const startStr = document.getElementById('seq-start').value.trim();
+            const count = Math.min(500, Math.max(1, parseInt(document.getElementById('seq-count').value) || 10));
+            const lane = document.getElementById('seq-lane').value.trim();
+
+            const startNum = BigInt(startStr.replace(/\D/g, '') || '1');
+            const padLen = startStr.length;
+            const lines = [];
+
+            for (let i = 0n; i < BigInt(count); i++) {
+                const id = `${prefix}${(startNum + i).toString().padStart(padLen, '0')}`;
+                lines.push(lane ? `${id}, SKU-STD, 1, ${lane}` : id);
+            }
+
+            document.getElementById('batch-input').value = lines.join('\n');
+            scannedSet.clear();
+            loadBulkDeck(false);
+            playTone('success');
+            showToast(`Generated ${count} sequential labels`);
+        }
+
+        // ==========================================
+        // 4. MANIFEST AUDIT & VERIFICATION ENGINE
+        // ==========================================
+        let auditManifest = new Map(); // Key: UPPERCASE ID -> { id, sku, qty, lane, verified, time }
+        let auditRogues = []; // Array of { id, time }
+
+        function loadAuditManifest() {
+            const raw = document.getElementById('audit-manifest-input').value;
+            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            auditManifest.clear();
+            auditRogues = [];
+
+            lines.forEach(line => {
+                const rec = parseCsvLine(line);
+                if (rec.id) {
+                    auditManifest.set(rec.id.toUpperCase(), {
+                        id: rec.id,
+                        sku: rec.sku || '-',
+                        qty: rec.qty || '-',
+                        lane: rec.lane || '-',
+                        verified: false,
+                        time: null
+                    });
+                }
             });
 
+            document.getElementById('audit-alert-banner').classList.add('hidden');
+            renderAuditState();
+            showToast(`Loaded ${auditManifest.size} expected pallets for audit`);
+        }
+
+        function importAuditCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('audit-manifest-input').value = e.target.result.trim();
+                loadAuditManifest();
+            };
+            reader.readAsText(file);
+        }
+
+        function processAuditScan() {
+            const gunInput = document.getElementById('audit-scan-gun');
+            const rawScan = gunInput.value.trim();
+            if (!rawScan) return;
+            gunInput.value = '';
+
+            if (auditManifest.size === 0) loadAuditManifest();
+
+            const key = rawScan.toUpperCase();
+            const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            const banner = document.getElementById('audit-alert-banner');
+            const bannerText = document.getElementById('audit-alert-text');
+            const bannerTime = document.getElementById('audit-alert-time');
+            banner.classList.remove('hidden');
+            bannerTime.innerText = now;
+
+            if (auditManifest.has(key)) {
+                const item = auditManifest.get(key);
+                if (!item.verified) {
+                    item.verified = true;
+                    item.time = now;
+                    playTone('success');
+                    banner.className = "p-3 rounded-lg font-mono text-xs font-bold flex items-center justify-between bg-emerald-500/20 border border-emerald-500 text-emerald-400";
+                    bannerText.innerText = `✓ VERIFIED MATCH: ${item.id} (${item.lane})`;
+                    logItem(item.id, 'Audit Verified', true);
+                } else {
+                    playTone('error');
+                    banner.className = "p-3 rounded-lg font-mono text-xs font-bold flex items-center justify-between bg-blue-500/20 border border-blue-400 text-blue-300";
+                    bannerText.innerText = `⚠ DUPLICATE SCAN: ${item.id} was already verified at ${item.time}`;
+                }
+            } else {
+                // ROGUE PALLET DETECTED!
+                playTone('error');
+                auditRogues.unshift({ id: rawScan, time: now });
+                banner.className = "p-3 rounded-lg font-mono text-xs font-bold flex items-center justify-between bg-red-500/20 border border-red-500 text-red-400";
+                bannerText.innerText = `✕ ROGUE PALLET ALERT: "${rawScan}" IS NOT ON THIS MANIFEST!`;
+                logItem(rawScan, 'Audit ROGUE Alert', true);
+            }
+
+            renderAuditState();
+        }
+
+        function toggleManualAuditRow(key) {
+            if (!auditManifest.has(key)) return;
+            const item = auditManifest.get(key);
+            item.verified = !item.verified;
+            item.time = item.verified ? new Date().toLocaleTimeString('en-GB', { hour12: false }) : null;
+            if (item.verified) playTone('success');
+            renderAuditState();
+        }
+
+        function renderAuditState() {
+            let total = auditManifest.size;
+            let matched = 0;
+            auditManifest.forEach(v => { if (v.verified) matched++; });
+            let missing = total - matched;
+
+            document.getElementById('audit-kpi-total').innerText = total;
+            document.getElementById('audit-kpi-matched').innerText = matched;
+            document.getElementById('audit-kpi-missing').innerText = missing;
+            document.getElementById('audit-kpi-rogue').innerText = auditRogues.length;
+            document.getElementById('nav-audit-badge').innerText = `${matched}/${total}`;
+
+            // Render Rogue Pallets
+            const rogueBox = document.getElementById('audit-rogue-box');
+            const rogueList = document.getElementById('audit-rogue-list');
+            if (auditRogues.length > 0) {
+                rogueBox.classList.remove('hidden');
+                rogueList.innerHTML = auditRogues.map(r => `
+                    <span class="px-2.5 py-1 rounded bg-red-950 border border-red-600 text-red-200 font-mono text-xs font-semibold">
+                        ✕ ${escapeHtml(r.id)} <span class="opacity-60 text-[10px]">(${r.time})</span>
+                    </span>
+                `).join('');
+            } else {
+                rogueBox.classList.add('hidden');
+            }
+
+            // Render Manifest Table
+            const tbody = document.getElementById('audit-tbody');
+            tbody.innerHTML = '';
+            auditManifest.forEach((item, key) => {
+                const tr = document.createElement('tr');
+                tr.className = item.verified ? "bg-emerald-500/10" : "";
+                const statusBadge = item.verified
+                    ? `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 font-bold text-[10px]">✓ VERIFIED</span>`
+                    : `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40 font-semibold text-[10px]">⏳ MISSING</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-3">${statusBadge}</td>
+                    <td class="p-3 font-bold">${escapeHtml(item.id)}</td>
+                    <td class="p-3 theme-text-muted text-[11px]">SKU: ${escapeHtml(item.sku)} | Qty: ${escapeHtml(item.qty)} | Lane: ${escapeHtml(item.lane)}</td>
+                    <td class="p-3 theme-text-dim text-[11px]">${item.time || '--:--:--'}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="toggleManualAuditRow('${escapeHtml(key)}')" class="text-[11px] underline theme-text-muted hover:text-emerald-500">
+                            ${item.verified ? 'Unmark' : 'Mark Verified'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportAuditReportCSV() {
+            if (auditManifest.size === 0) return alert("Load a manifest first.");
+            let csv = "data:text/csv;charset=utf-8,Pallet_ID,Status,SKU,Qty,Lane,Verified_Time\n";
+            auditManifest.forEach(item => {
+                csv += `"${item.id}","${item.verified ? 'VERIFIED' : 'MISSING'}","${item.sku}","${item.qty}","${item.lane}","${item.time || ''}"\n`;
+            });
+            auditRogues.forEach(r => {
+                csv += `"${r.id}","ROGUE_UNEXPECTED","","","",'${r.time}'\n`;
+            });
+            const link = document.createElement('a');
+            link.href = encodeURI(csv);
+            link.download = `jda-audit-report-${Date.now()}.csv`;
+            link.click();
+        }
+
+        // ==========================================
+        // 5. MULTI-COLUMN 4x6 THERMAL PRINT ENGINE
+        // ==========================================
+        function printCurrentDeckLabel() {
+            if (bulkRecords.length === 0) return;
+            printRoutingBatch([bulkRecords[currentDeckIndex]]);
+        }
+
+        function printBatchSheet() {
+            if (bulkRecords.length === 0) return;
+            printRoutingBatch(bulkRecords);
+        }
+
+        function printRoutingBatch(records) {
+            const sym = document.getElementById('batch-type').value;
+            const offCanvas = document.getElementById('offscreen-canvas');
+            const rendered = [];
+
+            records.forEach(rec => {
+                try {
+                    bwipjs.toCanvas(offCanvas, {
+                        bcid: sym, text: rec.id, scale: 3, height: 16, includetext: true, textxalign: 'center', paddingwidth: 10, paddingheight: 8, backgroundcolor: 'ffffff'
+                    });
+                    rendered.push({ ...rec, dataUrl: offCanvas.toDataURL('image/png') });
+                } catch (e) {}
+            });
+
+            if (rendered.length === 0) return;
+
+            const win = window.open('', '_blank');
+            const cardsHtml = rendered.map(r => {
+                const hasRouting = r.sku || r.qty || r.lane;
+                const routingHtml = hasRouting ? `
+                    <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;font-size:14px;font-weight:bold;">
+                        <span>SKU: ${escapeHtml(r.sku || '-')}</span>
+                        <span>QTY: ${escapeHtml(r.qty || '1')}</span>
+                        <span style="background:#000;color:#fff;padding:1px 6px;">${escapeHtml(r.lane || 'STD')}</span>
+                    </div>
+                ` : '';
+                return `
+                    <div class="label-card">
+                        ${routingHtml}
+                        <img src="${r.dataUrl}" style="max-width:100%;height:auto;" />
+                    </div>
+                `;
+            }).join('');
+
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print 4x6 Routing Labels (${rendered.length})</title>
+                    <style>
+                        body { margin: 0; padding: 20px; font-family: 'JetBrains Mono', monospace; background: #fff; color: #000; }
+                        .wrap { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+                        .label-card { border: 2px solid #000; padding: 18px; width: 340px; text-align: center; page-break-inside: avoid; box-sizing: border-box; }
+                        @media print { body { padding: 0; } .label-card { page-break-after: always; width: 100%; border: 2px solid #000; margin-bottom: 10px; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="wrap">${cardsHtml}</div>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        // ==========================================
+        // GENERAL UI, STUDIO & NAVIGATION HELPERS
+        // ==========================================
+        function switchTab(tab) {
+            ['bulk', 'audit', 'generator', 'scanner'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all";
+            });
             document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md bg-zinc-100 text-zinc-950 shadow-sm transition-all";
+            document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all";
 
-            if (tab === 'batch') generateBatchGrid();
+            if (tab === 'bulk') loadBulkDeck(true);
+            if (tab === 'audit') {
+                if (auditManifest.size === 0) loadAuditManifest();
+                setTimeout(() => document.getElementById('audit-scan-gun').focus(), 100);
+            }
+            if (tab === 'generator') renderSingleBarcode();
             if (tab === 'scanner') renderHistoryTable();
-            if (tab !== 'scanner' && isCameraRunning) stopCamera();
         }
 
-        // Toast Helper
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-text').innerText = msg;
-            t.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2400);
+        // Keyboard Arrows for Bulk Carousel
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+            if (document.getElementById('view-bulk').classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); stepDeck(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); stepDeck(-1); }
+            else if (e.key === ' ') { e.preventDefault(); markAndNextDeck(); }
+        });
+
+        function generateBatchGrid() {
+            const sym = document.getElementById('batch-type').value;
+            const grid = document.getElementById('batch-grid');
+            const offCanvas = document.getElementById('offscreen-canvas');
+            grid.innerHTML = '';
+
+            bulkRecords.forEach((rec, idx) => {
+                try {
+                    bwipjs.toCanvas(offCanvas, { bcid: sym, text: rec.id, scale: 2, height: 12, includetext: true, textxalign: 'center', paddingwidth: 8, paddingheight: 8, backgroundcolor: 'ffffff' });
+                    const dataUrl = offCanvas.toDataURL('image/png');
+                    const card = document.createElement('div');
+                    card.className = "theme-input border rounded-lg p-3 flex flex-col items-center gap-2 cursor-pointer hover:border-emerald-500 transition";
+                    card.onclick = () => { currentDeckIndex = idx; setBulkViewMode('carousel'); };
+                    card.innerHTML = `
+                        <div class="w-full flex justify-between text-[10px] font-mono theme-text-muted">
+                            <span>#${idx + 1} ${escapeHtml(rec.sku)}</span>
+                            <span class="text-emerald-500 font-bold">${escapeHtml(rec.lane)}</span>
+                        </div>
+                        <div class="bg-white p-2 rounded w-full flex justify-center"><img src="${dataUrl}" class="max-h-20 object-contain"/></div>
+                    `;
+                    grid.appendChild(card);
+                } catch (e) {}
+            });
         }
 
-        function copyValue(inputId) {
-            const val = document.getElementById(inputId).value;
-            if (val) {
-                navigator.clipboard.writeText(val);
-                showToast(`Copied: ${val}`);
+        function setBulkViewMode(mode) {
+            bulkViewMode = mode;
+            document.getElementById('bulk-carousel-panel').classList.toggle('hidden', mode !== 'carousel');
+            document.getElementById('bulk-grid-panel').classList.toggle('hidden', mode !== 'grid');
+            document.getElementById('btn-mode-carousel').className = mode === 'carousel' ? "text-xs font-semibold py-1 rounded bg-emerald-600 text-white transition" : "text-xs font-medium py-1 rounded theme-text-muted transition";
+            document.getElementById('btn-mode-grid').className = mode === 'grid' ? "text-xs font-semibold py-1 rounded bg-emerald-600 text-white transition" : "text-xs font-medium py-1 rounded theme-text-muted transition";
+            if (mode === 'grid') generateBatchGrid();
+        }
+
+        function toggleAutoPlay() {
+            const btn = document.getElementById('btn-autoplay');
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+                btn.innerHTML = `<i data-lucide="play" class="w-3 h-3"></i> Timer`;
+                btn.className = "flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium theme-elevated border transition";
+            } else {
+                const speed = parseInt(document.getElementById('auto-play-speed').value) || 2500;
+                autoPlayTimer = setInterval(() => stepDeck(1), speed);
+                btn.innerHTML = `<i data-lucide="pause" class="w-3 h-3"></i> Pause`;
+                btn.className = "flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold bg-emerald-600 text-white shadow transition";
             }
+            lucide.createIcons();
         }
 
-        function copyTextValue(txt) {
-            if (txt) {
-                navigator.clipboard.writeText(txt);
-                showToast(`Copied: ${txt}`);
-            }
+        function restartAutoPlayIfActive() {
+            if (autoPlayTimer) { toggleAutoPlay(); toggleAutoPlay(); }
         }
 
-        // Sample Data Filler
-        function generateRandomSample() {
-            const sym = document.getElementById('bc-type').value;
-            if (SYM_META[sym]) {
-                document.getElementById('bc-data').value = SYM_META[sym].sample;
-                renderSingleBarcode();
-            }
+        function importBatchCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('batch-input').value = e.target.result.trim();
+                scannedSet.clear();
+                loadBulkDeck(false);
+                showToast("CSV loaded into Bulk Deck");
+            };
+            reader.readAsText(file);
         }
 
-        // Reset Studio Parameters
-        function resetDefaults() {
-            document.getElementById('bc-type').value = 'code128';
-            document.getElementById('bc-data').value = 'PLT-UK-0098421';
-            document.getElementById('bc-alttext').value = '';
-            document.getElementById('bc-scale').value = 3;
-            document.getElementById('lbl-scale').innerText = '3x';
-            document.getElementById('bc-height').value = 15;
-            document.getElementById('lbl-height').innerText = '15mm';
-            document.getElementById('bc-pad').value = 10;
-            document.getElementById('lbl-pad').innerText = '10px';
-            document.getElementById('bc-textpos').value = 'below';
-            document.getElementById('bc-textsize').value = '10';
-            document.getElementById('bc-rotate').value = 'N';
-            document.getElementById('bc-fg').value = '#000000';
-            document.getElementById('bc-bg').value = '#ffffff';
-            renderSingleBarcode();
-            showToast("Parameters reset to defaults");
+        function clearBulkInput() {
+            document.getElementById('batch-input').value = '';
+            scannedSet.clear();
+            loadBulkDeck(false);
         }
 
-        // Build BWIP-JS Options Object from UI Controls
-        function getBwipOptions(overrideText = null, overrideSym = null) {
-            const bcid = overrideSym || document.getElementById('bc-type').value;
-            const text = overrideText !== null ? overrideText : document.getElementById('bc-data').value.trim();
+        // Single Studio Functions
+        function getBwipOptions() {
+            const bcid = document.getElementById('bc-type').value;
+            const text = document.getElementById('bc-data').value.trim();
             const alttext = document.getElementById('bc-alttext').value.trim();
             const scale = parseInt(document.getElementById('bc-scale').value) || 3;
             const height = parseInt(document.getElementById('bc-height').value) || 15;
@@ -653,497 +1313,176 @@ PLT-UK-100234</textarea>
             const rotate = document.getElementById('bc-rotate').value;
             const fg = document.getElementById('bc-fg').value.replace('#', '');
             const bg = document.getElementById('bc-bg').value.replace('#', '');
+            const is2D = ['qrcode', 'datamatrix'].includes(bcid);
 
-            const is2D = ['qrcode', 'datamatrix', 'azteccode'].includes(bcid);
-
-            const opts = {
-                bcid: bcid,
-                text: text,
-                scale: scale,
-                rotate: rotate,
-                paddingwidth: pad,
-                paddingheight: pad,
-                barcolor: fg,
-                textcolor: fg,
-                backgroundcolor: bg,
-            };
-
+            const opts = { bcid, text, scale, rotate, paddingwidth: pad, paddingheight: pad, barcolor: fg, textcolor: fg, backgroundcolor: bg };
             if (!is2D) {
                 opts.height = height;
                 if (textpos !== 'none') {
-                    opts.includetext = true;
-                    opts.textxalign = 'center';
-                    opts.textyalign = textpos;
-                    opts.textsize = textsize;
-                    if (alttext && overrideText === null) opts.alttext = alttext;
+                    opts.includetext = true; opts.textxalign = 'center'; opts.textyalign = textpos; opts.textsize = textsize;
+                    if (alttext) opts.alttext = alttext;
                 }
-            } else if (alttext && overrideText === null) {
-                opts.alttext = alttext;
-                opts.includetext = true;
-                opts.textxalign = 'center';
-                opts.textsize = textsize;
             }
-
             return opts;
         }
 
-        // Render Live Studio Barcode
         function renderSingleBarcode() {
-            const bcid = document.getElementById('bc-type').value;
-            const text = document.getElementById('bc-data').value.trim();
             const canvas = document.getElementById('barcode-canvas');
-            const wrapper = document.getElementById('canvas-wrapper');
             const errBox = document.getElementById('render-error');
-            const errTxt = document.getElementById('render-error-text');
-            const statusDot = document.getElementById('status-dot');
-
-            // Update hex labels & metadata
-            document.getElementById('fg-hex').innerText = document.getElementById('bc-fg').value.toUpperCase();
-            document.getElementById('bg-hex').innerText = document.getElementById('bc-bg').value.toUpperCase();
-            document.getElementById('badge-sym').innerText = bcid.toUpperCase();
-            wrapper.style.backgroundColor = document.getElementById('bc-bg').value;
-
-            if (SYM_META[bcid]) {
-                document.getElementById('sym-hint').innerText = SYM_META[bcid].desc;
-            }
-
-            if (!text) {
-                errBox.classList.remove('hidden');
-                errTxt.innerText = "Please enter payload data to encode.";
-                return;
-            }
-
+            document.getElementById('canvas-wrapper').style.backgroundColor = document.getElementById('bc-bg').value;
             try {
-                const opts = getBwipOptions();
-                bwipjs.toCanvas(canvas, opts);
+                bwipjs.toCanvas(canvas, getBwipOptions());
                 errBox.classList.add('hidden');
-                statusDot.className = "h-2 w-2 rounded-full bg-emerald-500";
                 document.getElementById('badge-dims').innerText = `${canvas.width} × ${canvas.height} px`;
             } catch (e) {
-                statusDot.className = "h-2 w-2 rounded-full bg-red-500";
                 errBox.classList.remove('hidden');
-                const cleanMsg = (e.message || String(e)).replace(/^bwipp\.[^:]+:\s*/, '');
-                errTxt.innerText = `${cleanMsg} — Click "Sample Data" for a valid ${bcid.toUpperCase()} example.`;
+                document.getElementById('render-error-text').innerText = e.message || String(e);
             }
         }
 
-        // Export High-Resolution PNG
+        function resetDefaults() {
+            document.getElementById('bc-type').value = 'code128';
+            document.getElementById('bc-data').value = 'FF-RM028262738';
+            document.getElementById('bc-alttext').value = '';
+            renderSingleBarcode();
+        }
+
         function exportPNG() {
             const canvas = document.getElementById('barcode-canvas');
-            const data = document.getElementById('bc-data').value.trim() || 'barcode';
             const link = document.createElement('a');
-            link.download = `${data.replace(/[^a-zA-Z0-9_-]/g, '_')}.png`;
+            link.download = `${document.getElementById('bc-data').value || 'barcode'}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-            showToast("Downloaded PNG image");
         }
 
-        // Export True Vector SVG (via bwipjs.toSVG)
         function exportSVG() {
             try {
-                const opts = getBwipOptions();
-                const svgString = bwipjs.toSVG(opts);
-                const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const data = document.getElementById('bc-data').value.trim() || 'barcode';
+                const svg = bwipjs.toSVG(getBwipOptions());
                 const link = document.createElement('a');
-                link.download = `${data.replace(/[^a-zA-Z0-9_-]/g, '_')}.svg`;
-                link.href = url;
+                link.download = `barcode.svg`;
+                link.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
                 link.click();
-                URL.revokeObjectURL(url);
-                showToast("Downloaded Vector SVG");
-            } catch (e) {
-                alert("Cannot export SVG while barcode parameters have a validation error.");
-            }
+            } catch (e) {}
         }
 
-        // Export PDF Document (via jsPDF)
         function exportPDF() {
-            try {
-                const { jsPDF } = window.jspdf;
-                const canvas = document.getElementById('barcode-canvas');
-                const imgData = canvas.toDataURL('image/png');
-                const preset = document.getElementById('print-preset').value;
-                const codeVal = document.getElementById('bc-data').value.trim();
-
-                let pdf;
-                if (preset === 'thermal-4x6') {
-                    pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [101.6, 152.4] });
-                    const w = 80;
-                    const h = (canvas.height / canvas.width) * w;
-                    pdf.addImage(imgData, 'PNG', (101.6 - w) / 2, 40, w, h);
-                } else if (preset === 'thermal-2x1') {
-                    pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [50.8, 25.4] });
-                    const w = 42;
-                    const h = Math.min(18, (canvas.height / canvas.width) * w);
-                    pdf.addImage(imgData, 'PNG', (50.8 - w) / 2, (25.4 - h) / 2, w, h);
-                } else {
-                    pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                    const w = Math.min(120, canvas.width * 0.25);
-                    const h = (canvas.height / canvas.width) * w;
-                    pdf.addImage(imgData, 'PNG', (210 - w) / 2, 40, w, h);
-                }
-
-                pdf.save(`label-${codeVal.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`);
-                showToast("Exported PDF Label");
-            } catch (e) {
-                alert("Error generating PDF.");
-            }
-        }
-
-        // Copy Barcode Image Directly to Clipboard
-        function copyCanvasImage() {
+            const { jsPDF } = window.jspdf;
             const canvas = document.getElementById('barcode-canvas');
-            canvas.toBlob(blob => {
-                try {
-                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                    showToast("Barcode image copied to clipboard!");
-                } catch (err) {
-                    showToast("Browser blocked clipboard image copy — use PNG download.");
-                }
-            });
+            const pdf = new jsPDF();
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 30, 30, 100, 40);
+            pdf.save(`barcode-${Date.now()}.pdf`);
         }
 
-        // Print Single Label
         function printSingleLabel() {
-            const canvas = document.getElementById('barcode-canvas');
-            const codeVal = document.getElementById('bc-data').value.trim();
-            openThermalPrintWindow([{ code: codeVal, dataUrl: canvas.toDataURL('image/png') }]);
+            printRoutingBatch([{ id: document.getElementById('bc-data').value, sku: '', qty: '', lane: '' }]);
         }
 
-        // Log Current Studio Barcode to History
-        function logCurrentGenerated() {
-            const val = document.getElementById('bc-data').value.trim();
-            const sym = document.getElementById('bc-type').value.toUpperCase();
-            if (!val) return;
-            logItem(val, `Studio (${sym})`);
-            showToast(`Logged ${val} to Pallet History`);
-        }
-
-        // ==========================================
-        // WMS BATCH PASTE & CSV ENGINE
-        // ==========================================
-        function importBatchCSV(event) {
+        // Static Image File Decoder & History Log
+        async function scanUploadedFile(event) {
             const file = event.target.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split(/\r?\n/).map(l => l.split(',')[0].trim()).filter(Boolean);
-                document.getElementById('batch-input').value = lines.join('\n');
-                generateBatchGrid();
-                showToast(`Imported ${lines.length} rows from file`);
-            };
-            reader.readAsText(file);
+            try {
+                const decodedText = await Html5Qrcode.scanFile(file, false);
+                document.getElementById('file-scan-box').classList.remove('hidden');
+                document.getElementById('file-scan-text').innerText = decodedText;
+                playTone('success');
+                logItem(decodedText, 'Image File Upload', true);
+                showToast(`Decoded: ${decodedText}`);
+            } catch (err) {
+                playTone('error');
+                alert("Could not detect a valid barcode in the uploaded image.");
+            }
         }
 
-        function generateBatchGrid() {
-            const raw = document.getElementById('batch-input').value;
-            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            const sym = document.getElementById('batch-type').value;
-            const grid = document.getElementById('batch-grid');
-            const offCanvas = document.getElementById('offscreen-canvas');
-
-            grid.innerHTML = '';
-            document.getElementById('batch-count-label').innerText = `${lines.length} label(s) generated (${sym.toUpperCase()})`;
-
-            lines.forEach((code, idx) => {
-                try {
-                    bwipjs.toCanvas(offCanvas, {
-                        bcid: sym,
-                        text: code,
-                        scale: 2,
-                        height: 12,
-                        includetext: true,
-                        textxalign: 'center',
-                        paddingwidth: 8,
-                        paddingheight: 8,
-                        backgroundcolor: 'ffffff'
-                    });
-                    const dataUrl = offCanvas.toDataURL('image/png');
-                    const card = document.createElement('div');
-                    card.className = "bg-zinc-950 border border-zinc-800 rounded-lg p-3 flex flex-col items-center justify-between gap-2";
-                    card.innerHTML = `
-                        <div class="w-full flex justify-between items-center text-[10px] font-mono text-zinc-500">
-                            <span>#${idx + 1}</span>
-                            <span>${escapeHtml(code)}</span>
-                        </div>
-                        <div class="bg-white p-2 rounded w-full flex justify-center">
-                            <img src="${dataUrl}" class="max-h-20 object-contain" alt="${escapeHtml(code)}"/>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                } catch (e) {
-                    const errCard = document.createElement('div');
-                    errCard.className = "bg-red-950/30 border border-red-900/50 rounded-lg p-3 text-xs font-mono text-red-300";
-                    errCard.innerText = `Row #${idx + 1} (${code}): Invalid format for ${sym}`;
-                    grid.appendChild(errCard);
-                }
-            });
-        }
-
-        function saveBatchToHistory() {
-            const raw = document.getElementById('batch-input').value;
-            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            const sym = document.getElementById('batch-type').value.toUpperCase();
-            lines.forEach(code => logItem(code, `Batch (${sym})`, true));
-            renderHistoryTable();
-            showToast(`Saved ${lines.length} batch items to Pallet History`);
-        }
-
-        function printBatchSheet() {
-            const raw = document.getElementById('batch-input').value;
-            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            const sym = document.getElementById('batch-type').value;
-            const offCanvas = document.getElementById('offscreen-canvas');
-            const items = [];
-
-            lines.forEach(code => {
-                try {
-                    bwipjs.toCanvas(offCanvas, {
-                        bcid: sym, text: code, scale: 3, height: 15, includetext: true, textxalign: 'center', paddingwidth: 10, paddingheight: 10, backgroundcolor: 'ffffff'
-                    });
-                    items.push({ code, dataUrl: offCanvas.toDataURL('image/png') });
-                } catch (e) {}
-            });
-
-            if (items.length > 0) openThermalPrintWindow(items);
-        }
-
-        // ==========================================
-        // SCANNER & HISTORY TABLE ENGINE
-        // ==========================================
         function logItem(data, method, allowDuplicate = false) {
             const timestamp = new Date().toLocaleString('en-GB', { hour12: false });
             if (!allowDuplicate && scanHistory.length > 0 && scanHistory[0].data === data) return;
             scanHistory.unshift({ data, method, timestamp });
             localStorage.setItem('palletScanHistoryPro', JSON.stringify(scanHistory));
-            updateNavCounter();
-            renderHistoryTable();
-        }
-
-        function updateNavCounter() {
             document.getElementById('nav-scan-count').innerText = scanHistory.length;
+            renderHistoryTable();
         }
 
         function manualAddLog() {
             const inp = document.getElementById('manual-log-input');
             const val = inp.value.trim();
             if (!val) return;
-            logItem(val, 'Manual / USB Scan', true);
+            playTone('success');
+            logItem(val, 'Hardware Gun', true);
             inp.value = '';
-            showToast(`Logged: ${val}`);
         }
 
         function renderHistoryTable() {
             const tbody = document.getElementById('history-tbody');
             const emptyMsg = document.getElementById('empty-log-msg');
             tbody.innerHTML = '';
-            updateNavCounter();
-
-            if (scanHistory.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                return;
-            }
-
+            document.getElementById('nav-scan-count').innerText = scanHistory.length;
+            if (scanHistory.length === 0) { emptyMsg.classList.remove('hidden'); return; }
             emptyMsg.classList.add('hidden');
-            scanHistory.forEach((item, index) => {
+            scanHistory.forEach((item, idx) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-zinc-900/60 transition";
                 tr.innerHTML = `
-                    <td class="p-3 text-center"><input type="checkbox" class="row-check accent-emerald-500 cursor-pointer" data-index="${index}"></td>
-                    <td class="p-3 text-zinc-500">${scanHistory.length - index}</td>
-                    <td class="p-3 text-zinc-100 font-semibold select-all">${escapeHtml(item.data)}</td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-400">${escapeHtml(item.method)}</span></td>
-                    <td class="p-3 text-zinc-500 text-[11px]">${item.timestamp}</td>
-                    <td class="p-3 text-right space-x-2">
-                        <button onclick="openInStudio('${escapeHtml(item.data)}')" class="text-[11px] text-emerald-400 hover:underline">Open in Studio</button>
-                        <button onclick="deleteHistoryRow(${index})" class="text-[11px] text-zinc-600 hover:text-red-400">Delete</button>
-                    </td>
+                    <td class="p-3 theme-text-dim">${scanHistory.length - idx}</td>
+                    <td class="p-3 font-bold select-all">${escapeHtml(item.data)}</td>
+                    <td class="p-3 theme-text-muted">${escapeHtml(item.method)}</td>
+                    <td class="p-3 theme-text-dim">${item.timestamp}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function openInStudio(code) {
-            document.getElementById('bc-data').value = code;
-            switchTab('generator');
-            renderSingleBarcode();
-        }
-
-        function deleteHistoryRow(idx) {
-            scanHistory.splice(idx, 1);
-            localStorage.setItem('palletScanHistoryPro', JSON.stringify(scanHistory));
-            renderHistoryTable();
-        }
-
-        function toggleSelectAll(master) {
-            document.querySelectorAll('.row-check').forEach(cb => cb.checked = master.checked);
-        }
-
-        function clearHistoryLog() {
-            if (confirm("Clear all recorded pallet scans from this browser?")) {
-                scanHistory = [];
-                localStorage.removeItem('palletScanHistoryPro');
-                renderHistoryTable();
-            }
-        }
-
         function exportHistoryCSV() {
-            if (scanHistory.length === 0) return alert("No pallet records to export.");
-            let csv = "data:text/csv;charset=utf-8,Index,Pallet ID,Source,Timestamp\n";
-            scanHistory.forEach((item, idx) => {
-                csv += `${scanHistory.length - idx},"${item.data.replace(/"/g, '""')}","${item.method}","${item.timestamp}"\n`;
-            });
+            if (scanHistory.length === 0) return alert("No records to export.");
+            let csv = "data:text/csv;charset=utf-8,Index,Pallet_ID,Source,Timestamp\n";
+            scanHistory.forEach((item, idx) => { csv += `${scanHistory.length - idx},"${item.data}","${item.method}","${item.timestamp}"\n`; });
             const link = document.createElement('a');
             link.href = encodeURI(csv);
             link.download = `pallet-log-${Date.now()}.csv`;
             link.click();
         }
 
-        // Create a Shareable URL Snapshot so anyone with the link gets the current pallet list
+        function clearHistoryLog() {
+            if (confirm("Clear all session scan records?")) {
+                scanHistory = [];
+                localStorage.removeItem('palletScanHistoryPro');
+                renderHistoryTable();
+            }
+        }
+
         function shareUrlSnapshot() {
-            if (scanHistory.length === 0) return alert("Scan or add at least one pallet ID first.");
-            const codes = scanHistory.slice(0, 50).map(i => i.data).reverse();
-            const encoded = btoa(JSON.stringify(codes));
-            const shareUrl = `${window.location.origin}${window.location.pathname}?pallets=${encoded}`;
+            if (scanHistory.length === 0) return alert("Log at least one pallet ID first.");
+            const codes = scanHistory.slice(0, 50).map(i => i.data);
+            const shareUrl = `${window.location.origin}${window.location.pathname}?pallets=${btoa(JSON.stringify(codes))}`;
             navigator.clipboard.writeText(shareUrl);
-            showToast("Shareable Pallet Link copied to clipboard!");
+            showToast("Shareable link copied to clipboard!");
         }
 
-        function batchPrintSelectedHistory() {
-            const checks = document.querySelectorAll('.row-check:checked');
-            if (checks.length === 0) return alert("Select at least one pallet row using the checkboxes.");
-            const offCanvas = document.getElementById('offscreen-canvas');
-            const items = [];
-
-            checks.forEach(cb => {
-                const item = scanHistory[cb.getAttribute('data-index')];
-                try {
-                    bwipjs.toCanvas(offCanvas, {
-                        bcid: 'code128', text: item.data, scale: 3, height: 15, includetext: true, textxalign: 'center', paddingwidth: 10, paddingheight: 10, backgroundcolor: 'ffffff'
-                    });
-                    items.push({ code: item.data, dataUrl: offCanvas.toDataURL('image/png') });
-                } catch (e) {}
-            });
-
-            if (items.length > 0) openThermalPrintWindow(items);
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2400);
         }
 
-        // Dedicated Print Engine (Supports 4x6 Thermal, 2x1 Label, and Standard Sheet)
-        function openThermalPrintWindow(items) {
-            const preset = document.getElementById('print-preset').value;
-            const win = window.open('', '_blank');
-
-            let pageCss = '';
-            if (preset === 'thermal-4x6') {
-                pageCss = `@page { size: 4in 6in; margin: 0; } .label-card { width: 100vw; height: 100vh; page-break-after: always; display: flex; flex-direction: column; justify-content: center; align-items: center; }`;
-            } else if (preset === 'thermal-2x1') {
-                pageCss = `@page { size: 2in 1in; margin: 0; } .label-card { width: 100vw; height: 100vh; page-break-after: always; display: flex; justify-content: center; align-items: center; } .label-card img { max-height: 90vh; max-width: 92vw; }`;
-            } else {
-                pageCss = `.print-wrap { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px; } .label-card { border: 1px dashed #ccc; padding: 16px; page-break-inside: avoid; text-align: center; } @media print { .label-card { border: none; } }`;
-            }
-
-            const cardsHtml = items.map(i => `
-                <div class="label-card">
-                    <img src="${i.dataUrl}" style="max-width:100%; height:auto;" />
-                </div>
-            `).join('');
-
-            win.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Print Labels (${items.length})</title>
-                    <style>
-                        body { margin: 0; padding: 0; background: #fff; font-family: monospace; }
-                        ${pageCss}
-                    </style>
-                </head>
-                <body>
-                    <div class="print-wrap">${cardsHtml}</div>
-                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
-                </body>
-                </html>
-            `);
-            win.document.close();
-        }
-
-        // Camera & File Upload Decoder
-        function toggleCamera() {
-            if (isCameraRunning) {
-                stopCamera();
-            } else {
-                startCamera();
-            }
-        }
-
-        function startCamera() {
-            const btn = document.getElementById('btn-cam-toggle');
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 240, height: 140 } },
-                (decodedText) => {
-                    document.getElementById('cam-scan-box').classList.remove('hidden');
-                    document.getElementById('cam-scan-text').innerText = decodedText;
-                    logItem(decodedText, 'Camera Scan');
-                    showToast(`Scanned: ${decodedText}`);
-                },
-                () => {}
-            ).then(() => {
-                isCameraRunning = true;
-                btn.innerText = "Stop Camera";
-                btn.className = "text-xs bg-red-950/80 hover:bg-red-900 text-red-200 px-2.5 py-1 rounded border border-red-800 transition";
-            }).catch(() => {
-                alert("Unable to access camera. Ensure HTTPS is active and browser permissions are granted.");
-            });
-        }
-
-        function stopCamera() {
-            if (html5QrCode && isCameraRunning) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    isCameraRunning = false;
-                    const btn = document.getElementById('btn-cam-toggle');
-                    btn.innerText = "Start Camera";
-                    btn.className = "text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded border border-zinc-700 transition";
-                });
-            }
-        }
-
-        async function scanUploadedFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const tempScanner = new Html5Qrcode("offscreen-canvas");
-            try {
-                const decodedText = await Html5Qrcode.scanFile(file, true);
-                document.getElementById('file-scan-box').classList.remove('hidden');
-                document.getElementById('file-scan-text').innerText = decodedText;
-                logItem(decodedText, 'Image Upload');
-                showToast(`Decoded Image: ${decodedText}`);
-            } catch (err) {
-                alert("Could not detect a clear barcode or QR code in this image. Try cropping closer to the barcode.");
-            }
+        function copyTextValue(txt) {
+            if (txt) { navigator.clipboard.writeText(txt); showToast(`Copied: ${txt}`); }
         }
 
         function escapeHtml(str) {
-            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // Initialize Studio on Load
         window.onload = function() {
-            checkSharedUrlParams();
-            updateNavCounter();
-            renderSingleBarcode();
+            const savedTheme = localStorage.getItem('wmsThemeMode') || 'dark';
+            setTheme(savedTheme);
+            updateAudioUI();
+            loadBulkDeck(false);
+            loadAuditManifest();
+            document.getElementById('nav-scan-count').innerText = scanHistory.length;
         };
 
-        // PWA Service Worker Registration for Offline Support
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(() => console.log('PWA Service Worker Registered'))
-                    .catch((err) => console.warn('SW Registration failed:', err));
-            });
+            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
         }
     </script>
 </body>

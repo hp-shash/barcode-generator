@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-gradient="default">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,6 +18,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Chess.js for complete legal chess rules & AI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -33,8 +35,12 @@
     </script>
 
     <style>
+        /* =========================================================
+           MULTI-GRADIENT THEME ENGINE (DARK / LIGHT / EYE CARE)
+           ========================================================= */
         :root, html[data-theme="dark"] {
             --bg-main: #09090b;
+            --bg-gradient: radial-gradient(circle at 15% 15%, #18181b 0%, #09090b 65%);
             --bg-card: rgba(24, 24, 27, 0.85);
             --bg-input: #09090b;
             --bg-elevated: #18181b;
@@ -45,9 +51,20 @@
             --grid-dot: #27272a;
             --stage-bg: #0c0c0e;
         }
+        html[data-theme="dark"][data-gradient="emerald"] {
+            --bg-gradient: linear-gradient(135deg, #061812 0%, #09090b 55%, #071915 100%);
+        }
+        html[data-theme="dark"][data-gradient="midnight"] {
+            --bg-gradient: linear-gradient(135deg, #0a0f24 0%, #09090b 55%, #111633 100%);
+        }
+        html[data-theme="dark"][data-gradient="nebula"] {
+            --bg-gradient: linear-gradient(135deg, #1b0b26 0%, #09090b 55%, #0b192c 100%);
+        }
+
         html[data-theme="light"] {
             --bg-main: #f8fafc;
-            --bg-card: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            --bg-card: rgba(255, 255, 255, 0.92);
             --bg-input: #f1f5f9;
             --bg-elevated: #e2e8f0;
             --text-main: #0f172a;
@@ -57,9 +74,20 @@
             --grid-dot: #cbd5e1;
             --stage-bg: #f1f5f9;
         }
+        html[data-theme="light"][data-gradient="sky"] {
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 55%, #dbeafe 100%);
+        }
+        html[data-theme="light"][data-gradient="mint"] {
+            --bg-gradient: linear-gradient(135deg, #d1fae5 0%, #f8fafc 55%, #ecfdf5 100%);
+        }
+        html[data-theme="light"][data-gradient="lavender"] {
+            --bg-gradient: linear-gradient(135deg, #ede9fe 0%, #f8fafc 55%, #fae8ff 100%);
+        }
+
         html[data-theme="eye-protect"] {
             --bg-main: #f4ecd8;
-            --bg-card: #fdf6e3;
+            --bg-gradient: linear-gradient(135deg, #f4ecd8 0%, #ede2c6 100%);
+            --bg-card: rgba(253, 246, 227, 0.92);
             --bg-input: #eee8d5;
             --bg-elevated: #e6dfcb;
             --text-main: #2b2518;
@@ -69,8 +97,25 @@
             --grid-dot: #d3cbb7;
             --stage-bg: #efe8d4;
         }
+        html[data-theme="eye-protect"][data-gradient="parchment"] {
+            --bg-gradient: linear-gradient(135deg, #f7eed6 0%, #eadbb8 55%, #f3e5c3 100%);
+        }
+        html[data-theme="eye-protect"][data-gradient="sage"] {
+            --bg-gradient: linear-gradient(135deg, #e6eed8 0%, #f4ecd8 55%, #dce8cc 100%);
+        }
+        html[data-theme="eye-protect"][data-gradient="peach"] {
+            --bg-gradient: linear-gradient(135deg, #f8e4d4 0%, #f4ecd8 55%, #f2d9c7 100%);
+        }
+
         html { font-size: 16px; transition: font-size 0.15s ease; }
-        body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hidden; transition: background-color 0.15s ease, color 0.15s ease; }
+        body {
+            background-color: var(--bg-main);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background 0.25s ease, color 0.15s ease;
+        }
         .theme-card { background-color: var(--bg-card); border-color: var(--border-color); }
         .theme-input { background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-main); }
         .theme-elevated { background-color: var(--bg-elevated); border-color: var(--border-color); color: var(--text-main); }
@@ -117,7 +162,7 @@
             </div>
         </div>
 
-        <!-- Center: 5-Tab Navigation (Bulk & Labels | Carrier Labels | Trailer Shipping | Notes | To-Do List) -->
+        <!-- Center: 5-Tab Navigation -->
         <nav class="flex flex-wrap items-center gap-1 theme-input p-1 rounded-lg border">
             <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all">
                 <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk & Labels
@@ -138,39 +183,47 @@
             </button>
         </nav>
 
-        <!-- Right: Calculator, Reflow Zoom %, Arcade Drawer Toggle, Sound Pack & Theme -->
+        <!-- Right: Calc, Floating Chess, Zoom %, Arcade, Sound Mute & Multi-Gradient Theme Bar -->
         <div class="flex flex-wrap items-center gap-1.5">
-            <button onclick="toggleCalculator()" title="Open Draggable Shift Calculator" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+            <button onclick="toggleCalculator()" title="Draggable Shift Calculator" class="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-500"></i>
-                <span class="hidden lg:inline text-[11px]">Calc</span>
+                <span class="hidden xl:inline text-[11px]">Calc</span>
+            </button>
+
+            <button onclick="toggleChessWindow()" title="Floating Chess vs AI (Levels 1-100)" class="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+                <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="hidden xl:inline text-[11px]">Chess</span>
             </button>
 
             <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Reflow Page Zoom">
                 <button onclick="adjustPageZoom(-10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">-</button>
-                <input type="number" id="page-zoom-input" value="100" min="60" max="150" onchange="setManualPageZoom(this.value)" class="w-11 bg-transparent text-center text-[11px] font-mono font-bold outline-none">
+                <input type="number" id="page-zoom-input" value="100" min="60" max="150" onchange="setManualPageZoom(this.value)" class="w-10 bg-transparent text-center text-[11px] font-mono font-bold outline-none">
                 <span class="text-[10px] font-mono theme-text-dim pr-0.5">%</span>
                 <button onclick="adjustPageZoom(10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">+</button>
             </div>
 
-            <button onclick="toggleArcadeDrawer()" id="btn-arcade-top" title="Open/Close 3-Game Arcade" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+            <button onclick="toggleArcadeDrawer()" id="btn-arcade-top" title="Open 6-Game Arcade (Levels 1-100)" class="flex items-center gap-1 text-xs font-medium px-2 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span class="hidden xl:inline text-[11px] font-mono" id="nav-arcade-score">Arcade</span>
             </button>
 
-            <div class="flex items-center theme-input border rounded-lg p-0.5">
-                <button onclick="toggleAudio()" title="Mute / Unmute" class="p-1 rounded hover:opacity-80">
-                    <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
+            <!-- Clear Sound ON/OFF Mute Toggle + Sound Pack -->
+            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5">
+                <button onclick="toggleAudio()" id="btn-sound-mute" title="Turn Sound ON or OFF" class="px-2 py-1 rounded flex items-center gap-1 text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500 transition">
+                    <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5"></i>
+                    <span id="lbl-sound-state">ON</span>
                 </button>
                 <select id="sound-pack-select" onchange="localStorage.setItem('wmsSoundPack', this.value); playTone('success');" class="bg-transparent text-[10px] font-mono outline-none pr-1 cursor-pointer">
-                    <option value="laser" selected>Laser (Def)</option>
-                    <option value="arcade">8-Bit Coin</option>
-                    <option value="click">Mech Click</option>
-                    <option value="chime">Soft Chime</option>
+                    <option value="laser" selected>Laser</option>
+                    <option value="arcade">8-Bit</option>
+                    <option value="click">Click</option>
+                    <option value="chime">Chime</option>
                 </select>
             </div>
 
-            <div class="flex items-center theme-input p-0.5 rounded-lg border">
-                <button onclick="setTheme('dark')" id="theme-dark" title="Dark Mode (Default)" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition">
+            <!-- 3-Button Theme Bar + Gradient Preset Selector -->
+            <div class="flex items-center theme-input p-0.5 rounded-lg border gap-0.5">
+                <button onclick="setTheme('dark')" id="theme-dark" title="Dark Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition">
                     <i data-lucide="moon" class="w-3.5 h-3.5"></i>
                 </button>
                 <button onclick="setTheme('light')" id="theme-light" title="Light Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition">
@@ -179,6 +232,9 @@
                 <button onclick="setTheme('eye-protect')" id="theme-eye-protect" title="Eye Care Mode" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition">
                     <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                 </button>
+                <select id="theme-gradient-select" onchange="setThemeGradient(this.value)" title="Choose Theme Gradient" class="bg-transparent text-[10px] font-mono outline-none px-1 cursor-pointer border-l theme-border">
+                    <option value="default">Default</option>
+                </select>
             </div>
         </div>
     </header>
@@ -191,7 +247,7 @@
             </span>
             <div class="flex items-center gap-2">
                 <button onclick="copyCalcResult()" class="text-[10px] text-emerald-500 hover:underline font-mono font-bold">Copy</button>
-                <button onclick="toggleCalculator()" class="text-sm font-bold theme-text-dim hover:text-red-400 px-1">×</button>
+                <button onclick="toggleCalculator()" class="text-sm font-bold theme-text-dim hover:text-rose-400 px-1">×</button>
             </div>
         </div>
         <div class="p-3.5 space-y-2.5">
@@ -223,40 +279,101 @@
         </div>
     </div>
 
-    <!-- STANDALONE 3-GAME ARCADE DRAWER (ONLY ACTIVE WHEN OPENED FROM TOP BAR) -->
-    <div id="arcade-strip" class="hidden border-b theme-border theme-card px-4 py-3 transition-all">
+    <!-- DRAGGABLE FLOATING CHESS WINDOW (VS COMPUTER OPPONENT, LEVELS 1-100) -->
+    <div id="chess-floating-window" style="top: 84px; left: 40px;" class="hidden fixed z-50 w-[340px] theme-card border-2 border-amber-500/40 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
+        <div id="chess-drag-header" class="px-3.5 py-2.5 theme-elevated border-b theme-border flex items-center justify-between cursor-move select-none">
+            <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="crown" class="w-4 h-4 text-amber-400"></i> Chess vs AI
+            </span>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1 theme-input border rounded px-1.5 py-0.5 text-[10px] font-mono">
+                    <span>LVL:</span>
+                    <input type="number" id="chess-level-input" value="1" min="1" max="100" onchange="syncGlobalGameLevel(this.value)" class="w-9 bg-transparent font-bold text-amber-400 text-center outline-none">
+                </div>
+                <button onclick="resetChessGame()" class="text-[10px] text-emerald-500 hover:underline font-mono font-bold">New</button>
+                <button onclick="toggleChessWindow()" class="text-sm font-bold theme-text-dim hover:text-rose-400 px-1">×</button>
+            </div>
+        </div>
+        <div class="p-3 space-y-2.5">
+            <div class="flex justify-between items-center text-[11px] font-mono">
+                <span id="chess-status-text" class="font-bold text-emerald-500">Your Turn (White)</span>
+                <span id="chess-ai-badge" class="theme-text-dim">AI Depth: Lvl 1</span>
+            </div>
+            <!-- 8x8 Chess Board Grid -->
+            <div id="chess-board-grid" class="grid grid-cols-8 border-2 border-zinc-700 rounded overflow-hidden select-none aspect-square"></div>
+            <div class="flex justify-between items-center text-[10px] font-mono theme-text-dim pt-1">
+                <span>Click piece → Click target square</span>
+                <button onclick="undoChessMove()" class="underline hover:text-emerald-500">Undo Move</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STANDALONE ARCADE DRAWER (CHROME DINO, SUPER MARIO, SNAKE, SUDOKU, TIC TAC TOE — LEVELS 1 TO 100) -->
+    <div id="arcade-strip" class="hidden border-b theme-border theme-card px-4 py-3.5 transition-all">
         <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
-            <div class="space-y-1.5">
+            
+            <!-- Left Controls -->
+            <div class="space-y-2 max-w-md">
                 <div class="flex flex-wrap items-center gap-2">
                     <select id="arcade-game-select" onchange="prepareArcadeGame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none">
-                        <option value="dino" selected>1. Chrome Dino (5 Features)</option>
-                        <option value="mario">2. Super Mario World (5 Features)</option>
-                        <option value="snake">3. Classic Snake (5 Features)</option>
+                        <option value="dino" selected>1. Chrome Dino Runner</option>
+                        <option value="mario">2. Super Mario World</option>
+                        <option value="snake">3. Classic Snake</option>
+                        <option value="sudoku">4. Sudoku (Unique Every Time)</option>
+                        <option value="ttt">5. Tic Tac Toe (vs AI)</option>
                     </select>
 
                     <div class="flex items-center gap-1 theme-input border rounded-lg px-2 py-1 text-xs font-mono">
                         <span class="theme-text-dim text-[10px]">LVL (1-100):</span>
-                        <input type="number" id="arcade-level-input" value="1" min="1" max="100" onchange="syncArcadeLevel(this.value)" class="w-11 bg-transparent font-bold text-emerald-500 text-center outline-none">
+                        <input type="number" id="arcade-level-input" value="1" min="1" max="100" onchange="syncGlobalGameLevel(this.value)" class="w-11 bg-transparent font-bold text-emerald-500 text-center outline-none">
                     </div>
 
                     <button onclick="startSelectedArcadeGame()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow flex items-center gap-1">
-                        <i data-lucide="play" class="w-3.5 h-3.5"></i> Start
+                        <i data-lucide="play" class="w-3.5 h-3.5"></i> Start / New
+                    </button>
+                    <button onclick="toggleChessWindow()" class="px-2.5 py-1.5 rounded-lg theme-elevated border hover:border-amber-400 text-xs font-semibold flex items-center gap-1">
+                        <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i> Open Chess
                     </button>
                     <button onclick="toggleArcadeDrawer()" class="px-2.5 py-1.5 rounded-lg theme-elevated border text-xs font-medium">Close</button>
                 </div>
                 <p id="arcade-feature-hint" class="text-[11px] theme-text-muted font-mono">
-                    Dino: Double-Jump (2x Space/Up), Duck (Down), Shield Orbs, Day/Night Cycle & Combo Multiplier!
+                    Level 1 = Easy → Level 100 = Master Difficulty. Press Start to begin!
                 </p>
             </div>
 
-            <div class="flex items-center gap-3 relative">
-                <div class="relative">
-                    <canvas id="arcade-canvas" width="480" height="120" onclick="handleArcadeCanvasClick()" class="rounded-xl border theme-border cursor-pointer"></canvas>
-                    <div id="arcade-overlay" class="absolute inset-0 rounded-xl flex flex-col items-center justify-center bg-black/60 backdrop-blur-[1px] text-white">
+            <!-- Center Interactive Stage (Switches between Action Canvas, Sudoku Board, and Tic-Tac-Toe Board) -->
+            <div class="flex items-center gap-4">
+                
+                <!-- Action Games Canvas (Dino, Mario, Snake) -->
+                <div id="arcade-canvas-wrap" class="relative">
+                    <canvas id="arcade-canvas" width="480" height="124" onclick="handleArcadeCanvasClick()" class="rounded-xl border theme-border cursor-pointer"></canvas>
+                    <div id="arcade-overlay" class="absolute inset-0 rounded-xl flex flex-col items-center justify-center bg-black/65 backdrop-blur-[1px] text-white">
                         <div id="arcade-overlay-title" class="text-xs sm:text-sm font-mono font-black tracking-wider uppercase">PRESS START TO PLAY</div>
                         <button onclick="startSelectedArcadeGame()" class="mt-1.5 px-4 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-xs font-bold shadow">START GAME</button>
                     </div>
                 </div>
+
+                <!-- Interactive Sudoku Board (Unique Puzzle Generated Every Time, Levels 1-100) -->
+                <div id="arcade-sudoku-wrap" class="hidden flex items-center gap-3">
+                    <div id="sudoku-grid" class="grid grid-cols-9 border-2 border-emerald-500/60 rounded overflow-hidden bg-zinc-950 font-mono text-xs"></div>
+                    <div class="space-y-1.5 text-xs font-mono">
+                        <div class="font-bold text-emerald-500" id="sudoku-clues-lbl">Clues: 45</div>
+                        <button onclick="checkSudokuBoard()" class="w-full px-3 py-1.5 rounded bg-emerald-600 text-white font-bold">Check</button>
+                        <button onclick="generateNewSudoku()" class="w-full px-3 py-1.5 rounded theme-elevated border">New Board</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Tic Tac Toe Board (vs Computer Opponent, Levels 1-100) -->
+                <div id="arcade-ttt-wrap" class="hidden flex items-center gap-4">
+                    <div id="ttt-grid" class="grid grid-cols-3 gap-1.5 p-2 rounded-xl border theme-border theme-input"></div>
+                    <div class="space-y-1.5 text-xs font-mono">
+                        <div id="ttt-status-lbl" class="font-bold text-emerald-500">Your Turn (X)</div>
+                        <div class="text-[10px] theme-text-dim" id="ttt-ai-skill">AI Smartness: 10%</div>
+                        <button onclick="initTicTacToe()" class="px-3 py-1.5 rounded bg-emerald-600 text-white font-bold">Rematch</button>
+                    </div>
+                </div>
+
+                <!-- Scoreboard -->
                 <div class="text-right font-mono text-xs shrink-0 space-y-1">
                     <div class="font-bold text-emerald-500 text-sm" id="arcade-score-lbl">SCORE: 0000</div>
                     <div class="text-[11px] theme-text-dim" id="arcade-hi-lbl">BEST: 0000</div>
@@ -325,7 +442,7 @@
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
-             TAB 1: BULK & LABELS (HIGH-CONTRAST DIAGNOSTIC COLORS + QUEUE AUTO-SORT + CLEAN SCANNING MODE)
+             TAB 1: BULK & LABELS
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -464,12 +581,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 </div>
             </div>
 
-            <!-- Right Column: Queue Status (Left) + Barcode Stage (Right) — Clean Scanning Mode without Arcade clutter -->
+            <!-- Right Column: Queue Status (Left) + Barcode Stage (Right) -->
             <div id="bulk-stage-column" class="lg:col-span-8 space-y-4">
 
                 <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
-                    <!-- Top Stage Control Bar -->
                     <div class="px-4 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <button onclick="toggleScanningMode()" id="btn-scan-mode" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs">
@@ -485,7 +601,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </div>
                         </div>
 
-                        <!-- Timer Controls -->
                         <div class="flex items-center gap-2">
                             <div class="flex items-center theme-input border rounded-lg px-2 py-1 gap-1">
                                 <i data-lucide="timer" class="w-3.5 h-3.5 text-emerald-500"></i>
@@ -496,15 +611,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </div>
                     </div>
 
-                    <!-- Progress Bar -->
                     <div class="w-full theme-input h-1.5 overflow-hidden">
                         <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 20%"></div>
                     </div>
 
-                    <!-- DRAG-RESIZABLE SPLIT: LEFT = SMART QUEUE (WITH AUTO-SORT) | RIGHT = BARCODE STAGE -->
                     <div id="bulk-split-wrapper" class="flex flex-col md:flex-row min-h-[400px] relative">
                         
-                        <!-- LEFT PANEL: QUEUE STATUS WITH AUTO-SORT & HIGH-CONTRAST DIAGNOSTICS -->
+                        <!-- LEFT PANEL: QUEUE STATUS -->
                         <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[500px] shrink-0">
                             <div class="px-3 py-2 border-b theme-border theme-elevated flex flex-wrap items-center justify-between gap-1 text-[11px] font-mono">
                                 <span class="font-bold uppercase">Queue (<span id="vertical-queue-stats" class="text-emerald-500">0/5</span>)</span>
@@ -517,10 +630,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                                 </div>
                             </div>
 
-                            <!-- High-Contrast Crimson/Indigo Diagnostic Alert Banner (Clearly visible in Eye Care mode) -->
                             <div id="queue-diagnostics-bar" class="hidden px-3 py-1.5 border-b theme-border text-[10px] font-mono space-y-1"></div>
 
-                            <!-- Compact Queue Search Box -->
                             <div class="p-2 border-b theme-border theme-input">
                                 <div class="relative">
                                     <i data-lucide="search" class="w-3.5 h-3.5 theme-text-dim absolute left-2.5 top-2"></i>
@@ -555,7 +666,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                     </div>
 
-                    <!-- PREV / MARK SCANNED & NEXT CONTROLS BAR -->
                     <div class="px-4 py-3 border-t theme-border theme-elevated grid grid-cols-3 gap-2.5">
                         <button onclick="stepDeck(-1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.99]">
                             <i data-lucide="arrow-left" class="w-4 h-4"></i> Previous
@@ -568,7 +678,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </button>
                     </div>
 
-                    <!-- Export & Multi-Label N-Up A4 Sheet Print Footer -->
                     <div class="px-4 py-2.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex gap-1.5">
                             <button onclick="exportCurrentPNG()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px]">PNG</button>
@@ -607,15 +716,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
             </div>
         </section>
+
         <!-- ==========================================
-             TAB 2: CARRIER LABELS (BIGGER SERIAL # + GENEROUS TIME/SIGN PEN SPACE)
+             TAB 2: CARRIER LABELS
              ========================================== -->
         <section id="view-carrier" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- Left Column (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
-                
-                <!-- 1. CUSTOM CARRIER RUN -->
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex items-center justify-between border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
@@ -722,7 +828,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
                 </div>
 
-                <!-- 2. 1-CLICK SHIFT PRESET BATCH -->
+                <!-- 1-CLICK SHIFT PRESET BATCH -->
                 <div class="theme-card border-2 border-emerald-500/40 rounded-xl p-4 space-y-3 shadow-sm">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
@@ -753,10 +859,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <i data-lucide="printer" class="w-4 h-4"></i> Print Full Shift Batch
                     </button>
                 </div>
-
             </div>
 
-            <!-- Right Column: Preview with Larger Serial # & Generous Pen Space for Time/Sign (7 Cols) -->
+            <!-- Right Column: Preview -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     <div class="px-5 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
@@ -772,7 +877,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                     <div id="cl-single-view" class="grid grid-cols-1 md:grid-cols-12">
                         <div class="md:col-span-8 canvas-grid p-6 flex items-center justify-center overflow-auto min-h-[420px]">
-                            <div id="cl-mockup-box" class="bg-white text-zinc-950 rounded-lg shadow-2xl border-2 border-zinc-400 p-4 flex flex-col justify-between transition-all duration-200" style="width: 400px; height: 266px;"></div>
+                            <div id="cl-mockup-box" class="bg-white text-zinc-950 rounded-lg shadow-2xl border-2 border-zinc-400 p-4 flex flex-col justify-between transition-all duration-200" style="width: 420px; height: 280px;"></div>
                         </div>
 
                         <div class="md:col-span-4 border-t md:border-t-0 md:border-l theme-border flex flex-col max-h-[420px]">
@@ -787,15 +892,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <div id="cl-grid-view" class="hidden p-4 canvas-grid max-h-[500px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
             </div>
-
         </section>
 
         <!-- ==========================================
              TAB 3: TRAILER SHIPPING (MULTI-LABEL RDT RAPID-FIRE SCANNER)
              ========================================== -->
         <section id="view-trailer" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- Left Column: Trailer Details & RDT Gun Rapid-Fire Box (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex items-center justify-between border-b theme-border pb-3">
@@ -827,7 +929,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </div>
                     </div>
 
-                    <!-- RDT SCANNER RAPID-FIRE INPUT BOX -->
                     <div class="p-3.5 rounded-xl border-2 border-emerald-500/50 theme-elevated space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold uppercase text-emerald-500 flex items-center gap-1.5">
@@ -855,7 +956,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 </div>
             </div>
 
-            <!-- Right Column: Live Scanned Trailer Load Breakdown & Log (7 Cols) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-lg">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
@@ -868,10 +968,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </div>
                     </div>
 
-                    <!-- Carrier Breakdown Badges -->
                     <div id="tr-carrier-breakdown" class="flex flex-wrap gap-2 text-xs font-mono"></div>
 
-                    <!-- Scanned Labels Table -->
                     <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-[380px]">
                         <table class="w-full text-left border-collapse text-xs font-mono">
                             <thead class="sticky top-0 theme-elevated border-b theme-border">
@@ -888,14 +986,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
                 </div>
             </div>
-
         </section>
 
         <!-- ==========================================
              TAB 4: NOTES (CLEAN 2-LINE TEMPLATE + WORKING 1-150PT FONT + AUTO-FILL A4 SCALING)
              ========================================== -->
         <section id="view-a4note" class="hidden space-y-4">
-            
             <div class="theme-card border rounded-xl p-3 shadow-sm space-y-2.5">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-2.5">
                     <div class="flex flex-wrap items-center gap-2">
@@ -928,7 +1024,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
                 </div>
 
-                <!-- Full Word & Excel Formatting Ribbon (Working Font Size 1-150pt + Auto-Fit Page Scale) -->
                 <div class="flex flex-wrap items-center gap-1.5 text-xs">
                     <select onchange="execDocCmd('fontName', this.value)" class="theme-input border rounded px-2 py-1 text-xs outline-none">
                         <option value="Inter, Arial, sans-serif" selected>Inter / Arial (Def)</option>
@@ -937,14 +1032,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <option value="Impact, sans-serif">Impact</option>
                     </select>
 
-                    <!-- Working Font Size Input (1 to 150 pt) -->
                     <div class="flex items-center theme-input border rounded px-1.5 py-0.5 gap-1" title="Select text or click a block, then enter Font Size (1 to 150 pt)">
                         <span class="text-[10px] font-mono theme-text-dim">Font:</span>
-                        <input type="number" id="note-font-pt" value="36" min="1" max="150" oninput="applyExactFontSize(this.value)" class="w-12 bg-transparent font-mono font-bold text-xs text-center outline-none">
+                        <input type="number" id="note-font-pt" value="44" min="1" max="150" oninput="applyExactFontSize(this.value)" class="w-12 bg-transparent font-mono font-bold text-xs text-center outline-none">
                         <span class="text-[10px] font-mono theme-text-dim">pt</span>
                     </div>
 
-                    <!-- Line Spacing -->
                     <div class="flex items-center theme-input border rounded px-1.5 py-0.5 gap-1">
                         <span class="text-[10px] font-mono theme-text-dim">Spacing:</span>
                         <select onchange="applyNoteLineSpacing(this.value)" class="bg-transparent font-mono text-xs outline-none">
@@ -980,25 +1073,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 </div>
             </div>
 
-            <!-- Auto-Scaling A4 Paper Canvas (Preloaded with ONLY the 2 requested lines, scaled to fill the page) -->
             <div class="canvas-grid border theme-border rounded-xl p-6 flex items-center justify-center overflow-auto">
                 <div id="a4-paper-sheet" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-8 flex flex-col items-center justify-center overflow-hidden transition-all duration-200" style="width: 842px; height: 595px;">
-                    
-                    <div id="a4-word-body" oninput="autoFitA4Content()" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center">
-                        <!-- Line 1 -->
-                        <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
-                            <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 40pt;" class="font-black tracking-tight uppercase outline-none leading-tight">ASENDIA FROM BLECKMANN (FITFLOP)</div>
-                        </div>
+                    <div id="a4-word-body" oninput="autoFitA4Content()" class="w-full h-full flex flex-col items-center justify-center gap-8 text-center"></div>
 
-                        <!-- Line 2 -->
-                        <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
-                            <div contenteditable="true" onfocus="lastFocusedEditable=this" id="a4-auto-ship-date" style="font-size: 30pt;" class="font-extrabold uppercase outline-none leading-tight">SHIPPING DATE: NOV 19TH, 2026</div>
-                        </div>
-                    </div>
-
-                    <!-- Excel Grid Mode -->
                     <div id="a4-excel-body" class="hidden w-full h-full overflow-auto">
                         <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
                             <thead>
@@ -1019,7 +1097,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </section>
@@ -1039,9 +1116,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <button onclick="clearCompletedTodos()" class="text-xs text-rose-400 hover:underline font-medium">Clear Completed</button>
                 </div>
 
-                <!-- Add New Task Bar -->
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="todo-input-text" placeholder="Add shift task (e.g. Print 25 FF-RM labels, Seal Bay 4 trailer)..." onkeydown="if(event.key==='Enter') addTodoItem()" class="flex-grow theme-input border rounded-lg px-3.5 py-2 text-xs outline-none focus:border-emerald-500">
+                    <input type="text" id="todo-input-text" placeholder="Add shift task..." onkeydown="if(event.key==='Enter') addTodoItem()" class="flex-grow theme-input border rounded-lg px-3.5 py-2 text-xs outline-none focus:border-emerald-500">
                     <select id="todo-priority" class="theme-input border rounded-lg px-2.5 py-2 text-xs font-mono outline-none">
                         <option value="Normal" selected>Normal (Def)</option>
                         <option value="High">High Priority</option>
@@ -1052,758 +1128,519 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </button>
                 </div>
 
-                <!-- Task Items List -->
                 <div id="todo-list-container" class="space-y-2 pt-1"></div>
             </div>
         </section>
-        // ==========================================
-        // 2. BULK & LABELS: HIGH-CONTRAST DIAGNOSTICS + QUEUE AUTO-SORT + N-UP A4 PRINT
-        // ==========================================
-        let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel', duplicateIdSet = new Set();
 
-        function toggleScanningMode() {
-            const feederCol = document.getElementById('bulk-feeder-column'), stageCol = document.getElementById('bulk-stage-column');
-            const btn = document.getElementById('btn-scan-mode'), lbl = document.getElementById('lbl-scan-mode');
-            const isHidden = !feederCol.classList.contains('hidden');
-            if (isHidden) {
-                feederCol.classList.add('hidden');
-                stageCol.className = "lg:col-span-12 space-y-4";
-                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white flex items-center gap-1.5 shadow";
-                lbl.innerText = "Exit Scanning Mode";
-            } else {
-                feederCol.classList.remove('hidden');
-                stageCol.className = "lg:col-span-8 space-y-4";
-                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs";
-                lbl.innerText = "Enter Scanning Mode";
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const resizer = document.getElementById('bulk-resizer'), leftPane = document.getElementById('bulk-left-queue'), wrapper = document.getElementById('bulk-split-wrapper');
-            if (resizer && leftPane && wrapper) {
-                let dragging = false;
-                resizer.addEventListener('mousedown', () => dragging = true);
-                window.addEventListener('mouseup', () => dragging = false);
-                window.addEventListener('mousemove', (e) => {
-                    if (!dragging) return;
-                    const rect = wrapper.getBoundingClientRect();
-                    leftPane.style.width = `${Math.min(75, Math.max(25, ((e.clientX - rect.left) / rect.width) * 100))}%`;
-                });
-            }
-        });
-
-        function renderBulkColumnEditor() {
-            document.getElementById('bulk-schema-hint').innerText = bulkColumnHeaders.join(', ');
-            document.getElementById('bulk-columns-bar').innerHTML = bulkColumnHeaders.map((col, idx) => `
-                <div class="inline-flex items-center rounded border theme-input text-[11px] font-mono overflow-hidden">
-                    <input type="text" value="${escapeHtml(col)}" onchange="bulkColumnHeaders[${idx}]=this.value.toUpperCase(); renderBulkColumnEditor(); renderCurrentDeckSlide();" class="w-14 px-1 py-0.5 bg-transparent font-bold outline-none text-center">
-                    ${idx > 0 ? `<button onclick="bulkColumnHeaders.splice(${idx},1); renderBulkColumnEditor(); renderCurrentDeckSlide();" class="px-1 text-rose-500">×</button>` : ''}
-                </div>
-            `).join('');
-        }
-        function addBulkColumn() { const name = prompt("New column name:", `COL${bulkColumnHeaders.length + 1}`); if (name?.trim()) { bulkColumnHeaders.push(name.trim().toUpperCase()); renderBulkColumnEditor(); renderCurrentDeckSlide(); } }
-        function parseDynamicRow(line) { const parts = line.split(',').map(s => s.trim()); return { id: parts[0] || '', cols: parts }; }
-        function extractGroupPrefix(idStr) { const m = idStr.trim().match(/^([A-Za-z\-_]+)/); return m ? m[1].replace(/[-_]+$/, '').toUpperCase() : 'ITEMS'; }
-
-        function autoSortNaturalSequence(textareaId) {
-            const ta = document.getElementById(textareaId), lines = ta.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            lines.sort((a, b) => a.split(',')[0].trim().localeCompare(b.split(',')[0].trim(), undefined, { numeric: true, sensitivity: 'base' }));
-            ta.value = lines.join('\n'); scannedSet.clear(); loadBulkDeck(false); playTone('success'); showToast("Sorted Queue A→Z / 01→99");
-        }
-
-        function removeDuplicateQueueIds() {
-            const ta = document.getElementById('batch-input'), seen = new Set(), uniqueLines = [];
-            ta.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(line => {
-                const idKey = line.split(',')[0].trim().toUpperCase();
-                if (!seen.has(idKey)) { seen.add(idKey); uniqueLines.push(line); }
-            });
-            ta.value = uniqueLines.join('\n'); scannedSet.clear(); loadBulkDeck(false); playTone('success'); showToast("Removed duplicate IDs!");
-        }
-
-        function loadBulkDeck(preserve = false) {
-            bulkRecords = document.getElementById('batch-input').value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(parseDynamicRow).filter(r => r.id);
-            document.getElementById('bulk-line-count').innerText = `${bulkRecords.length} items`;
-            if (!preserve || currentDeckIndex >= bulkRecords.length) currentDeckIndex = 0;
-            runQueueDiagnostics();
-            renderCurrentDeckSlide();
-            if (bulkViewMode === 'grid') generateBatchGrid();
-        }
-
-        // High-Contrast Crimson Rose (Duplicates) & Indigo Violet (Missing Gaps) — Sharp in Eye Care, Light & Dark Modes
-        function runQueueDiagnostics() {
-            const bar = document.getElementById('queue-diagnostics-bar'), dupBtn = document.getElementById('btn-remove-dups');
-            const counts = new Map(); duplicateIdSet.clear();
-            bulkRecords.forEach(r => { const k = r.id.toUpperCase(); counts.set(k, (counts.get(k) || 0) + 1); });
-            counts.forEach((cnt, k) => { if (cnt > 1) duplicateIdSet.add(k); });
-            dupBtn.classList.toggle('hidden', duplicateIdSet.size === 0);
-
-            const prefixNums = new Map();
-            bulkRecords.forEach(r => {
-                const m = r.id.match(/^([A-Za-z\-_]+)(\d+)$/);
-                if (m) {
-                    const pref = m[1].toUpperCase(), num = parseInt(m[2], 10), pad = m[2].length;
-                    if (!prefixNums.has(pref)) prefixNums.set(pref, []);
-                    prefixNums.get(pref).push({ num, pad });
-                }
-            });
-
-            const missingGaps = [];
-            prefixNums.forEach((arr, pref) => {
-                arr.sort((a, b) => a.num - b.num);
-                for (let i = 1; i < arr.length; i++) {
-                    if (arr[i].num - arr[i - 1].num > 1 && arr[i].num - arr[i - 1].num <= 10) {
-                        for (let g = arr[i - 1].num + 1; g < arr[i].num; g++) missingGaps.push(`${pref}${String(g).padStart(arr[i].pad, '0')}`);
-                    }
-                }
-            });
-
-            const blocks = [];
-            if (duplicateIdSet.size > 0) blocks.push(`<div class="px-2 py-1 rounded bg-rose-600/15 border border-rose-600/40 text-rose-600 dark:text-rose-400 font-bold">✕ Duplicates: ${Array.from(duplicateIdSet).join(', ')}</div>`);
-            if (missingGaps.length > 0) blocks.push(`<div class="px-2 py-1 rounded bg-indigo-600/15 border border-indigo-600/40 text-indigo-600 dark:text-indigo-400 font-bold">◈ Missing Gaps: ${missingGaps.join(', ')}</div>`);
-            if (blocks.length > 0) { bar.classList.remove('hidden'); bar.innerHTML = blocks.join(''); }
-            else bar.classList.add('hidden');
-        }
-
-        function setBulkViewMode(mode) {
-            bulkViewMode = mode;
-            document.getElementById('bulk-carousel-panel').classList.toggle('hidden', mode !== 'carousel');
-            document.getElementById('bulk-grid-panel').classList.toggle('hidden', mode !== 'grid');
-            if (mode === 'grid') generateBatchGrid(); else renderCurrentDeckSlide();
-        }
-
-        function renderCurrentDeckSlide() {
-            const canvas = document.getElementById('deck-canvas'), counter = document.getElementById('deck-counter'), currentText = document.getElementById('deck-current-text'), progress = document.getElementById('deck-progress'), badge = document.getElementById('deck-scanned-badge'), routingHeader = document.getElementById('deck-routing-header'), cardFrame = document.getElementById('bulk-card-frame');
-            if (!bulkRecords.length) { counter.innerText = "0 / 0"; currentText.innerText = "Empty"; renderGroupedQueueColumns(); return; }
-            const rec = bulkRecords[currentDeckIndex];
-            counter.innerText = `${currentDeckIndex + 1} / ${bulkRecords.length}`; currentText.innerText = rec.id;
-            progress.style.width = `${((currentDeckIndex + 1) / bulkRecords.length) * 100}%`;
-
-            const extra = rec.cols.slice(1).filter(Boolean);
-            if (extra.length) {
-                routingHeader.classList.remove('hidden');
-                routingHeader.innerHTML = rec.cols.slice(1).map((v, i) => v ? `<span class="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-300 text-[11px] text-zinc-900">${escapeHtml(bulkColumnHeaders[i + 1] || 'COL')}: ${escapeHtml(v)}</span>` : '').join('');
-            } else routingHeader.classList.add('hidden');
-
-            badge.innerHTML = scannedSet.has(currentDeckIndex) ? `<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Scanned` : `<span class="h-2 w-2 rounded-full bg-indigo-500"></span> Ready`;
-
-            const barWidth = parseInt(document.getElementById('bulk-bar-width')?.value) || 4;
-            const barHeight = parseInt(document.getElementById('bulk-bar-height')?.value) || 18;
-            const fontSize = parseInt(document.getElementById('bulk-font-size')?.value) || 12;
-            const quietZone = parseInt(document.getElementById('bulk-quiet-zone')?.value) || 10;
-            const showHri = (document.getElementById('bulk-hri-mode')?.value || 'on') === 'on';
-            const isTrans = (document.getElementById('bulk-bg-mode')?.value || 'solid') === 'transparent';
-            const fgHex = (document.getElementById('bulk-fg-color')?.value || '#000000').replace('#', '');
-            const bgHex = (document.getElementById('bulk-bg-color')?.value || '#ffffff').replace('#', '');
-
-            if (isTrans) { cardFrame.style.backgroundColor = 'transparent'; cardFrame.classList.add('checkerboard-bg'); }
-            else { cardFrame.style.backgroundColor = `#${bgHex}`; cardFrame.classList.remove('checkerboard-bg'); }
-
-            const opts = {
-                bcid: document.getElementById('batch-type').value,
-                text: formatPayloadWithSuffix(rec.id, document.getElementById('batch-suffix').value),
-                parse: true, scale: barWidth, height: barHeight, includetext: showHri, textxalign: 'center', textsize: fontSize,
-                paddingwidth: quietZone, paddingheight: Math.max(4, Math.floor(quietZone * 0.8)), barcolor: fgHex, textcolor: fgHex
-            };
-            if (showHri) opts.alttext = rec.id;
-            if (!isTrans) opts.backgroundcolor = bgHex;
-
-            try { bwipjs.toCanvas(canvas, opts); } catch (e) {}
-            renderGroupedQueueColumns();
-        }
-
-        function renderGroupedQueueColumns() {
-            const container = document.getElementById('deck-pills');
-            const query = (document.getElementById('queue-search-input')?.value || '').trim().toUpperCase();
-            document.getElementById('vertical-queue-stats').innerText = `${scannedSet.size}/${bulkRecords.length}`;
-            container.innerHTML = '';
-
-            const groups = new Map();
-            bulkRecords.forEach((rec, idx) => {
-                if (query && !rec.id.toUpperCase().includes(query)) return;
-                const g = extractGroupPrefix(rec.id);
-                if (!groups.has(g)) groups.set(g, []);
-                groups.get(g).push({ rec, idx });
-            });
-
-            groups.forEach((entries, groupKey) => {
-                const colDiv = document.createElement('div');
-                colDiv.className = "min-w-[140px] flex-1 border theme-border rounded-lg theme-input p-1.5 space-y-1 shrink-0";
-                const headerDiv = document.createElement('div');
-                headerDiv.className = "px-1.5 py-1 border-b theme-border flex items-center justify-between text-[10px] font-mono font-bold";
-                headerDiv.innerHTML = `<span class="text-emerald-500 truncate">${escapeHtml(groupKey)} (${entries.length})</span>`;
-                const copyColBtn = document.createElement('button');
-                copyColBtn.className = "px-1.5 py-0.2 rounded theme-elevated border text-[9px] hover:border-emerald-500";
-                copyColBtn.innerText = "Copy";
-                copyColBtn.onclick = () => copyTextValue(entries.map(e => e.rec.id).join('\n'));
-                headerDiv.appendChild(copyColBtn);
-                colDiv.appendChild(headerDiv);
-
-                entries.forEach(({ rec, idx }) => {
-                    const isDup = duplicateIdSet.has(rec.id.toUpperCase());
-                    const btn = document.createElement('button');
-                    btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
-                    btn.className = idx === currentDeckIndex ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-600 text-white font-bold" : scannedSet.has(idx) ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-500/15 text-emerald-500" : isDup ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-rose-600/15 text-rose-500 font-bold" : "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between theme-text-muted hover:theme-elevated";
-                    btn.innerHTML = `<span class="truncate">${escapeHtml(rec.id)} ${isDup ? '<b>[DUP]</b>' : ''}</span><span>${scannedSet.has(idx) ? '✓' : '•'}</span>`;
-                    colDiv.appendChild(btn);
-                });
-                container.appendChild(colDiv);
-            });
-        }
-
-        function copyAllQueueIds() { if (bulkRecords.length) copyTextValue(bulkRecords.map(r => r.id).join('\n')); }
-        function markAndNextDeck() {
-            if (!bulkRecords.length) return;
-            scannedSet.add(currentDeckIndex); playTone('success');
-            if (currentDeckIndex < bulkRecords.length - 1) currentDeckIndex++;
-            renderCurrentDeckSlide();
-        }
-        function stepDeck(d) { if (bulkRecords.length) { currentDeckIndex = (currentDeckIndex + d + bulkRecords.length) % bulkRecords.length; renderCurrentDeckSlide(); } }
-        function toggleAutoPlay() {
-            const btn = document.getElementById('btn-autoplay');
-            if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; btn.innerText = "Play"; }
-            else { const sec = Math.max(0.5, parseFloat(document.getElementById('custom-timer-sec').value) || 2.5); autoPlayTimer = setInterval(() => stepDeck(1), sec * 1000); btn.innerText = "Pause"; }
-        }
-        function restartAutoPlayIfActive() { if (autoPlayTimer) { toggleAutoPlay(); toggleAutoPlay(); } }
-        function generateBatchGrid() {
-            const grid = document.getElementById('batch-grid'), off = document.getElementById('offscreen-canvas'); grid.innerHTML = '';
-            bulkRecords.forEach((rec, idx) => {
-                bwipjs.toCanvas(off, { bcid: document.getElementById('batch-type').value, text: rec.id, scale: 2, height: 12, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
-                const card = document.createElement('div'); card.className = "theme-input border rounded-lg p-3 flex flex-col items-center gap-2 cursor-pointer";
-                card.onclick = () => { currentDeckIndex = idx; setBulkViewMode('carousel'); };
-                card.innerHTML = `<span class="text-[10px] font-mono">#${idx+1} ${escapeHtml(rec.id)}</span><div class="bg-white p-2 rounded"><img src="${off.toDataURL('image/png')}" class="max-h-16"/></div>`;
-                grid.appendChild(card);
-            });
-        }
-        function printNUpA4Sheet() {
-            if (!bulkRecords.length) return;
-            const nUp = parseInt(document.getElementById('nup-layout-select').value) || 12, cols = nUp === 8 ? 2 : (nUp === 12 ? 3 : 4);
-            const sym = document.getElementById('batch-type').value, off = document.getElementById('offscreen-canvas'), rendered = [];
-            bulkRecords.forEach(r => { try { bwipjs.toCanvas(off, { bcid: sym, text: r.id, scale: 3, height: 14, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); rendered.push({ ...r, dataUrl: off.toDataURL('image/png') }); } catch (e) {} });
-            const win = window.open('', '_blank');
-            const cellsHtml = rendered.map(r => `<div style="border:1px dashed #999;padding:3mm;text-align:center;page-break-inside:avoid;display:flex;flex-direction:column;justify-content:center;align-items:center;"><div style="font-size:8pt;font-weight:bold;margin-bottom:1.5mm;">${escapeHtml(r.cols.slice(1).filter(Boolean).join(' | '))}</div><img src="${r.dataUrl}" style="max-width:100%;max-height:24mm;"/></div>`).join('');
-            win.document.write(`<!DOCTYPE html><html><head><style>@page{size:A4 portrait;margin:8mm;}body{margin:0;font-family:monospace;}.grid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:4mm;}</style></head><body><div class="grid">${cellsHtml}</div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
-            win.document.close();
-        }
-
-        // ==========================================
-        // 3. CARRIER LABELS (LARGER SERIAL # + GENEROUS TIME/SIGN PEN SPACE)
-        // ==========================================
-        const DEFAULT_CLIENTS = [{ code: 'FF', name: 'FitFlop (Default)' }, { code: 'NC', name: "Nobody's Child" }, { code: 'OD', name: 'Oodie' }, { code: 'BLK', name: 'Bleckmann' }];
-        const DEFAULT_CARRIERS = [{ code: 'RM', name: 'Royal Mail (Default)' }, { code: 'RMX', name: 'Royal Mail Express' }, { code: 'ASD', name: 'Asendia' }, { code: 'DPD', name: 'DPD UK' }, { code: 'DHL', name: 'DHL' }, { code: 'PF', name: 'Parcelforce' }, { code: 'EVR', name: 'Evri' }, { code: 'AMZ', name: 'Amazon' }];
-        const DEFAULT_SHIFT_BATCH = [
-            { client: 'FF', carrier: 'DPD', qty: 5, start: 0, date: '' },
-            { client: 'FF', carrier: 'RMX', qty: 5, start: 0, date: '' },
-            { client: 'FF', carrier: 'ASD', qty: 5, start: 0, date: '' },
-            { client: 'FF', carrier: 'RM', qty: 25, start: 0, date: '' }
-        ];
-
-        let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV2') || JSON.stringify(DEFAULT_CLIENTS));
-        let savedCarriers = JSON.parse(localStorage.getItem('wmsCustomCarriersV2') || JSON.stringify(DEFAULT_CARRIERS));
-        let shiftBatchConfig = JSON.parse(localStorage.getItem('wmsDefaultShiftBatchV2') || JSON.stringify(DEFAULT_SHIFT_BATCH));
-        let carrierUsageLedger = JSON.parse(localStorage.getItem('wmsCarrierDailyUsageV1') || '{}');
-        let carrierOrientation = 'landscape', carrierViewMode = 'single', currentCarrierBatch = [], previewCarrierIndex = 0;
-
-        function renderShiftBatchPills() {
-            const box = document.getElementById('shift-batch-summary-pills');
-            if (box) box.innerHTML = shiftBatchConfig.map(item => `<span class="px-2 py-0.5 rounded theme-elevated border font-semibold">${escapeHtml(item.client)}-${escapeHtml(item.carrier)} <b class="text-emerald-500">(${item.qty})</b></span>`).join('');
-        }
-        function toggleShiftBatchEditor() {
-            const ed = document.getElementById('shift-batch-editor'); ed.classList.toggle('hidden');
-            if (!ed.classList.contains('hidden')) renderShiftBatchEditorRows();
-        }
-        function renderShiftBatchEditorRows() {
-            const today = getTodayIsoDate();
-            document.getElementById('shift-batch-rows').innerHTML = shiftBatchConfig.map((r, idx) => `
-                <div class="grid grid-cols-12 gap-1 items-center text-xs font-mono">
-                    <input type="text" value="${escapeHtml(r.client)}" onchange="shiftBatchConfig[${idx}].client=this.value.toUpperCase()" class="col-span-2 theme-input border rounded px-1.5 py-1 uppercase font-bold">
-                    <input type="text" value="${escapeHtml(r.carrier)}" onchange="shiftBatchConfig[${idx}].carrier=this.value.toUpperCase()" class="col-span-3 theme-input border rounded px-1.5 py-1 uppercase font-bold">
-                    <input type="number" value="${r.qty}" min="1" onchange="shiftBatchConfig[${idx}].qty=parseInt(this.value)||1" class="col-span-2 theme-input border rounded px-1.5 py-1">
-                    <input type="number" value="${r.start || 0}" min="0" placeholder="Auto" onchange="shiftBatchConfig[${idx}].start=parseInt(this.value)||0" class="col-span-2 theme-input border rounded px-1.5 py-1">
-                    <input type="date" value="${r.date || today}" onchange="shiftBatchConfig[${idx}].date=this.value" class="col-span-2 theme-input border rounded px-1 py-1 text-[10px]">
-                    <button onclick="shiftBatchConfig.splice(${idx},1); renderShiftBatchEditorRows();" class="col-span-1 text-rose-400 font-bold text-center">×</button>
-                </div>
-            `).join('');
-        }
-        function addShiftBatchRuleRow() { shiftBatchConfig.push({ client: 'FF', carrier: 'RM', qty: 5, start: 0, date: getTodayIsoDate() }); renderShiftBatchEditorRows(); }
-        function saveShiftBatchRules() { localStorage.setItem('wmsDefaultShiftBatchV2', JSON.stringify(shiftBatchConfig)); renderShiftBatchPills(); toggleShiftBatchEditor(); showToast("Saved shift batch rules!"); }
-
-        function executeOneClickShiftBatch() {
-            const defaultDateIso = document.getElementById('cl-date').value || getTodayIsoDate(), dateStyle = document.getElementById('cl-date-style').value, digits = parseInt(document.getElementById('cl-digits').value) || 2, copies = Math.max(1, parseInt(document.getElementById('cl-copies-per-label').value) || 2);
-            const fullBatch = [];
-            shiftBatchConfig.forEach(rule => {
-                const useDate = rule.date || defaultDateIso, yymmdd = formatIsoToYYMMDD(useDate), humanDate = formatHumanDate(useDate, dateStyle);
-                const used = carrierUsageLedger[`${rule.client}-${rule.carrier}-${yymmdd}`] || [];
-                const startSerial = (rule.start && rule.start > 0) ? rule.start : (used.length > 0 ? Math.max(...used) + 1 : 1);
-                for (let i = 0; i < rule.qty; i++) {
-                    const sNum = startSerial + i, sPad = String(sNum).padStart(digits, '0'), fullCode = `${rule.client}-${rule.carrier}${yymmdd}${sPad}`;
-                    for (let c = 0; c < copies; c++) fullBatch.push({ client: rule.client, carrier: rule.carrier, yymmdd, humanDate, serialNum: sNum, serialPadded: sPad, fullCode, copyIndex: c + 1, totalCopies: copies, isAlreadyUsed: false });
-                }
-            });
-            currentCarrierBatch = fullBatch; previewCarrierIndex = 0; updateCarrierPreview(true); generateAndPrintCarrierLabels();
-        }
-
-        function renderSmartUsageCheck(yymmdd, digits) {
-            const box = document.getElementById('cl-smart-usage-list'); if (!box) return;
-            const todayKeys = Object.keys(carrierUsageLedger).filter(k => k.endsWith(`-${yymmdd}`) && carrierUsageLedger[k].length > 0).sort();
-            if (!todayKeys.length) { box.innerHTML = `<div class="theme-text-dim text-[11px]">No labels generated yet for ${yymmdd}.</div>`; return; }
-            box.innerHTML = todayKeys.map(k => {
-                const [cCode, rCode] = k.split('-'), nums = [...new Set(carrierUsageLedger[k])].sort((a, b) => a - b), maxUsed = Math.max(...nums), nextFree = maxUsed + 1;
-                const rangeStr = nums.length > 1 ? `#${String(nums[0]).padStart(digits, '0')}–#${String(maxUsed).padStart(digits, '0')}` : `#${String(nums[0]).padStart(digits, '0')}`;
-                return `<div class="p-2 rounded border theme-input flex items-center justify-between gap-2"><div><span class="font-bold text-emerald-500">${escapeHtml(cCode)}-${escapeHtml(rCode)}</span> <span class="theme-text-muted text-[11px]">Used: ${rangeStr}</span></div><button onclick="applySuggestedNext('${escapeHtml(cCode)}', '${escapeHtml(rCode)}', ${nextFree})" class="px-2 py-0.5 rounded bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold hover:bg-emerald-600 hover:text-white">Next: #${String(nextFree).padStart(digits, '0')}</button></div>`;
-            }).join('');
-        }
-
-        function applySuggestedNext(clientCode, carrierCode, nextNum) {
-            document.getElementById('cl-client-code').value = clientCode; document.getElementById('cl-carrier-code').value = carrierCode;
-            if ([...document.getElementById('cl-client-preset').options].some(o => o.value === clientCode)) document.getElementById('cl-client-preset').value = clientCode;
-            if ([...document.getElementById('cl-carrier-preset').options].some(o => o.value === carrierCode)) document.getElementById('cl-carrier-preset').value = carrierCode;
-            document.getElementById('cl-start-serial').value = nextNum; updateCarrierPreview(false);
-        }
-
-        function renderClientCarrierPresets() {
-            document.getElementById('cl-client-preset').innerHTML = savedClients.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
-            document.getElementById('cl-carrier-preset').innerHTML = savedCarriers.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
-        }
-        function promptNewClientPreset() { const c = prompt("Client Code:")?.trim().toUpperCase(); if (!c) return; const n = prompt(`Client Name:`, c) || c; savedClients.push({ code: c, name: n }); localStorage.setItem('wmsCustomClientsV2', JSON.stringify(savedClients)); renderClientCarrierPresets(); document.getElementById('cl-client-preset').value = c; document.getElementById('cl-client-code').value = c; autoSetNextAvailableSerial(); }
-        function promptNewCarrierPreset() { const c = prompt("Carrier Code:")?.trim().toUpperCase(); if (!c) return; const n = prompt(`Carrier Name:`, c) || c; savedCarriers.push({ code: c, name: n }); localStorage.setItem('wmsCustomCarriersV2', JSON.stringify(savedCarriers)); renderClientCarrierPresets(); document.getElementById('cl-carrier-preset').value = c; document.getElementById('cl-carrier-code').value = c; autoSetNextAvailableSerial(); }
-        function syncCarrierPreset(kind) { if (kind === 'client') document.getElementById('cl-client-code').value = document.getElementById('cl-client-preset').value; else document.getElementById('cl-carrier-code').value = document.getElementById('cl-carrier-preset').value; autoSetNextAvailableSerial(); }
-        function setCarrierOrientation(orient) {
-            carrierOrientation = orient;
-            document.getElementById('btn-orient-landscape').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('btn-orient-portrait').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('cl-orient-badge').innerText = orient === 'landscape' ? "150 × 100 MM LANDSCAPE" : "100 × 150 MM PORTRAIT";
-            renderSelectedCarrierMockup(); if (carrierViewMode === 'grid') renderCarrierGrid();
-        }
-        function setCarrierViewMode(mode) {
-            carrierViewMode = mode;
-            document.getElementById('cl-single-view').classList.toggle('hidden', mode !== 'single');
-            document.getElementById('cl-grid-view').classList.toggle('hidden', mode !== 'grid');
-            document.getElementById('btn-cl-view-single').className = mode === 'single' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('btn-cl-view-grid').className = mode === 'grid' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            if (mode === 'grid') renderCarrierGrid();
-        }
-        function getTodayIsoDate() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        function formatIsoToYYMMDD(s) { return (!s || s.length < 10) ? '261119' : s.slice(2, 4) + s.slice(5, 7) + s.slice(8, 10); }
-        function formatHumanDate(iso, style) {
-            if (!iso || iso.length < 10) return '19/11/2026';
-            const yyyy = iso.slice(0, 4), yy = iso.slice(2, 4), mm = iso.slice(5, 7), dd = iso.slice(8, 10);
-            const mName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][parseInt(mm, 10) - 1] || 'NOV';
-            if (style === 'DD MMM, YYYY') return `${dd} ${mName}, ${yyyy}`;
-            if (style === 'YYMMDD') return `${yy}${mm}${dd}`;
-            return `${dd}/${mm}/${yyyy}`;
-        }
-        function autoSetNextAvailableSerial() {
-            const c = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), r = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase(), y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
-            const used = carrierUsageLedger[`${c}-${r}-${y}`] || [];
-            document.getElementById('cl-start-serial').value = used.length ? Math.max(...used) + 1 : 1;
-            previewCarrierIndex = 0; updateCarrierPreview();
-        }
-        function updateCarrierPreview(keepCustomBatch = false) {
-            const client = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), carrier = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase();
-            const dateIso = document.getElementById('cl-date').value || getTodayIsoDate(), humanDate = formatHumanDate(dateIso, document.getElementById('cl-date-style').value), yymmdd = formatIsoToYYMMDD(dateIso);
-            const digits = parseInt(document.getElementById('cl-digits').value) || 2, startSerial = Math.max(1, parseInt(document.getElementById('cl-start-serial').value) || 1), qty = Math.min(200, Math.max(1, parseInt(document.getElementById('cl-qty').value) || 1));
-            const copies = Math.max(1, parseInt(document.getElementById('cl-copies-per-label').value) || 2);
-
-            renderSmartUsageCheck(yymmdd, digits);
-
-            const usedSerials = [...new Set(carrierUsageLedger[`${client}-${carrier}-${yymmdd}`] || [])];
-            if (!keepCustomBatch) {
-                currentCarrierBatch = [];
-                for (let i = 0; i < qty; i++) {
-                    const sNum = startSerial + i, sPad = String(sNum).padStart(digits, '0'), fullCode = `${client}-${carrier}${yymmdd}${sPad}`;
-                    for (let c = 0; c < copies; c++) currentCarrierBatch.push({ client, carrier, yymmdd, humanDate, serialNum: sNum, serialPadded: sPad, fullCode, copyIndex: c + 1, totalCopies: copies, isAlreadyUsed: usedSerials.includes(sNum) });
-                }
-            }
-            if (previewCarrierIndex >= currentCarrierBatch.length) previewCarrierIndex = 0;
-            document.getElementById('cl-total-prints').innerText = currentCarrierBatch.length;
-            document.getElementById('cl-range-badge').innerText = `${currentCarrierBatch[0]?.fullCode || ''} (×${copies} copies)`;
-            renderSelectedCarrierMockup();
-            if (carrierViewMode === 'grid') renderCarrierGrid();
-
-            document.getElementById('cl-generated-list').innerHTML = currentCarrierBatch.map((item, idx) => `
-                <button onclick="previewCarrierIndex=${idx}; updateCarrierPreview(true);" class="w-full px-2.5 py-1.5 rounded border text-left flex items-center justify-between ${idx === previewCarrierIndex ? 'border-emerald-500 bg-emerald-500/15 font-bold' : 'theme-input'}">
-                    <span>${idx + 1}. ${escapeHtml(item.fullCode)} <span class="opacity-60 text-[10px]">(C${item.copyIndex})</span></span>
-                    ${item.isAlreadyUsed ? '<span class="text-[9px] px-1 rounded bg-rose-500/20 text-rose-400">USED</span>' : ''}
-                </button>
-            `).join('');
-        }
-
-        // Larger Serial Badge (#01) + Reduced Barcode Height + Spacious TIME & SIGN Pen Writing Area
-        function renderSelectedCarrierMockup() {
-            if (!currentCarrierBatch.length) return;
-            const item = currentCarrierBatch[previewCarrierIndex] || currentCarrierBatch[0], box = document.getElementById('cl-mockup-box');
-            const isLand = carrierOrientation === 'landscape';
-            box.style.width = isLand ? '420px' : '280px';
-            box.style.height = isLand ? '280px' : '420px';
-
-            if (isLand) {
-                box.innerHTML = `
-                    <div class="border-b-2 border-zinc-900 pb-1.5 flex justify-between items-center font-mono font-black">
-                        <div class="text-2xl">${escapeHtml(item.client)} <span class="text-zinc-400">—</span> ${escapeHtml(item.carrier)}</div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-extrabold">${escapeHtml(item.humanDate)}</span>
-                            <span class="px-2.5 py-1 bg-zinc-900 text-white text-xl font-black rounded">#${escapeHtml(item.serialPadded)}</span>
-                        </div>
+        <!-- COMMUNITY FEEDBACK BOARD -->
+        <section id="feedback-section" class="pt-4 border-t theme-border">
+            <div class="theme-card border rounded-xl p-5 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-5 space-y-3 theme-input p-4 rounded-xl border">
+                    <h2 class="text-xs font-bold uppercase tracking-wider">Feedback & Feature Requests</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="fb-name" placeholder="Your Name / Role" class="theme-card border rounded-lg px-3 py-2 text-xs outline-none">
+                        <select id="fb-category" class="theme-card border rounded-lg px-2 py-2 text-xs outline-none">
+                            <option value="Feature Request" selected>Feature Request</option>
+                            <option value="Bug Report">Bug Report</option>
+                            <option value="UI / Layout">UI / Layout</option>
+                        </select>
                     </div>
-                    <div class="my-auto py-1 flex justify-center"><canvas id="cl-preview-canvas" class="max-w-full"></canvas></div>
-                    <div class="border-t-2 border-zinc-900 pt-2.5 pb-1 grid grid-cols-2 gap-4 text-xs font-mono font-extrabold">
-                        <div class="border-r-2 border-zinc-400 pr-3 flex items-end h-8"><span>TIME:</span><span class="border-b-2 border-zinc-800 flex-grow ml-2"></span></div>
-                        <div class="flex items-end h-8"><span>SIGN:</span><span class="border-b-2 border-zinc-800 flex-grow ml-2"></span></div>
-                    </div>`;
-            } else {
-                box.innerHTML = `
-                    <div class="border-b-2 border-zinc-900 pb-2 text-center font-mono font-black">
-                        <div class="text-3xl tracking-tight">${escapeHtml(item.client)} — ${escapeHtml(item.carrier)}</div>
-                        <div class="flex justify-center items-center gap-2.5 mt-1.5">
-                            <span class="text-xs font-extrabold">${escapeHtml(item.humanDate)}</span>
-                            <span class="px-3 py-1 bg-zinc-900 text-white text-xl font-black rounded">#${escapeHtml(item.serialPadded)}</span>
-                        </div>
+                    <textarea id="fb-comment" rows="2" placeholder="Share suggestions with Shash..." class="w-full theme-card border rounded-lg p-2.5 text-xs outline-none"></textarea>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="submitFeedbackComment()" class="bg-emerald-600 text-white text-xs font-semibold py-2 rounded-lg">Post Comment</button>
+                        <button onclick="submitFeedbackToGitHub()" class="theme-elevated border text-xs font-medium py-2 rounded-lg">GitHub Issues</button>
                     </div>
-                    <div class="my-auto py-1 flex justify-center"><canvas id="cl-preview-canvas" class="max-w-full"></canvas></div>
-                    <div class="border-t-2 border-zinc-900 pt-3 pb-1 space-y-4 text-xs font-mono font-extrabold">
-                        <div class="flex items-end h-7"><span>TIME:</span><span class="border-b-2 border-zinc-800 flex-grow ml-2"></span></div>
-                        <div class="flex items-end h-7"><span>SIGN:</span><span class="border-b-2 border-zinc-800 flex-grow ml-2"></span></div>
-                    </div>`;
-            }
-            try { bwipjs.toCanvas(document.getElementById('cl-preview-canvas'), { bcid: 'code128', text: item.fullCode, scale: isLand ? 3 : 2, height: isLand ? 12 : 16, includetext: true, textxalign: 'center', textsize: 11, backgroundcolor: 'ffffff' }); } catch (e) {}
-        }
+                </div>
+                <div class="lg:col-span-7 space-y-2 max-h-56 overflow-y-auto" id="fb-comments-list"></div>
+            </div>
+        </section>
 
-        function renderCarrierGrid() {
-            const grid = document.getElementById('cl-grid-view'), off = document.getElementById('offscreen-canvas'); grid.innerHTML = '';
-            currentCarrierBatch.forEach((item, idx) => {
-                bwipjs.toCanvas(off, { bcid: 'code128', text: item.fullCode, scale: 2, height: 12, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
-                const card = document.createElement('div'); card.className = "bg-white text-zinc-950 p-3 rounded-lg border-2 border-zinc-300 shadow flex flex-col justify-between gap-2 cursor-pointer";
-                card.onclick = () => { previewCarrierIndex = idx; setCarrierViewMode('single'); updateCarrierPreview(true); };
-                card.innerHTML = `<div class="flex justify-between font-mono font-black text-sm border-b border-zinc-900 pb-1"><span>${item.client} — ${item.carrier}</span><span class="text-base">#${item.serialPadded}</span></div><img src="${off.toDataURL('image/png')}" class="max-w-full mx-auto"/>`;
-                grid.appendChild(card);
-            });
-        }
-        function recordCarrierBatchAsUsed() {
-            currentCarrierBatch.forEach(item => {
-                const key = `${item.client}-${item.carrier}-${item.yymmdd}`;
-                if (!carrierUsageLedger[key]) carrierUsageLedger[key] = [];
-                if (!carrierUsageLedger[key].includes(item.serialNum)) carrierUsageLedger[key].push(item.serialNum);
-            });
-            localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); updateCarrierPreview(true);
-        }
-        function resetCarrierDayHistory() {
-            const y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
-            if (confirm(`Reset ALL carrier serial usage logs for ${y}?`)) {
-                Object.keys(carrierUsageLedger).forEach(k => { if (k.endsWith(`-${y}`)) delete carrierUsageLedger[k]; });
-                localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); document.getElementById('cl-start-serial').value = 1; updateCarrierPreview();
-            }
-        }
-        function copyAllCarrierCodes() { navigator.clipboard.writeText(currentCarrierBatch.map(i => i.fullCode).join('\n')); showToast(`Copied ${currentCarrierBatch.length} labels!`); }
-        function sendCarrierLabelsToBulkDeck() { recordCarrierBatchAsUsed(); document.getElementById('batch-input').value = currentCarrierBatch.map(i => i.fullCode).join('\n'); scannedSet.clear(); switchTab('bulk'); loadBulkDeck(false); }
-        function generateAndPrintCarrierLabels() {
-            if (!currentCarrierBatch.length) return;
-            recordCarrierBatchAsUsed();
-            const isLand = carrierOrientation === 'landscape', pageW = isLand ? '150mm' : '100mm', pageH = isLand ? '100mm' : '150mm', off = document.getElementById('offscreen-canvas'), rendered = [];
-            currentCarrierBatch.forEach(item => { bwipjs.toCanvas(off, { bcid: 'code128', text: item.fullCode, scale: 4, height: isLand ? 16 : 21, includetext: true, textxalign: 'center', textsize: 13, backgroundcolor: 'ffffff' }); rendered.push({ ...item, dataUrl: off.toDataURL('image/png') }); });
-            const win = window.open('', '_blank');
-            const html = rendered.map(r => isLand
-                ? `<div style="width:150mm;height:100mm;padding:4mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:2.5px solid #000;flex:1;padding:4mm 5mm;display:flex;flex-direction:column;justify-content:space-between;"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:2.5mm;font-size:24pt;font-weight:900;"><span>${r.client} — ${r.carrier}</span><span style="font-size:13pt;">${r.humanDate} <b style="background:#000;color:#fff;padding:1.5mm 3.5mm;font-size:20pt;">#${r.serialPadded}</b></span></div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="border-top:2px solid #000;padding-top:4mm;padding-bottom:1mm;display:grid;grid-template-columns:1fr 1fr;font-size:12pt;font-weight:900;"><div style="border-right:2px solid #000;padding-right:4mm;display:flex;align-items:flex-end;height:9mm;">TIME: <div style="border-bottom:2px solid #000;flex:1;margin-left:2mm;"></div></div><div style="padding-left:4mm;display:flex;align-items:flex-end;height:9mm;">SIGN: <div style="border-bottom:2px solid #000;flex:1;margin-left:2mm;"></div></div></div></div></div>`
-                : `<div style="width:100mm;height:150mm;padding:4mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:2.5px solid #000;flex:1;padding:5mm;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div style="border-bottom:2px solid #000;padding-bottom:3mm;"><div style="font-size:30pt;font-weight:900;">${r.client} — ${r.carrier}</div><div style="font-size:14pt;font-weight:bold;margin-top:2mm;">${r.humanDate} <span style="background:#000;color:#fff;padding:1.5mm 4mm;font-size:22pt;font-weight:900;">#${r.serialPadded}</span></div></div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="border-top:2px solid #000;padding-top:4mm;text-align:left;font-size:13pt;font-weight:900;space-y:6mm;"><div style="display:flex;align-items:flex-end;height:11mm;margin-bottom:4mm;">TIME: <div style="border-bottom:2px solid #000;flex:1;margin-left:3mm;"></div></div><div style="display:flex;align-items:flex-end;height:11mm;">SIGN: <div style="border-bottom:2px solid #000;flex:1;margin-left:3mm;"></div></div></div></div></div>`
-            ).join('');
-            win.document.write(`<html><head><style>@page{size:${pageW} ${pageH};margin:0;}body{margin:0;}</style></head><body>${html}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
-            win.document.close();
-        }
+    </main>
+
+    <footer class="border-t theme-border py-4 px-6 text-center text-[11px] font-mono theme-text-dim flex justify-between max-w-[1440px] w-full mx-auto">
+        <span>BARCODE GENERATOR // SHASH</span>
+        <span>Offline-Ready PWA</span>
+    </footer>
+
+    <canvas id="offscreen-canvas" class="hidden"></canvas>
+    <div id="toast" class="fixed bottom-5 right-5 theme-elevated border text-xs font-medium px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+        <span id="toast-text">Done</span>
+    </div>
+
+    <script>
+        lucide.createIcons();
 
         // ==========================================
-        // 4. TRAILER SHIPPING TAB (MULTI-LABEL RDT RAPID-FIRE SCANNER)
+        // 0. MULTI-GRADIENT THEME ENGINE & REFLOW ZOOM
         // ==========================================
-        let trailerScannedList = JSON.parse(localStorage.getItem('wmsTrailerScannedV1') || '[]');
+        const THEME_GRADIENTS = {
+            dark: [
+                { id: 'default', name: 'Obsidian (Default)' },
+                { id: 'emerald', name: 'Emerald Depths' },
+                { id: 'midnight', name: 'Midnight Indigo' },
+                { id: 'nebula', name: 'Nebula Dusk' }
+            ],
+            light: [
+                { id: 'default', name: 'Crisp Slate (Default)' },
+                { id: 'sky', name: 'Arctic Sky' },
+                { id: 'mint', name: 'Fresh Mint' },
+                { id: 'lavender', name: 'Soft Lavender' }
+            ],
+            'eye-protect': [
+                { id: 'default', name: 'Warm Sepia (Default)' },
+                { id: 'parchment', name: 'Golden Parchment' },
+                { id: 'sage', name: 'Botanical Sage' },
+                { id: 'peach', name: 'Soft Amber Peach' }
+            ]
+        };
 
-        function processTrailerRdtScan() {
-            const inp = document.getElementById('tr-rdt-input');
-            const code = inp.value.trim().toUpperCase();
-            if (!code) return;
-            inp.value = '';
+        function setTheme(mode) {
+            document.documentElement.setAttribute('data-theme', mode);
+            localStorage.setItem('wmsThemeMode', mode);
+            ['dark', 'light', 'eye-protect'].forEach(m => {
+                document.getElementById(`theme-${m}`).className = (m === mode)
+                    ? "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition"
+                    : "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition";
+            });
+            const gSel = document.getElementById('theme-gradient-select');
+            const options = THEME_GRADIENTS[mode] || THEME_GRADIENTS.dark;
+            const savedGrad = localStorage.getItem(`wmsGrad_${mode}`) || 'default';
+            gSel.innerHTML = options.map(g => `<option value="${g.id}" ${g.id === savedGrad ? 'selected' : ''}>${g.name}</option>`).join('');
+            setThemeGradient(savedGrad);
+        }
 
-            const blockDups = document.getElementById('tr-block-dups').checked;
-            if (blockDups && trailerScannedList.some(item => item.code === code)) {
-                playTone('error');
-                document.getElementById('tr-last-scan-msg').innerHTML = `<span class="text-rose-500 font-bold">✕ DUPLICATE BLOCKED: ${escapeHtml(code)}</span>`;
+        function setThemeGradient(gradId) {
+            const mode = document.documentElement.getAttribute('data-theme') || 'dark';
+            document.documentElement.setAttribute('data-gradient', gradId);
+            localStorage.setItem(`wmsGrad_${mode}`, gradId);
+        }
+
+        function setManualPageZoom(val) {
+            const pct = Math.min(150, Math.max(60, parseInt(val) || 100));
+            document.getElementById('page-zoom-input').value = pct;
+            document.documentElement.style.fontSize = `${16 * (pct / 100)}px`;
+        }
+        function adjustPageZoom(delta) { setManualPageZoom((parseInt(document.getElementById('page-zoom-input').value) || 100) + delta); }
+
+        // ==========================================
+        // 1. DRAGGABLE CALCULATOR & DRAGGABLE CHESS WINDOW
+        // ==========================================
+        function makeElementDraggable(boxId, handleId) {
+            const box = document.getElementById(boxId), handle = document.getElementById(handleId);
+            if (!box || !handle) return;
+            let dragging = false, offX = 0, offY = 0;
+            handle.addEventListener('mousedown', (e) => {
+                dragging = true;
+                const rect = box.getBoundingClientRect();
+                offX = e.clientX - rect.left;
+                offY = e.clientY - rect.top;
+                box.style.right = 'auto';
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                box.style.left = `${Math.max(0, Math.min(window.innerWidth - box.offsetWidth, e.clientX - offX))}px`;
+                box.style.top = `${Math.max(0, Math.min(window.innerHeight - box.offsetHeight, e.clientY - offY))}px`;
+            });
+            window.addEventListener('mouseup', () => dragging = false);
+        }
+
+        function toggleCalculator() { document.getElementById('calc-popover').classList.toggle('hidden'); }
+        function calcInput(ch) { const d = document.getElementById('calc-display'); d.value = (d.value === '0' && ch !== '.') ? ch : d.value + ch; }
+        function calcClear() { document.getElementById('calc-display').value = '0'; document.getElementById('calc-history').innerText = '0'; }
+        function calcEval() {
+            const d = document.getElementById('calc-display');
+            try { const expr = d.value.replace(/[^0-9+\-*/().]/g, ''); document.getElementById('calc-history').innerText = expr + ' ='; d.value = String(Number(Function('"use strict";return (' + expr + ')')().toFixed(4))); } catch (e) { d.value = 'Error'; }
+        }
+        function copyCalcResult() { copyTextValue(document.getElementById('calc-display').value); }
+
+        // Floating Chess vs Computer AI (Levels 1-100)
+        let chessGame = typeof Chess !== 'undefined' ? new Chess() : null;
+        let selectedChessSq = null;
+        const PIECE_SYMBOLS = {
+            p: '♟', r: '♜', n: '♞', b: '♝', q: '♛', k: '♚',
+            P: '♙', R: '♖', N: '♘', B: '♗', Q: '♕', K: '♔'
+        };
+
+        function toggleChessWindow() {
+            const win = document.getElementById('chess-floating-window');
+            win.classList.toggle('hidden');
+            if (!win.classList.contains('hidden')) renderChessBoard();
+        }
+        function resetChessGame() {
+            if (chessGame) chessGame.reset();
+            selectedChessSq = null;
+            renderChessBoard();
+        }
+        function undoChessMove() {
+            if (!chessGame) return;
+            chessGame.undo();
+            chessGame.undo();
+            selectedChessSq = null;
+            renderChessBoard();
+        }
+        function renderChessBoard() {
+            if (!chessGame) return;
+            const grid = document.getElementById('chess-board-grid');
+            const statusEl = document.getElementById('chess-status-text');
+            document.getElementById('chess-ai-badge').innerText = `AI Lvl ${arcadeLevel}`;
+
+            if (chessGame.in_checkmate()) statusEl.innerText = chessGame.turn() === 'w' ? 'Checkmate — AI Wins!' : 'Checkmate — You Win!';
+            else if (chessGame.in_draw()) statusEl.innerText = 'Draw Game!';
+            else if (chessGame.in_check()) statusEl.innerText = 'CHECK!';
+            else statusEl.innerText = chessGame.turn() === 'w' ? 'Your Turn (White)' : 'AI Thinking...';
+
+            const board = chessGame.board();
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            let html = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const sq = `${files[c]}${8 - r}`;
+                    const isDark = (r + c) % 2 === 1;
+                    const piece = board[r][c];
+                    const isSel = selectedChessSq === sq;
+                    const sym = piece ? PIECE_SYMBOLS[piece.color === 'w' ? piece.type.toUpperCase() : piece.type] : '';
+                    const bgClass = isSel ? 'bg-emerald-500 text-white' : (isDark ? 'bg-zinc-700 text-zinc-100' : 'bg-zinc-200 text-zinc-900');
+                    html += `<button onclick="handleChessSquareClick('${sq}')" class="${bgClass} flex items-center justify-center text-xl leading-none aspect-square hover:opacity-90">${sym}</button>`;
+                }
+            }
+            grid.innerHTML = html;
+        }
+        function handleChessSquareClick(sq) {
+            if (!chessGame || chessGame.game_over() || chessGame.turn() !== 'w') return;
+            if (!selectedChessSq) {
+                const piece = chessGame.get(sq);
+                if (piece && piece.color === 'w') { selectedChessSq = sq; renderChessBoard(); }
                 return;
             }
-
-            const prefix = extractGroupPrefix(code);
-            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            trailerScannedList.unshift({ code, prefix, time });
-            localStorage.setItem('wmsTrailerScannedV1', JSON.stringify(trailerScannedList));
-            playTone('success');
-            document.getElementById('tr-last-scan-msg').innerHTML = `<span class="text-emerald-500 font-bold">✓ LOADED: ${escapeHtml(code)}</span>`;
-            renderTrailerManifest();
-        }
-
-        function pasteBulkIntoTrailer() {
-            const raw = prompt("Paste multiple label IDs (one per line) to load onto trailer:");
-            if (!raw) return;
-            const blockDups = document.getElementById('tr-block-dups').checked;
-            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            let added = 0;
-            raw.split(/\r?\n/).map(l => l.trim().toUpperCase()).filter(Boolean).forEach(code => {
-                if (blockDups && trailerScannedList.some(item => item.code === code)) return;
-                trailerScannedList.unshift({ code, prefix: extractGroupPrefix(code), time });
-                added++;
-            });
-            localStorage.setItem('wmsTrailerScannedV1', JSON.stringify(trailerScannedList));
-            playTone('success');
-            renderTrailerManifest();
-            showToast(`Added ${added} labels to trailer!`);
-        }
-
-        function removeTrailerScanItem(idx) {
-            trailerScannedList.splice(idx, 1);
-            localStorage.setItem('wmsTrailerScannedV1', JSON.stringify(trailerScannedList));
-            renderTrailerManifest();
-        }
-
-        function clearTrailerManifest() {
-            if (confirm("Clear all scanned labels for a new trailer?")) {
-                trailerScannedList = [];
-                localStorage.setItem('wmsTrailerScannedV1', '[]');
-                renderTrailerManifest();
+            const move = chessGame.move({ from: selectedChessSq, to: sq, promotion: 'q' });
+            selectedChessSq = null;
+            if (!move) {
+                const piece = chessGame.get(sq);
+                if (piece && piece.color === 'w') selectedChessSq = sq;
+                renderChessBoard();
+                return;
             }
+            playTone('click');
+            renderChessBoard();
+            if (!chessGame.game_over()) setTimeout(makeAiChessMove, 220);
         }
-
-        function renderTrailerManifest() {
-            const trl = document.getElementById('tr-trailer-id').value || 'TRL-01';
-            const bay = document.getElementById('tr-dock-door').value || 'BAY-01';
-            const seal = document.getElementById('tr-seal-num').value || 'NONE';
-            document.getElementById('tr-header-summary').innerText = `${trl} • ${bay} • SEAL: ${seal}`;
-            document.getElementById('tr-total-count').innerText = trailerScannedList.length;
-            document.getElementById('nav-trailer-count').innerText = trailerScannedList.length;
-
-            // Prefix breakdown counters
-            const counts = new Map();
-            trailerScannedList.forEach(i => counts.set(i.prefix, (counts.get(i.prefix) || 0) + 1));
-            document.getElementById('tr-carrier-breakdown').innerHTML = Array.from(counts.entries()).map(([pref, cnt]) => `
-                <span class="px-2.5 py-1 rounded-lg theme-elevated border font-bold">${escapeHtml(pref)}: <b class="text-emerald-500">${cnt}</b></span>
-            `).join('');
-
-            document.getElementById('tr-scanned-tbody').innerHTML = trailerScannedList.map((item, idx) => `
-                <tr>
-                    <td class="p-2.5 theme-text-dim">${trailerScannedList.length - idx}</td>
-                    <td class="p-2.5 font-bold">${escapeHtml(item.code)}</td>
-                    <td class="p-2.5"><span class="px-1.5 py-0.2 rounded theme-elevated border text-[10px]">${escapeHtml(item.prefix)}</span></td>
-                    <td class="p-2.5 theme-text-dim">${item.time}</td>
-                    <td class="p-2.5 text-right"><button onclick="removeTrailerScanItem(${idx})" class="text-rose-400 font-bold px-1.5">×</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function exportTrailerCSV() {
-            if (!trailerScannedList.length) return alert("No labels scanned on this trailer yet.");
-            const trl = document.getElementById('tr-trailer-id').value, bay = document.getElementById('tr-dock-door').value, seal = document.getElementById('tr-seal-num').value;
-            let csv = `data:text/csv;charset=utf-8,Trailer,Bay,Seal,Label_ID,Type,Scan_Time\n` + trailerScannedList.map(i => `"${trl}","${bay}","${seal}","${i.code}","${i.prefix}","${i.time}"`).join('\n');
-            const l = document.createElement('a'); l.href = encodeURI(csv); l.download = `trailer-${trl}-${Date.now()}.csv`; l.click();
-        }
-
-        function printTrailerManifest() {
-            if (!trailerScannedList.length) return alert("Scan at least one label onto the trailer first.");
-            const trl = document.getElementById('tr-trailer-id').value, bay = document.getElementById('tr-dock-door').value, seal = document.getElementById('tr-seal-num').value, carrier = document.getElementById('tr-carrier-name').value;
-            const win = window.open('', '_blank');
-            const rowsHtml = trailerScannedList.map((i, idx) => `<tr><td style="border:1px solid #000;padding:4px;">${trailerScannedList.length - idx}</td><td style="border:1px solid #000;padding:4px;font-weight:bold;">${escapeHtml(i.code)}</td><td style="border:1px solid #000;padding:4px;">${escapeHtml(i.prefix)}</td><td style="border:1px solid #000;padding:4px;">${i.time}</td></tr>`).join('');
-            win.document.write(`<html><head><title>Trailer Manifest - ${escapeHtml(trl)}</title><style>body{font-family:monospace;padding:15mm;}table{width:100%;border-collapse:collapse;margin-top:10mm;font-size:10pt;}</style></head><body><h1>OUTBOUND TRAILER LOAD MANIFEST</h1><p><b>TRAILER:</b> ${escapeHtml(trl)} | <b>DOCK:</b> ${escapeHtml(bay)} | <b>SEAL:</b> ${escapeHtml(seal)} | <b>CARRIER:</b> ${escapeHtml(carrier)} | <b>TOTAL UNITS:</b> ${trailerScannedList.length}</p><table><thead><tr><th style="border:1px solid #000;padding:5px;text-align:left;">#</th><th style="border:1px solid #000;padding:5px;text-align:left;">LABEL ID</th><th style="border:1px solid #000;padding:5px;text-align:left;">TYPE</th><th style="border:1px solid #000;padding:5px;text-align:left;">TIME</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="margin-top:15mm;display:flex;justify-content:space-between;font-weight:bold;"><span>LOADER SIGN: ___________________</span><span>DRIVER SIGN: ___________________</span></div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
-            win.document.close();
-        }
-
-        // ==========================================
-        // 5. NOTES TAB (WORKING 1-150PT FONT + AUTO-SCALE TO FILL PAGE)
-        // ==========================================
-        let a4Orientation = 'landscape', lastFocusedEditable = null;
-
-        function resetSimpleTwoLineNote() {
-            const now = new Date(), months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'], day = now.getDate();
-            const suffix = (day % 10 === 1 && day !== 11) ? 'ST' : (day % 10 === 2 && day !== 12) ? 'ND' : (day % 10 === 3 && day !== 13) ? 'RD' : 'TH';
-            const dateText = `SHIPPING DATE: ${months[now.getMonth()]} ${day}${suffix}, ${now.getFullYear()}`;
-            document.getElementById('a4-word-body').innerHTML = `
-                <div class="relative group w-full">
-                    <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
-                    <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 40pt;" class="font-black tracking-tight uppercase outline-none leading-tight">ASENDIA FROM BLECKMANN (FITFLOP)</div>
-                </div>
-                <div class="relative group w-full">
-                    <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
-                    <div contenteditable="true" onfocus="lastFocusedEditable=this" id="a4-auto-ship-date" style="font-size: 30pt;" class="font-extrabold uppercase outline-none leading-tight">${dateText}</div>
-                </div>
-            `;
-            autoFitA4Content();
-        }
-
-        function applyExactFontSize(ptVal) {
-            const pt = Math.min(150, Math.max(1, parseInt(ptVal) || 24));
-            const sel = window.getSelection();
-            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-                // Wrap highlighted text selection in exact pt span
-                const range = sel.getRangeAt(0);
-                const span = document.createElement('span');
-                span.style.fontSize = `${pt}pt`;
-                span.appendChild(range.extractContents());
-                range.insertNode(span);
-            } else if (lastFocusedEditable) {
-                lastFocusedEditable.style.fontSize = `${pt}pt`;
+        function makeAiChessMove() {
+            if (!chessGame || chessGame.game_over()) return;
+            const moves = chessGame.moves({ verbose: true });
+            if (!moves.length) return;
+            // AI intelligence scales from random moves at Level 1 to tactical capture/check scoring at Level 100
+            const smartProb = arcadeLevel / 100;
+            let chosen = moves[Math.floor(Math.random() * moves.length)];
+            if (Math.random() < smartProb) {
+                const vals = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+                moves.sort((a, b) => ((b.captured ? vals[b.captured] : 0) + (b.san.includes('+') ? 1.5 : 0)) - ((a.captured ? vals[a.captured] : 0) + (a.san.includes('+') ? 1.5 : 0)));
+                chosen = moves[0];
             }
-            autoFitA4Content();
+            chessGame.move(chosen);
+            playTone('click');
+            renderChessBoard();
         }
 
-        function applyNoteLineSpacing(val) {
-            document.getElementById('a4-word-body').style.lineHeight = val;
-            autoFitA4Content();
+        // ==========================================
+        // 2. ARCADE GAMES (DINO, MARIO, SNAKE, SUDOKU, TIC TAC TOE — LEVELS 1-100)
+        // ==========================================
+        let arcadeRunning = false, arcadeLevel = 1, arcadeLives = 3, arcadeScore = 0, arcadeHigh = parseInt(localStorage.getItem('wmsArcadeHigh') || '0'), arcadeFrame = 0;
+        let bgClouds = [{ x: 80, y: 20 }, { x: 250, y: 14 }, { x: 420, y: 24 }];
+        let dino = { y: 0, vy: 0, jumps: 0, ducking: false, shield: false, combo: 1, obs: [], orbs: [] };
+        let mario = { y: 0, vy: 0, jumps: 0, starTimer: 0, pipes: [], goombas: [], coins: [], qBlocks: [], flagX: 900 };
+        let snake = { body: [], dir: { x: 1, y: 0 }, food: { x: 18, y: 5 }, golden: null, bombs: [], walls: [] };
+
+        function toggleArcadeDrawer() {
+            const strip = document.getElementById('arcade-strip');
+            const isHidden = strip.classList.contains('hidden');
+            if (isHidden) { strip.classList.remove('hidden'); prepareArcadeGame(); }
+            else { arcadeRunning = false; strip.classList.add('hidden'); }
         }
 
-        function autoFitA4Content() {
-            const paper = document.getElementById('a4-paper-sheet'), body = document.getElementById('a4-word-body');
-            if (!paper || !body || body.classList.contains('hidden')) return;
-            body.style.transform = 'scale(1)';
-            const availW = paper.clientWidth - 64, availH = paper.clientHeight - 64;
-            const contentW = body.scrollWidth, contentH = body.scrollHeight;
-            if (contentH > availH || contentW > availW) {
-                const scale = Math.max(0.35, Math.min(availW / contentW, availH / contentH));
-                body.style.transform = `scale(${scale})`;
+        function syncGlobalGameLevel(val) {
+            arcadeLevel = Math.min(100, Math.max(1, parseInt(val) || 1));
+            document.getElementById('arcade-level-input').value = arcadeLevel;
+            if (document.getElementById('chess-level-input')) document.getElementById('chess-level-input').value = arcadeLevel;
+            updateArcadeStats();
+            const g = document.getElementById('arcade-game-select').value;
+            if (g === 'sudoku') generateNewSudoku();
+            if (g === 'ttt') initTicTacToe();
+        }
+
+        function prepareArcadeGame() {
+            arcadeRunning = false; arcadeScore = 0; arcadeLives = 3;
+            const g = document.getElementById('arcade-game-select').value;
+            document.getElementById('arcade-canvas-wrap').classList.toggle('hidden', g === 'sudoku' || g === 'ttt');
+            document.getElementById('arcade-sudoku-wrap').classList.toggle('hidden', g !== 'sudoku');
+            document.getElementById('arcade-ttt-wrap').classList.toggle('hidden', g !== 'ttt');
+
+            if (g === 'sudoku') { generateNewSudoku(); return; }
+            if (g === 'ttt') { initTicTacToe(); return; }
+
+            dino = { y: 0, vy: 0, jumps: 0, ducking: false, shield: false, combo: 1, obs: [{ x: 460, w: 14, h: 22, yOff: 0, flying: false }], orbs: [] };
+            mario = { y: 0, vy: 0, jumps: 0, starTimer: 0, pipes: [{ x: 320, h: 24 }], goombas: [{ x: 240, alive: true }], coins: [{ x: 180, y: 50, taken: false }], qBlocks: [{ x: 210, y: 54, hit: false }], flagX: 850 };
+            const walls = [];
+            if (arcadeLevel >= 5) { for (let wx = 12; wx <= 26; wx++) walls.push({ x: wx, y: 4 }); }
+            snake = { body: [{ x: 8, y: 6 }, { x: 7, y: 6 }, { x: 6, y: 6 }], dir: { x: 1, y: 0 }, food: { x: 22, y: 6 }, golden: null, bombs: [{ x: 15, y: 2 }], walls };
+
+            document.getElementById('arcade-overlay').classList.remove('hidden');
+            document.getElementById('arcade-overlay-title').innerText = `LEVEL ${arcadeLevel} — PRESS START`;
+            updateArcadeStats();
+        }
+
+        function startSelectedArcadeGame() {
+            const g = document.getElementById('arcade-game-select').value;
+            if (g === 'sudoku') { generateNewSudoku(); return; }
+            if (g === 'ttt') { initTicTacToe(); return; }
+            prepareArcadeGame();
+            arcadeRunning = true;
+            document.getElementById('arcade-overlay').classList.add('hidden');
+        }
+
+        function triggerArcadeGameOver(reason) {
+            arcadeRunning = false; playTone('error');
+            const ov = document.getElementById('arcade-overlay');
+            ov.classList.remove('hidden');
+            document.getElementById('arcade-overlay-title').innerText = `GAME OVER — ${reason}`;
+        }
+
+        function updateArcadeStats() {
+            if (arcadeScore > arcadeHigh) { arcadeHigh = arcadeScore; localStorage.setItem('wmsArcadeHigh', arcadeHigh); }
+            document.getElementById('arcade-score-lbl').innerText = `SCORE: ${String(arcadeScore).padStart(4, '0')}`;
+            document.getElementById('arcade-hi-lbl').innerText = `BEST: ${String(arcadeHigh).padStart(4, '0')}`;
+            document.getElementById('arcade-lvl-lbl').innerText = `LVL ${arcadeLevel} • ${'♥'.repeat(Math.max(0, arcadeLives))}`;
+            document.getElementById('nav-arcade-score').innerText = `Arcade: ${arcadeScore}`;
+        }
+
+        function handleArcadeCanvasClick() {
+            if (!arcadeRunning) return;
+            const g = document.getElementById('arcade-game-select').value;
+            if (g === 'dino' && dino.jumps < 2) { dino.vy = 10.5; dino.jumps++; }
+            else if (g === 'mario' && mario.jumps < 2) { mario.vy = 11.5; mario.jumps++; }
+            else if (g === 'snake') { const d = snake.dir; snake.dir = { x: -d.y, y: d.x }; }
+        }
+
+        // --- SUDOKU GENERATOR (Different Randomized Valid Board Every Time, Levels 1-100) ---
+        let sudokuSolution = [];
+        function generateNewSudoku() {
+            // Base valid solved pattern + randomized digit permutation & row/col band shuffles
+            const base = [
+                [1,2,3,4,5,6,7,8,9],[4,5,6,7,8,9,1,2,3],[7,8,9,1,2,3,4,5,6],
+                [2,3,1,5,6,4,8,9,7],[5,6,4,8,9,7,2,3,1],[8,9,7,2,3,1,5,6,4],
+                [3,1,2,6,4,5,9,7,8],[6,4,5,9,7,8,3,1,2],[9,7,8,3,1,2,6,4,5]
+            ];
+            const digits = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+            const grid = base.map(row => row.map(val => digits[val - 1]));
+            // Shuffle rows within 3x3 bands
+            for (let b = 0; b < 3; b++) {
+                const r1 = b * 3 + Math.floor(Math.random() * 3), r2 = b * 3 + Math.floor(Math.random() * 3);
+                [grid[r1], grid[r2]] = [grid[r2], grid[r1]];
             }
-        }
+            sudokuSolution = grid.map(r => [...r]);
 
-        function addA4TextBlock() {
-            const div = document.createElement('div');
-            div.className = "relative group w-full";
-            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 24pt;" class="font-bold uppercase outline-none">NEW NOTE LINE</div>`;
-            document.getElementById('a4-word-body').appendChild(div);
-            autoFitA4Content();
-        }
+            // Clues scale from 52 at Level 1 down to 22 at Level 100
+            const cluesCount = Math.max(22, Math.round(52 - ((arcadeLevel - 1) / 99) * 30));
+            document.getElementById('sudoku-clues-lbl').innerText = `Clues: ${cluesCount}/81`;
+            const cellsToKeep = new Set();
+            while (cellsToKeep.size < cluesCount) cellsToKeep.add(Math.floor(Math.random() * 81));
 
-        function addA4BarcodeBlock() {
-            const val = prompt("Enter Barcode Value:", "ASD-BLK-261119");
-            if (!val) return;
-            const div = document.createElement('div');
-            div.className = "relative group p-2 inline-block";
-            const cid = 'note-bc-' + Date.now();
-            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><canvas id="${cid}" class="mx-auto"></canvas>`;
-            document.getElementById('a4-word-body').appendChild(div);
-            try { bwipjs.toCanvas(document.getElementById(cid), { bcid: 'code128', text: val.trim(), scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
-            autoFitA4Content();
-        }
-
-        function addA4DividerLine() {
-            const div = document.createElement('div');
-            div.className = "relative group w-full py-1";
-            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-1.5 bg-rose-600 text-white rounded text-[10px] font-bold print:hidden">×</button><div class="border-b-4 border-zinc-900 w-full"></div>`;
-            document.getElementById('a4-word-body').appendChild(div);
-            autoFitA4Content();
-        }
-
-        function addA4SignBlock() {
-            const div = document.createElement('div');
-            div.className = "relative group w-full pt-4 grid grid-cols-2 gap-6 font-mono text-base font-bold";
-            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-0 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" class="outline-none">DISPATCHED BY: _______________</div><div contenteditable="true" onfocus="lastFocusedEditable=this" class="outline-none">DRIVER SIGN: _________________</div>`;
-            document.getElementById('a4-word-body').appendChild(div);
-            autoFitA4Content();
-        }
-
-        function setOfficeMode(mode) {
-            document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word');
-            document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel');
-            document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel');
-            document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5";
-            document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5";
-        }
-
-        function setA4Orientation(orient) {
-            a4Orientation = orient; const paper = document.getElementById('a4-paper-sheet');
-            paper.style.width = orient === 'landscape' ? "842px" : "595px"; paper.style.height = orient === 'landscape' ? "595px" : "842px";
-            document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            autoFitA4Content();
-        }
-        function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); }
-        function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); }
-        function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); }
-
-        function printA4DeliveryNote() {
-            const clone = document.getElementById('a4-paper-sheet').cloneNode(true);
-            clone.querySelectorAll('canvas').forEach((cCanv, idx) => {
-                const origCanv = document.getElementById('a4-paper-sheet').querySelectorAll('canvas')[idx];
-                if (origCanv) { const img = document.createElement('img'); img.src = origCanv.toDataURL('image/png'); img.style.margin = 'auto'; cCanv.replaceWith(img); }
-            });
-            clone.querySelectorAll('button').forEach(b => b.remove());
-            clone.style.width = a4Orientation === 'landscape' ? '277mm' : '190mm'; clone.style.height = a4Orientation === 'landscape' ? '190mm' : '277mm';
-            const win = window.open('', '_blank');
-            win.document.write(`<!DOCTYPE html><html><head><script src="https://cdn.tailwindcss.com"><\/script><style>@page{size:A4 ${a4Orientation};margin:8mm;}body{margin:0;-webkit-print-color-adjust:exact;}</style></head><body>${clone.outerHTML}<script>setTimeout(()=>{window.print();window.close();},350);<\/script></body></html>`);
-            win.document.close();
-        }
-
-        // ==========================================
-        // 6. TO-DO LIST TAB ENGINE
-        // ==========================================
-        let todoItems = JSON.parse(localStorage.getItem('wmsShiftTodosV1') || JSON.stringify([
-            { id: 'td-1', text: 'Print 25 FF-RM labels (2 copies each)', priority: 'High', done: false },
-            { id: 'td-2', text: 'Verify trailer seal and print Asendia Note', priority: 'Urgent', done: false }
-        ]));
-
-        function addTodoItem() {
-            const inp = document.getElementById('todo-input-text'), text = inp.value.trim();
-            if (!text) return;
-            todoItems.unshift({ id: 'td-' + Date.now(), text, priority: document.getElementById('todo-priority').value, done: false });
-            inp.value = ''; saveAndRenderTodos(); playTone('success');
-        }
-        function toggleTodoDone(id) {
-            const item = todoItems.find(t => t.id === id);
-            if (item) { item.done = !item.done; saveAndRenderTodos(); if (item.done) playTone('success'); }
-        }
-        function deleteTodoItem(id) { todoItems = todoItems.filter(t => t.id !== id); saveAndRenderTodos(); }
-        function clearCompletedTodos() { todoItems = todoItems.filter(t => !t.done); saveAndRenderTodos(); }
-        function saveAndRenderTodos() {
-            localStorage.setItem('wmsShiftTodosV1', JSON.stringify(todoItems));
-            const openCount = todoItems.filter(t => !t.done).length;
-            document.getElementById('nav-todo-count').innerText = openCount;
-            document.getElementById('todo-progress-text').innerText = `${todoItems.length - openCount} of ${todoItems.length} tasks completed`;
-
-            const badgeColors = {
-                Urgent: 'bg-rose-600/15 text-rose-500 border-rose-500/40',
-                High: 'bg-indigo-600/15 text-indigo-400 border-indigo-500/40',
-                Normal: 'theme-elevated theme-text-muted'
-            };
-
-            document.getElementById('todo-list-container').innerHTML = todoItems.map(t => `
-                <div class="p-3 rounded-xl border theme-input flex items-center justify-between gap-3 ${t.done ? 'opacity-50' : ''}">
-                    <label class="flex items-center gap-3 cursor-pointer flex-grow">
-                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodoDone('${t.id}')" class="w-4 h-4 accent-emerald-500">
-                        <span class="text-xs font-medium ${t.done ? 'line-through' : ''}">${escapeHtml(t.text)}</span>
-                    </label>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="px-2 py-0.5 rounded border text-[10px] font-mono font-bold ${badgeColors[t.priority] || ''}">${escapeHtml(t.priority)}</span>
-                        <button onclick="deleteTodoItem('${t.id}')" class="text-rose-400 font-bold px-1.5">×</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // ==========================================
-        // 7. KEYBOARD, SOUND PACKS & GENERAL HELPERS
-        // ==========================================
-        window.addEventListener('keydown', (e) => {
-            const tag = document.activeElement?.tagName.toLowerCase(), isEd = document.activeElement?.isContentEditable;
-            if (tag === 'input' || tag === 'textarea' || tag === 'select' || isEd) return;
-            const g = document.getElementById('arcade-game-select').value, arcadeVisible = !document.getElementById('arcade-strip').classList.contains('hidden');
-            if (arcadeVisible && arcadeRunning) {
-                if (g === 'snake') {
-                    if ((e.key === 'ArrowUp' || e.key === 'w') && snake.dir.y !== 1) { e.preventDefault(); snake.dir = { x: 0, y: -1 }; return; }
-                    if ((e.key === 'ArrowDown' || e.key === 's') && snake.dir.y !== -1) { e.preventDefault(); snake.dir = { x: 0, y: 1 }; return; }
-                    if ((e.key === 'ArrowLeft' || e.key === 'a') && snake.dir.x !== 1) { e.preventDefault(); snake.dir = { x: -1, y: 0 }; return; }
-                    if ((e.key === 'ArrowRight' || e.key === 'd') && snake.dir.x !== -1) { e.preventDefault(); snake.dir = { x: 1, y: 0 }; return; }
-                } else if (g === 'dino' || g === 'mario') {
-                    if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); handleArcadeCanvasClick(); return; }
-                    if (g === 'dino' && (e.key === 'ArrowDown' || e.key === 's')) { dino.ducking = true; return; }
+            const boardEl = document.getElementById('sudoku-grid');
+            let html = '';
+            for (let idx = 0; idx < 81; idx++) {
+                const r = Math.floor(idx / 9), c = idx % 9;
+                const borderR = (c === 2 || c === 5) ? 'border-r-2 border-r-emerald-500/60' : 'border-r border-r-zinc-700';
+                const borderB = (r === 2 || r === 5) ? 'border-b-2 border-b-emerald-500/60' : 'border-b border-b-zinc-700';
+                if (cellsToKeep.has(idx)) {
+                    html += `<div class="w-6 h-6 flex items-center justify-center font-bold text-emerald-400 bg-zinc-900 ${borderR} ${borderB}">${sudokuSolution[r][c]}</div>`;
+                } else {
+                    html += `<input type="text" maxlength="1" data-r="${r}" data-c="${c}" oninput="this.value=this.value.replace(/[^1-9]/g,'')" class="sdk-cell w-6 h-6 text-center bg-zinc-950 text-white outline-none focus:bg-emerald-950 ${borderR} ${borderB}">`;
                 }
             }
-            if (!document.getElementById('view-bulk').classList.contains('hidden')) {
-                if (e.key === 'ArrowRight') { e.preventDefault(); stepDeck(1); }
-                else if (e.key === 'ArrowLeft') { e.preventDefault(); stepDeck(-1); }
-                else if (e.key === ' ') { e.preventDefault(); markAndNextDeck(); }
-            }
-        });
-        window.addEventListener('keyup', (e) => { if (e.key === 'ArrowDown' || e.key === 's') dino.ducking = false; });
+            boardEl.innerHTML = html;
+        }
+        function checkSudokuBoard() {
+            const inputs = document.querySelectorAll('.sdk-cell');
+            let mistakes = 0, empty = 0;
+            inputs.forEach(inp => {
+                const r = parseInt(inp.dataset.r), c = parseInt(inp.dataset.c), val = parseInt(inp.value);
+                if (!val) { empty++; inp.style.backgroundColor = ''; }
+                else if (val !== sudokuSolution[r][c]) { mistakes++; inp.style.backgroundColor = '#881337'; }
+                else { inp.style.backgroundColor = '#064e3b'; }
+            });
+            if (mistakes === 0 && empty === 0) { arcadeScore += 250 * arcadeLevel; updateArcadeStats(); playTone('success'); showToast("Sudoku Solved!"); }
+            else { playTone('error'); showToast(`${mistakes} wrong, ${empty} empty cells`); }
+        }
 
+        // --- TIC TAC TOE VS COMPUTER OPPONENT (Levels 1-100) ---
+        let tttBoard = Array(9).fill(''), tttOver = false;
+        function initTicTacToe() {
+            tttBoard = Array(9).fill(''); tttOver = false;
+            document.getElementById('ttt-status-lbl').innerText = "Your Turn (X)";
+            document.getElementById('ttt-ai-skill').innerText = `AI Smartness: ${arcadeLevel}%`;
+            renderTicTacToe();
+        }
+        function renderTicTacToe() {
+            document.getElementById('ttt-grid').innerHTML = tttBoard.map((cell, i) => `
+                <button onclick="handleTttClick(${i})" class="w-11 h-11 rounded-lg border theme-border theme-card font-mono text-lg font-black flex items-center justify-center hover:border-emerald-500 ${cell === 'X' ? 'text-emerald-500' : 'text-rose-400'}">${cell}</button>
+            `).join('');
+        }
+        function checkTttWinner(b) {
+            const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            for (const [a, c, d] of lines) if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+            return b.includes('') ? null : 'DRAW';
+        }
+        function handleTttClick(idx) {
+            if (tttOver || tttBoard[idx]) return;
+            tttBoard[idx] = 'X'; playTone('click');
+            let res = checkTttWinner(tttBoard);
+            if (res) { finishTtt(res); return; }
+            renderTicTacToe();
+
+            // AI Move (Scales from random at Level 1 to blocking/winning Minimax at Level 100)
+            setTimeout(() => {
+                const empty = tttBoard.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+                if (!empty.length) return;
+                let move = empty[Math.floor(Math.random() * empty.length)];
+                if (Math.random() * 100 < arcadeLevel) {
+                    // Check winning move or blocking move
+                    for (const sym of ['O', 'X']) {
+                        for (const sq of empty) {
+                            const copy = [...tttBoard]; copy[sq] = sym;
+                            if (checkTttWinner(copy) === sym) { move = sq; break; }
+                        }
+                    }
+                    if (tttBoard[4] === '') move = 4;
+                }
+                tttBoard[move] = 'O';
+                res = checkTttWinner(tttBoard);
+                if (res) finishTtt(res); else renderTicTacToe();
+            }, 180);
+        }
+        function finishTtt(res) {
+            tttOver = true; renderTicTacToe();
+            if (res === 'X') { arcadeScore += 100 * arcadeLevel; updateArcadeStats(); playTone('success'); document.getElementById('ttt-status-lbl').innerText = "You Win! (X)"; }
+            else if (res === 'O') { playTone('error'); document.getElementById('ttt-status-lbl').innerText = "Computer Wins! (O)"; }
+            else document.getElementById('ttt-status-lbl').innerText = "Draw Game!";
+        }
+
+        function startArcadeEngine() {
+            const canvas = document.getElementById('arcade-canvas'); if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            function loop() {
+                arcadeFrame++;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const isLight = document.documentElement.getAttribute('data-theme') !== 'dark';
+                const isNightShift = Math.floor(arcadeScore / 600) % 2 === 1;
+                if (isNightShift && arcadeRunning) { ctx.fillStyle = 'rgba(30, 27, 75, 0.25)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+
+                ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.07)' : 'rgba(255, 255, 255, 0.06)';
+                bgClouds.forEach(c => {
+                    if (arcadeRunning) c.x = c.x < -50 ? 500 : c.x - 0.5;
+                    ctx.beginPath(); ctx.arc(c.x, c.y, 11, 0, Math.PI * 2); ctx.arc(c.x + 13, c.y - 3, 14, 0, Math.PI * 2); ctx.arc(c.x + 25, c.y, 10, 0, Math.PI * 2); ctx.fill();
+                });
+
+                const g = document.getElementById('arcade-game-select').value;
+                const diffScale = 1 + ((arcadeLevel - 1) / 99) * 2.6;
+
+                if (g === 'dino') {
+                    ctx.strokeStyle = isLight ? '#94a3b8' : '#3f3f46'; ctx.beginPath(); ctx.moveTo(0, 102); ctx.lineTo(480, 102); ctx.stroke();
+                    if (arcadeRunning) {
+                        dino.y += dino.vy; if (dino.y > 0) dino.vy -= (dino.ducking ? 1.3 : 0.72); else { dino.y = 0; dino.vy = 0; dino.jumps = 0; }
+                        if (arcadeFrame % Math.max(34, Math.floor(92 / diffScale)) === 0) {
+                            const isBird = arcadeLevel >= 5 && Math.random() > 0.62;
+                            dino.obs.push({ x: 490, w: isBird ? 20 : 14, h: isBird ? 12 : 22, yOff: isBird ? 20 : 0, flying: isBird });
+                            if (Math.random() > 0.85) dino.orbs.push({ x: 510, y: 42 });
+                        }
+                        for (let i = dino.orbs.length - 1; i >= 0; i--) {
+                            dino.orbs[i].x -= 3.8 * diffScale;
+                            if (Math.abs(dino.orbs[i].x - 44) < 18 && Math.abs(dino.orbs[i].y - (dino.y + 12)) < 20) { dino.shield = true; dino.orbs.splice(i, 1); playTone('success'); }
+                            else if (dino.orbs[i].x < -15) dino.orbs.splice(i, 1);
+                        }
+                        const dH = dino.ducking ? 12 : 24;
+                        for (let i = dino.obs.length - 1; i >= 0; i--) {
+                            const ob = dino.obs[i]; ob.x -= 3.8 * diffScale;
+                            if (ob.x < 54 && ob.x + ob.w > 34 && dino.y < ob.yOff + ob.h - 2 && dino.y + dH > ob.yOff + 2) {
+                                dino.obs.splice(i, 1);
+                                if (dino.shield) { dino.shield = false; playTone('success'); }
+                                else { dino.combo = 1; arcadeLives--; updateArcadeStats(); if (arcadeLives <= 0) triggerArcadeGameOver("NO LIVES LEFT"); }
+                            } else if (ob.x + ob.w < 0) { arcadeScore += 10 * dino.combo; dino.combo = Math.min(5, dino.combo + 1); dino.obs.splice(i, 1); updateArcadeStats(); }
+                        }
+                    }
+                    const dH = dino.ducking ? 12 : 24;
+                    ctx.fillStyle = '#10b981'; ctx.fillRect(34, 102 - dH - dino.y, 20, dH);
+                    if (dino.shield) { ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.strokeRect(31, 99 - dH - dino.y, 26, dH + 6); }
+                    ctx.fillStyle = '#38bdf8'; dino.orbs.forEach(o => { ctx.beginPath(); ctx.arc(o.x, 102 - o.y, 6, 0, Math.PI * 2); ctx.fill(); });
+                    dino.obs.forEach(ob => { ctx.fillStyle = ob.flying ? '#a855f7' : '#e11d48'; ctx.fillRect(ob.x, 102 - ob.h - ob.yOff, ob.w, ob.h); });
+                } else if (g === 'mario') {
+                    ctx.fillStyle = '#92400e'; ctx.fillRect(0, 102, 480, 18);
+                    if (arcadeRunning) {
+                        mario.y += mario.vy; if (mario.y > 0) mario.vy -= 0.75; else { mario.y = 0; mario.vy = 0; mario.jumps = 0; }
+                        if (mario.starTimer > 0) mario.starTimer--;
+                        const spd = 3.5 * diffScale; mario.flagX -= spd;
+                        if (mario.flagX <= 45) { arcadeScore += 200; syncGlobalGameLevel(arcadeLevel + 1); mario.flagX = 950; playTone('success'); }
+                        if (arcadeFrame % Math.max(45, Math.floor(110 / diffScale)) === 0) {
+                            mario.pipes.push({ x: 490, h: 24 }); mario.goombas.push({ x: 540, alive: true }); mario.qBlocks.push({ x: 515, y: 54, hit: false }); mario.coins.push({ x: 495, y: 46, taken: false });
+                        }
+                        mario.qBlocks.forEach(qb => { qb.x -= spd; if (!qb.hit && Math.abs(qb.x - 46) < 20 && mario.y + 24 >= qb.y && mario.y < qb.y) { qb.hit = true; mario.starTimer = 240; arcadeScore += 100; playTone('success'); updateArcadeStats(); } });
+                        mario.qBlocks = mario.qBlocks.filter(qb => qb.x > -25);
+                        mario.goombas.forEach(gb => {
+                            gb.x -= spd * 1.15;
+                            if (gb.alive && gb.x < 56 && gb.x + 16 > 38 && mario.y < 16) {
+                                if (mario.vy < 0 || mario.starTimer > 0) { gb.alive = false; mario.vy = 8; arcadeScore += 50; playTone('success'); updateArcadeStats(); }
+                                else { gb.alive = false; arcadeLives--; updateArcadeStats(); if (arcadeLives <= 0) triggerArcadeGameOver("HIT GOOMBA"); }
+                            }
+                        });
+                        mario.goombas = mario.goombas.filter(gb => gb.x > -25 && gb.alive);
+                        for (let i = mario.pipes.length - 1; i >= 0; i--) {
+                            const p = mario.pipes[i]; p.x -= spd;
+                            if (p.x < 56 && p.x + 20 > 38 && mario.y < p.h - 2) { mario.pipes.splice(i, 1); if (mario.starTimer <= 0) { arcadeLives--; updateArcadeStats(); if (arcadeLives <= 0) triggerArcadeGameOver("HIT PIPE"); } }
+                            else if (p.x < -25) mario.pipes.splice(i, 1);
+                        }
+                        mario.coins.forEach(c => { c.x -= spd; if (!c.taken && Math.abs(c.x - 46) < 22 && Math.abs(c.y - (mario.y + 12)) < 24) { c.taken = true; arcadeScore += 25; updateArcadeStats(); } });
+                        mario.coins = mario.coins.filter(c => c.x > -20 && !c.taken);
+                    }
+                    ctx.fillStyle = '#e4e4e7'; ctx.fillRect(mario.flagX, 24, 3, 78); ctx.fillStyle = '#10b981'; ctx.fillRect(mario.flagX + 3, 26, 18, 12);
+                    ctx.fillStyle = '#16a34a'; mario.pipes.forEach(p => ctx.fillRect(p.x, 102 - p.h, 20, p.h));
+                    mario.qBlocks.forEach(qb => { ctx.fillStyle = qb.hit ? '#71717a' : '#f59e0b'; ctx.fillRect(qb.x, 102 - qb.y - 14, 16, 14); });
+                    ctx.fillStyle = '#7c2d12'; mario.goombas.forEach(gb => ctx.fillRect(gb.x, 86, 16, 16));
+                    ctx.fillStyle = '#facc15'; mario.coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, 102 - c.y, 5, 0, Math.PI * 2); ctx.fill(); });
+                    const my = 102 - 24 - mario.y; ctx.fillStyle = mario.starTimer > 0 && arcadeFrame % 4 < 2 ? '#facc15' : '#dc2626'; ctx.fillRect(38, my, 18, 9); ctx.fillStyle = '#2563eb'; ctx.fillRect(38, my + 9, 18, 15);
+                } else if (g === 'snake') {
+                    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.03)';
+                    for (let gx = 0; gx < 480; gx += 12) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 120); ctx.stroke(); }
+                    const tickRate = Math.max(2, Math.floor(9 - (arcadeLevel / 14)));
+                    if (arcadeRunning && arcadeFrame % tickRate === 0) {
+                        const cols = 40, rows = 10, nextX = (snake.body[0].x + snake.dir.x + cols) % cols, nextY = (snake.body[0].y + snake.dir.y + rows) % rows;
+                        if (!snake.golden && Math.random() > 0.96) snake.golden = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows), ttl: 45 };
+                        if (snake.golden) { snake.golden.ttl--; if (snake.golden.ttl <= 0) snake.golden = null; }
+                        if (snake.body.some(seg => seg.x === nextX && seg.y === nextY)) triggerArcadeGameOver("ATE OWN BODY");
+                        else if (snake.bombs.some(b => b.x === nextX && b.y === nextY)) triggerArcadeGameOver("HIT BOMB");
+                        else if (snake.walls.some(w => w.x === nextX && w.y === nextY)) triggerArcadeGameOver("HIT BRICK WALL");
+                        else {
+                            snake.body.unshift({ x: nextX, y: nextY });
+                            if (snake.golden && nextX === snake.golden.x && nextY === snake.golden.y) { arcadeScore += 100; snake.golden = null; playTone('success'); updateArcadeStats(); }
+                            else if (nextX === snake.food.x && nextY === snake.food.y) {
+                                arcadeScore += 20; playTone('success'); updateArcadeStats();
+                                snake.food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+                                if (arcadeLevel >= 3) snake.bombs = [{ x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) }];
+                            } else snake.body.pop();
+                        }
+                    }
+                    ctx.fillStyle = '#64748b'; snake.walls.forEach(w => ctx.fillRect(w.x * 12, w.y * 12, 11, 11));
+                    ctx.fillStyle = '#e11d48'; snake.bombs.forEach(b => { ctx.beginPath(); ctx.arc(b.x * 12 + 5.5, b.y * 12 + 5.5, 5, 0, Math.PI * 2); ctx.fill(); });
+                    ctx.fillStyle = '#22c55e'; ctx.fillRect(snake.food.x * 12, snake.food.y * 12, 11, 11);
+                    if (snake.golden) { ctx.fillStyle = '#facc15'; ctx.fillRect(snake.golden.x * 12, snake.golden.y * 12, 11, 11); }
+                    snake.body.forEach((seg, idx) => { ctx.fillStyle = idx === 0 ? '#34d399' : '#10b981'; ctx.fillRect(seg.x * 12, seg.y * 12, 11, 11); });
+                }
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // ==========================================
+        // 3. SOUND MUTE TOGGLE, FILE MANAGER & INIT
+        // ==========================================
         let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true'), audioCtx = null;
         function playTone(type) {
             if (!audioEnabled) return;
@@ -1819,8 +1656,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.18);
             } catch (e) {}
         }
-        function toggleAudio() { audioEnabled = !audioEnabled; localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled)); const icon = document.getElementById('icon-audio'); icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x'); lucide.createIcons(); }
-        function setTheme(mode) { document.documentElement.setAttribute('data-theme', mode); localStorage.setItem('wmsThemeMode', mode); ['dark', 'light', 'eye-protect'].forEach(m => { document.getElementById(`theme-${m}`).className = (m === mode) ? "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition" : "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition"; }); }
+        function toggleAudio() {
+            audioEnabled = !audioEnabled; localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled));
+            updateAudioMuteUI();
+            if (audioEnabled) playTone('success');
+        }
+        function updateAudioMuteUI() {
+            const btn = document.getElementById('btn-sound-mute'), icon = document.getElementById('icon-audio'), lbl = document.getElementById('lbl-sound-state');
+            icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
+            lbl.innerText = audioEnabled ? 'ON' : 'OFF';
+            btn.className = audioEnabled
+                ? "px-2 py-1 rounded flex items-center gap-1 text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500 transition"
+                : "px-2 py-1 rounded flex items-center gap-1 text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400 transition";
+            lucide.createIcons();
+        }
+
         function switchTab(tab) {
             ['bulk', 'carrier', 'trailer', 'a4note', 'todo'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all"; });
             document.getElementById(`view-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all";
@@ -1872,6 +1722,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         window.onload = function() {
             setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
             document.getElementById('sound-pack-select').value = localStorage.getItem('wmsSoundPack') || 'laser';
+            updateAudioMuteUI();
+            makeElementDraggable('calc-popover', 'calc-drag-header');
+            makeElementDraggable('chess-floating-window', 'chess-drag-header');
             saveWorkspaceState(); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(); renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
             resetSimpleTwoLineNote();

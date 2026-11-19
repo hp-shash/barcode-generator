@@ -35,7 +35,7 @@
     <style>
         :root, html[data-theme="dark"] {
             --bg-main: #09090b;
-            --bg-card: rgba(24, 24, 27, 0.75);
+            --bg-card: rgba(24, 24, 27, 0.78);
             --bg-input: #09090b;
             --bg-elevated: #18181b;
             --text-main: #f4f4f5;
@@ -69,7 +69,16 @@
             --grid-dot: #d3cbb7;
             --stage-bg: #efe8d4;
         }
-        body { background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.15s ease, color 0.15s ease; }
+        html {
+            font-size: 16px;
+            transition: font-size 0.15s ease;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
         .theme-card { background-color: var(--bg-card); border-color: var(--border-color); }
         .theme-input { background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-main); }
         .theme-elevated { background-color: var(--bg-elevated); border-color: var(--border-color); color: var(--text-main); }
@@ -89,9 +98,6 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-500">
-
-    <!-- WHOLE-PAGE ZOOM WRAPPER -->
-    <div id="zoom-root" class="flex-grow flex flex-col">
 
     <!-- TOP NAVIGATION BAR -->
     <header class="border-b theme-border theme-card backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
@@ -115,7 +121,7 @@
             </div>
         </div>
 
-        <!-- Center: 4-Tab Navigation -->
+        <!-- Center: Streamlined 3-Tab Navigation (Consolidate & Log Removed) -->
         <nav class="flex flex-wrap items-center gap-1 theme-input p-1 rounded-lg border">
             <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all">
                 <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk & Labels
@@ -126,32 +132,28 @@
             <button onclick="switchTab('a4note')" id="tab-a4note" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
                 <i data-lucide="file-text" class="w-3.5 h-3.5"></i> A4 Delivery Note
             </button>
-            <button onclick="switchTab('tools')" id="tab-tools" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
-                <i data-lucide="boxes" class="w-3.5 h-3.5"></i> Consolidate & Log
-                <span id="nav-scan-count" class="px-1.5 py-0.2 theme-elevated rounded text-[10px] font-mono">0</span>
-            </button>
         </nav>
 
-        <!-- Right: Calculator Mini Tab, Editable Zoom %, Arcade Toggle, Sound Pack & Theme -->
-        <div class="flex items-center gap-1.5">
-            <!-- Calculator Mini-Tab Trigger -->
-            <button onclick="toggleCalculator()" id="btn-calc-toggle" title="Open Warehouse Calculator" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+        <!-- Right: Calculator, Responsive Reflow Zoom %, Arcade Toggle, Sound Pack & Theme -->
+        <div class="flex flex-wrap items-center gap-1.5">
+            <!-- Draggable Calculator Trigger -->
+            <button onclick="toggleCalculator()" title="Open Draggable Shift Calculator" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span class="hidden lg:inline text-[11px]">Calc</span>
             </button>
 
-            <!-- Manual Editable Whole-Page Zoom Control -->
-            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Type exact Zoom % or use +/- (100% Default)">
+            <!-- Responsive Reflow Page Zoom -->
+            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Reflow Page Zoom (Rearranges layout to fit)">
                 <button onclick="adjustPageZoom(-10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">-</button>
-                <input type="number" id="page-zoom-input" value="100" min="50" max="200" onchange="setManualPageZoom(this.value)" class="w-11 bg-transparent text-center text-[11px] font-mono font-bold outline-none">
+                <input type="number" id="page-zoom-input" value="100" min="60" max="150" onchange="setManualPageZoom(this.value)" class="w-11 bg-transparent text-center text-[11px] font-mono font-bold outline-none">
                 <span class="text-[10px] font-mono theme-text-dim pr-0.5">%</span>
                 <button onclick="adjustPageZoom(10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">+</button>
             </div>
 
-            <!-- Arcade Mini-Game Toggle -->
-            <button onclick="toggleArcadeDrawer()" title="Toggle Scan-Reactive Arcade" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+            <!-- 3-Game Arcade Drawer Toggle -->
+            <button onclick="toggleArcadeDrawer()" title="Play Snake, Super Mario, or Chrome Dino" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-                <span class="hidden xl:inline text-[11px] font-mono" id="nav-arcade-score">Pts: 0</span>
+                <span class="hidden xl:inline text-[11px] font-mono" id="nav-arcade-score">Arcade: 0</span>
             </button>
 
             <!-- Sound Pack Selector + Mute Toggle -->
@@ -159,7 +161,7 @@
                 <button onclick="toggleAudio()" title="Mute / Unmute" class="p-1 rounded hover:opacity-80">
                     <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
                 </button>
-                <select id="sound-pack-select" onchange="localStorage.setItem('wmsSoundPack', this.value); playTone('success');" class="bg-transparent text-[10px] font-mono outline-none pr-1 cursor-pointer" title="Choose Sound Profile">
+                <select id="sound-pack-select" onchange="localStorage.setItem('wmsSoundPack', this.value); playTone('success');" class="bg-transparent text-[10px] font-mono outline-none pr-1 cursor-pointer">
                     <option value="laser" selected>Laser (Def)</option>
                     <option value="arcade">8-Bit Coin</option>
                     <option value="click">Mech Click</option>
@@ -182,78 +184,78 @@
         </div>
     </header>
 
-    <!-- FLOATING CALCULATOR MINI-TAB POPOVER -->
-    <div id="calc-popover" class="hidden fixed top-16 right-6 z-50 w-72 theme-card border rounded-xl shadow-2xl p-4 space-y-3 backdrop-blur-md">
-        <div class="flex items-center justify-between border-b theme-border pb-2">
+    <!-- DRAGGABLE FLOATING CALCULATOR -->
+    <div id="calc-popover" style="top: 72px; right: 24px;" class="hidden fixed z-50 w-72 theme-card border-2 border-emerald-500/40 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
+        <!-- Drag Handle Header -->
+        <div id="calc-drag-header" class="px-3.5 py-2.5 theme-elevated border-b theme-border flex items-center justify-between cursor-move select-none">
             <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-500"></i> Shift Calculator
+                <i data-lucide="grip-horizontal" class="w-4 h-4 text-emerald-500"></i> Shift Calculator
             </span>
             <div class="flex items-center gap-2">
                 <button onclick="copyCalcResult()" class="text-[10px] text-emerald-500 hover:underline font-mono font-bold">Copy</button>
-                <button onclick="toggleCalculator()" class="text-xs theme-text-dim hover:text-red-400">×</button>
+                <button onclick="toggleCalculator()" class="text-sm font-bold theme-text-dim hover:text-red-400 px-1">×</button>
             </div>
         </div>
-        <div class="theme-input border rounded-lg p-2.5 text-right font-mono">
-            <div id="calc-history" class="text-[10px] theme-text-dim h-3.5 truncate">0</div>
-            <input type="text" id="calc-display" value="0" readonly class="w-full bg-transparent text-xl font-bold text-right outline-none">
-        </div>
-        <div class="grid grid-cols-4 gap-1.5 font-mono text-xs font-bold">
-            <button onclick="calcClear()" class="p-2.5 rounded bg-red-500/15 text-red-400 hover:bg-red-500/25">C</button>
-            <button onclick="calcInput('(')" class="p-2.5 rounded theme-elevated border">(</button>
-            <button onclick="calcInput(')')" class="p-2.5 rounded theme-elevated border">)</button>
-            <button onclick="calcInput('/')" class="p-2.5 rounded theme-elevated border text-emerald-500">÷</button>
+        <div class="p-3.5 space-y-2.5">
+            <div class="theme-input border rounded-lg p-2.5 text-right font-mono">
+                <div id="calc-history" class="text-[10px] theme-text-dim h-3.5 truncate">0</div>
+                <input type="text" id="calc-display" value="0" readonly class="w-full bg-transparent text-xl font-bold text-right outline-none">
+            </div>
+            <div class="grid grid-cols-4 gap-1.5 font-mono text-xs font-bold">
+                <button onclick="calcClear()" class="p-2.5 rounded bg-red-500/15 text-red-400 hover:bg-red-500/25">C</button>
+                <button onclick="calcInput('(')" class="p-2.5 rounded theme-elevated border">(</button>
+                <button onclick="calcInput(')')" class="p-2.5 rounded theme-elevated border">)</button>
+                <button onclick="calcInput('/')" class="p-2.5 rounded theme-elevated border text-emerald-500">÷</button>
 
-            <button onclick="calcInput('7')" class="p-2.5 rounded theme-input border">7</button>
-            <button onclick="calcInput('8')" class="p-2.5 rounded theme-input border">8</button>
-            <button onclick="calcInput('9')" class="p-2.5 rounded theme-input border">9</button>
-            <button onclick="calcInput('*')" class="p-2.5 rounded theme-elevated border text-emerald-500">×</button>
+                <button onclick="calcInput('7')" class="p-2.5 rounded theme-input border">7</button>
+                <button onclick="calcInput('8')" class="p-2.5 rounded theme-input border">8</button>
+                <button onclick="calcInput('9')" class="p-2.5 rounded theme-input border">9</button>
+                <button onclick="calcInput('*')" class="p-2.5 rounded theme-elevated border text-emerald-500">×</button>
 
-            <button onclick="calcInput('4')" class="p-2.5 rounded theme-input border">4</button>
-            <button onclick="calcInput('5')" class="p-2.5 rounded theme-input border">5</button>
-            <button onclick="calcInput('6')" class="p-2.5 rounded theme-input border">6</button>
-            <button onclick="calcInput('-')" class="p-2.5 rounded theme-elevated border text-emerald-500">−</button>
+                <button onclick="calcInput('4')" class="p-2.5 rounded theme-input border">4</button>
+                <button onclick="calcInput('5')" class="p-2.5 rounded theme-input border">5</button>
+                <button onclick="calcInput('6')" class="p-2.5 rounded theme-input border">6</button>
+                <button onclick="calcInput('-')" class="p-2.5 rounded theme-elevated border text-emerald-500">−</button>
 
-            <button onclick="calcInput('1')" class="p-2.5 rounded theme-input border">1</button>
-            <button onclick="calcInput('2')" class="p-2.5 rounded theme-input border">2</button>
-            <button onclick="calcInput('3')" class="p-2.5 rounded theme-input border">3</button>
-            <button onclick="calcInput('+')" class="p-2.5 rounded theme-elevated border text-emerald-500">+</button>
+                <button onclick="calcInput('1')" class="p-2.5 rounded theme-input border">1</button>
+                <button onclick="calcInput('2')" class="p-2.5 rounded theme-input border">2</button>
+                <button onclick="calcInput('3')" class="p-2.5 rounded theme-input border">3</button>
+                <button onclick="calcInput('+')" class="p-2.5 rounded theme-elevated border text-emerald-500">+</button>
 
-            <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded theme-input border">0</button>
-            <button onclick="calcInput('.')" class="p-2.5 rounded theme-input border">.</button>
-            <button onclick="calcEval()" class="p-2.5 rounded bg-emerald-600 text-white">=</button>
+                <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded theme-input border">0</button>
+                <button onclick="calcInput('.')" class="p-2.5 rounded theme-input border">.</button>
+                <button onclick="calcEval()" class="p-2.5 rounded bg-emerald-600 text-white">=</button>
+            </div>
         </div>
     </div>
 
-    <!-- SCAN-ONLY INTERACTIVE 3-GAME ARCADE BAR -->
-    <div id="arcade-strip" class="hidden border-b theme-border theme-elevated px-4 py-2.5">
-        <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
+    <!-- INTERACTIVE 3-GAME ARCADE BAR (SNAKE, SUPER MARIO, CHROME DINO) -->
+    <div id="arcade-strip" class="hidden border-b theme-border theme-elevated px-4 py-3">
+        <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
             
-            <!-- Game & Character Customizer -->
-            <div class="flex flex-wrap items-center gap-2">
-                <select id="arcade-game-select" onchange="resetArcadeGame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none">
-                    <option value="runner" selected>Game 1: Pallet Runner (Def)</option>
-                    <option value="stacker">Game 2: Crate Tower Stacker</option>
-                    <option value="blaster">Game 3: Laser Target Blaster</option>
-                </select>
-
-                <select id="arcade-char-select" onchange="drawArcadeStaticFrame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-medium outline-none">
-                    <option value="jack" selected>Char: Pallet Jack (Def)</option>
-                    <option value="forklift">Char: Heavy Forklift</option>
-                    <option value="bot">Char: Cyber AGV Bot</option>
-                    <option value="ninja">Char: Warehouse Ninja</option>
-                </select>
-
-                <span class="text-[11px] font-mono theme-text-muted hidden md:inline">
-                    ⏸ Moves <b>ONLY</b> when you scan a barcode!
-                </span>
+            <!-- Game Selector & Controls Info -->
+            <div class="space-y-1.5">
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="arcade-game-select" onchange="initSelectedGame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none">
+                        <option value="dino" selected>1. Chrome Dino Runner (Def)</option>
+                        <option value="mario">2. Super Mario Platformer</option>
+                        <option value="snake">3. Classic Snake</option>
+                    </select>
+                    <button onclick="initSelectedGame()" class="px-2.5 py-1.5 rounded-lg theme-input border text-xs font-semibold hover:border-emerald-500">Restart</button>
+                    <span id="arcade-mode-badge" class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px] font-bold">MANUAL PLAY (Arrows / Space / Click)</span>
+                </div>
+                <p id="arcade-controls-hint" class="text-[11px] theme-text-muted font-mono">
+                    Controls: Press <b>Space / Up Arrow</b> or <b>Click Canvas</b> to jump! Enable <b>Scanning Mode</b> to auto-pilot on every scan.
+                </p>
             </div>
 
             <!-- Interactive Game Canvas & Score -->
             <div class="flex items-center gap-3">
-                <canvas id="arcade-canvas" width="440" height="76" class="rounded-lg border theme-border theme-input"></canvas>
-                <div class="text-right font-mono text-xs shrink-0">
-                    <div class="font-bold text-emerald-500" id="arcade-score-lbl">PTS: 0000</div>
-                    <div class="text-[10px] theme-text-dim" id="arcade-combo-lbl">SCANS: 0 | LVL: 1</div>
+                <canvas id="arcade-canvas" width="480" height="110" onclick="handleArcadeCanvasClick()" class="rounded-lg border-2 border-zinc-700 bg-zinc-950 cursor-pointer shadow-inner"></canvas>
+                <div class="text-right font-mono text-xs shrink-0 space-y-1">
+                    <div class="font-bold text-emerald-500 text-sm" id="arcade-score-lbl">SCORE: 0000</div>
+                    <div class="text-[11px] theme-text-dim" id="arcade-hi-lbl">BEST: 0000</div>
+                    <div class="text-[10px] text-amber-400" id="arcade-status-lbl">PLAYING</div>
                 </div>
             </div>
         </div>
@@ -287,7 +289,6 @@
                     <select id="fm-task-type" class="theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                         <option value="bulk" selected>Bulk List</option>
                         <option value="a4note">A4 Delivery Note</option>
-                        <option value="lpn">LPN Consolidation</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-1.5 pt-1">
@@ -319,21 +320,25 @@
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
-             TAB 1: BULK & LABELS (QUEUE ON LEFT, BARCODE ON RIGHT, RESIZABLE SPLIT, BARCODE SIZE SLIDER, NO AUTO-NEXT)
+             TAB 1: BULK & LABELS (WITH FULL-SCREEN SCANNING MODE, COPY QUEUE & BARCODE CUSTOMIZATION)
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- Left Input Feeder (4 Cols) -->
-            <div class="lg:col-span-4 space-y-4">
+            <!-- Left Input Feeder (Hidden automatically when Scanning Mode is active) (4 Cols) -->
+            <div id="bulk-feeder-column" class="lg:col-span-4 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Label Feeder
                         </span>
                         <div class="flex items-center gap-2 text-xs">
-                            <label class="text-emerald-500 hover:underline cursor-pointer font-medium">
+                            <label class="text-emerald-500 hover:underline cursor-pointer font-medium" title="Import Excel or CSV">
                                 .XLSX/.CSV
                                 <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'batch-input')" class="hidden">
+                            </label>
+                            <label class="text-blue-400 hover:underline cursor-pointer font-medium" title="Decode barcode from image file">
+                                Img Decode
+                                <input type="file" accept="image/*" onchange="decodeImageIntoBulk(event)" class="hidden">
                             </label>
                             <button onclick="quickSavePrompt('bulk')" class="theme-text-muted hover:text-emerald-500">Save</button>
                             <button onclick="clearBulkInput()" class="text-red-400 hover:underline">Clear</button>
@@ -374,36 +379,25 @@ FF-DPD01, SKU-505, 40, DOCK-A
 LOC-A02, BIN-01, 5, ZONE-B</textarea>
                     </div>
 
-                    <!-- Barcode Size Slider + Symbology & Suffix -->
-                    <div class="space-y-3 pt-2 border-t theme-border">
+                    <div class="grid grid-cols-2 gap-2.5">
                         <div>
-                            <div class="flex justify-between text-[10px] font-mono uppercase theme-text-dim mb-1">
-                                <span>Barcode Display Size</span>
-                                <span id="lbl-bulk-size" class="text-emerald-500 font-bold">100% (Default)</span>
-                            </div>
-                            <input type="range" id="bulk-size-slider" min="50" max="160" value="100" oninput="updateBulkBarcodeSize(this.value)" class="w-full cursor-pointer">
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
+                            <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <option value="code128" selected>Code 128 (Default)</option>
+                                <option value="gs1-128">GS1-128</option>
+                                <option value="code39">Code 39</option>
+                                <option value="qrcode">QR Code (2D)</option>
+                                <option value="datamatrix">Data Matrix (2D)</option>
+                                <option value="itf14">ITF-14</option>
+                            </select>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <div>
-                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
-                                <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
-                                    <option value="code128" selected>Code 128 (Default)</option>
-                                    <option value="gs1-128">GS1-128</option>
-                                    <option value="code39">Code 39</option>
-                                    <option value="qrcode">QR Code (2D)</option>
-                                    <option value="datamatrix">Data Matrix (2D)</option>
-                                    <option value="itf14">ITF-14</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Suffix</label>
-                                <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
-                                    <option value="none" selected>None (Default)</option>
-                                    <option value="enter">Enter (\r)</option>
-                                    <option value="tab">Tab (\t)</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Suffix</label>
+                            <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <option value="none" selected>None (Default)</option>
+                                <option value="enter">Enter (\r)</option>
+                                <option value="tab">Tab (\t)</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -425,43 +419,43 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 </details>
             </div>
 
-            <!-- Right Column: Resizable Split (QUEUE STATUS ON LEFT, BARCODE STAGE ON RIGHT) (8 Cols) -->
-            <div class="lg:col-span-8 space-y-4">
+            <!-- Right Column: Queue Status (Left) + Barcode Stage (Right) — Expands to 12 Cols in Scanning Mode -->
+            <div id="bulk-stage-column" class="lg:col-span-8 space-y-4">
 
-                <!-- 1-BY-1 CAROUSEL PANEL -->
                 <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
                     <!-- Top Stage Control Bar -->
                     <div class="px-4 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold" id="deck-counter">1 / 6</span>
+                            <!-- DEDICATED SCANNING MODE TOGGLE (Hides Feeder, Maximizes Queue + Barcode & Auto-Plays Game) -->
+                            <button onclick="toggleScanningMode()" id="btn-scan-mode" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs">
+                                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                                <span id="lbl-scan-mode">Enter Scanning Mode</span>
+                            </button>
+
+                            <span class="px-2.5 py-1 rounded-md theme-elevated border font-mono text-xs font-bold" id="deck-counter">1 / 6</span>
+
                             <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
-                                <button onclick="setBulkViewMode('carousel')" class="px-2.5 py-0.5 rounded font-semibold bg-emerald-600 text-white">1-by-1</button>
-                                <button onclick="setBulkViewMode('grid')" class="px-2.5 py-0.5 rounded font-medium theme-text-muted hover:text-emerald-500 transition">Grid View</button>
+                                <button onclick="setBulkViewMode('carousel')" class="px-2 py-0.5 rounded font-semibold bg-emerald-600 text-white">1-by-1</button>
+                                <button onclick="setBulkViewMode('grid')" class="px-2 py-0.5 rounded font-medium theme-text-muted hover:text-emerald-500">Grid</button>
                             </div>
                         </div>
 
-                        <!-- Split Proportion Presets (Queue Left : Barcode Right) -->
-                        <div class="flex items-center gap-1 text-[10px] font-mono theme-input p-0.5 rounded-lg border" title="Resize Queue vs Barcode Width">
-                            <span class="px-1.5 theme-text-dim">Split:</span>
-                            <button onclick="setBulkSplitRatio(35)" class="px-1.5 py-0.5 rounded hover:bg-emerald-600 hover:text-white">35/65</button>
-                            <button onclick="setBulkSplitRatio(45)" class="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-bold">45/55 (Def)</button>
-                            <button onclick="setBulkSplitRatio(60)" class="px-1.5 py-0.5 rounded hover:bg-emerald-600 hover:text-white">60/40</button>
-                        </div>
+                        <!-- Split Proportion Presets & Timer -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="hidden sm:flex items-center gap-1 text-[10px] font-mono theme-input p-0.5 rounded-lg border">
+                                <span class="px-1 theme-text-dim">Split:</span>
+                                <button onclick="setBulkSplitRatio(35)" class="px-1.5 py-0.5 rounded hover:bg-emerald-600 hover:text-white">35/65</button>
+                                <button onclick="setBulkSplitRatio(45)" class="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-bold">45/55</button>
+                                <button onclick="setBulkSplitRatio(60)" class="px-1.5 py-0.5 rounded hover:bg-emerald-600 hover:text-white">60/40</button>
+                            </div>
 
-                        <!-- Timer Controls (Auto-Next Removed) -->
-                        <div class="flex items-center gap-2">
                             <div class="flex items-center theme-input border rounded-lg px-2 py-1 gap-1">
                                 <i data-lucide="timer" class="w-3.5 h-3.5 text-emerald-500"></i>
-                                <input type="number" id="custom-timer-sec" value="2.5" min="0.5" max="60" step="0.5" onchange="restartAutoPlayIfActive()" class="w-11 bg-transparent text-xs font-mono font-bold text-center outline-none">
+                                <input type="number" id="custom-timer-sec" value="2.5" min="0.5" max="60" step="0.5" onchange="restartAutoPlayIfActive()" class="w-10 bg-transparent text-xs font-mono font-bold text-center outline-none">
                                 <span class="text-[10px] font-mono theme-text-dim">s</span>
-                                <label class="flex items-center gap-1 text-[10px] theme-text-muted pl-1 border-l theme-border cursor-pointer">
-                                    <input type="checkbox" id="chk-timer-loop" checked class="accent-emerald-500"> Loop
-                                </label>
+                                <button onclick="toggleAutoPlay()" id="btn-autoplay" class="ml-1 px-2 py-0.5 rounded text-[11px] font-semibold theme-elevated border hover:border-emerald-500">Play</button>
                             </div>
-                            <button onclick="toggleAutoPlay()" id="btn-autoplay" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold theme-elevated border hover:border-emerald-500 transition">
-                                <i data-lucide="play" class="w-3.5 h-3.5"></i> Timer
-                            </button>
                         </div>
                     </div>
 
@@ -470,40 +464,70 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 16%"></div>
                     </div>
 
-                    <!-- RESIZABLE SPLIT: LEFT = GROUPED QUEUE STATUS | RIGHT = BARCODE STAGE -->
-                    <div id="bulk-split-wrapper" class="flex flex-col md:flex-row min-h-[380px] relative">
+                    <!-- RESIZABLE SPLIT: LEFT = SEARCHABLE & COPYABLE QUEUE | RIGHT = CUSTOMIZABLE BARCODE STAGE -->
+                    <div id="bulk-split-wrapper" class="flex flex-col md:flex-row min-h-[420px] relative">
                         
-                        <!-- LEFT PANEL: QUEUE STATUS (Resizable) -->
-                        <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[420px] shrink-0">
-                            <div class="px-3.5 py-2.5 border-b theme-border theme-elevated flex items-center justify-between text-[11px] font-mono">
-                                <span class="font-bold uppercase tracking-wider">Queue Status</span>
-                                <span id="vertical-queue-stats" class="text-emerald-500 font-semibold">0 / 6 Done</span>
+                        <!-- LEFT PANEL: QUEUE STATUS WITH SEARCH & COPY COLUMN/ALL -->
+                        <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[480px] shrink-0">
+                            <div class="px-3 py-2 border-b theme-border theme-elevated flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-mono">
+                                <span class="font-bold uppercase">Queue (<span id="vertical-queue-stats" class="text-emerald-500">0/6</span>)</span>
+                                <div class="flex items-center gap-1.5">
+                                    <button onclick="copyAllQueueIds()" class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-semibold hover:bg-emerald-500" title="Copy entire queue list">Copy All</button>
+                                </div>
                             </div>
+                            <!-- Compact Queue Search Box -->
+                            <div class="p-2 border-b theme-border theme-input">
+                                <div class="relative">
+                                    <i data-lucide="search" class="w-3.5 h-3.5 theme-text-dim absolute left-2.5 top-2"></i>
+                                    <input type="text" id="queue-search-input" oninput="renderGroupedQueueColumns()" placeholder="Search ID in queue..." class="w-full theme-card border rounded pl-8 pr-2 py-1 text-xs font-mono outline-none focus:border-emerald-500">
+                                </div>
+                            </div>
+                            <!-- Grouped Columns Container -->
                             <div id="deck-pills" class="flex-grow overflow-auto p-2.5 flex gap-2 items-start"></div>
                         </div>
 
                         <!-- DRAGGABLE RESIZE HANDLE -->
-                        <div id="bulk-resizer" class="hidden md:flex w-2 cursor-col-resize items-center justify-center theme-elevated hover:bg-emerald-600/40 transition select-none" title="Drag left/right to resize Queue & Barcode panels">
+                        <div id="bulk-resizer" class="hidden md:flex w-2 cursor-col-resize items-center justify-center theme-elevated hover:bg-emerald-600/40 transition select-none" title="Drag left/right to resize">
                             <div class="w-0.5 h-8 bg-zinc-500 rounded"></div>
                         </div>
 
-                        <!-- RIGHT PANEL: BARCODE DISPLAY STAGE -->
-                        <div id="deck-stage-box" class="flex-grow canvas-grid p-6 flex flex-col items-center justify-center relative overflow-auto">
-                            <div id="deck-scanned-badge" class="mb-4 px-3.5 py-1 rounded-full text-xs font-mono uppercase tracking-wider theme-elevated border flex items-center gap-2 shadow-sm z-10">
-                                <span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span> Ready to Scan (1 of 6)
+                        <!-- RIGHT PANEL: BARCODE DISPLAY STAGE + CUSTOMIZATION SLIDERS -->
+                        <div id="deck-stage-box" class="flex-grow canvas-grid p-5 flex flex-col items-center justify-between relative overflow-auto">
+                            
+                            <!-- Inline Barcode Size / Height / Scale Customizer Bar -->
+                            <div class="w-full flex flex-wrap items-center justify-center gap-3 theme-card border rounded-lg px-3 py-1.5 text-[11px] font-mono mb-3 z-10">
+                                <label class="flex items-center gap-1.5">
+                                    <span class="theme-text-dim">Scale:</span>
+                                    <input type="range" id="stage-bar-scale" min="2" max="6" value="4" oninput="document.getElementById('val-bar-scale').innerText=this.value+'x'; renderCurrentDeckSlide();" class="w-16">
+                                    <span id="val-bar-scale" class="font-bold text-emerald-500">4x</span>
+                                </label>
+                                <label class="flex items-center gap-1.5">
+                                    <span class="theme-text-dim">Height:</span>
+                                    <input type="range" id="stage-bar-height" min="10" max="35" value="18" oninput="document.getElementById('val-bar-height').innerText=this.value+'mm'; renderCurrentDeckSlide();" class="w-16">
+                                    <span id="val-bar-height" class="font-bold text-emerald-500">18mm</span>
+                                </label>
+                                <label class="flex items-center gap-1.5">
+                                    <span class="theme-text-dim">Zoom:</span>
+                                    <input type="range" id="bulk-size-slider" min="60" max="150" value="100" oninput="updateBulkBarcodeSize(this.value)" class="w-16">
+                                    <span id="lbl-bulk-size" class="font-bold text-emerald-500">100%</span>
+                                </label>
                             </div>
 
-                            <!-- Resizable Barcode Container -->
-                            <div id="bulk-barcode-scaler" class="transition-transform duration-150 origin-center">
+                            <!-- Barcode Card -->
+                            <div id="bulk-barcode-scaler" class="my-auto transition-transform duration-150 origin-center">
                                 <div class="bg-white text-zinc-950 p-5 rounded-xl shadow-2xl flex flex-col items-center justify-center max-w-full border-2 border-zinc-200">
                                     <div id="deck-routing-header" class="w-full border-b-2 border-zinc-900 pb-2 mb-3 flex flex-wrap justify-between items-center gap-2 text-xs font-mono font-bold"></div>
                                     <canvas id="deck-canvas" class="max-w-full"></canvas>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex items-center gap-2 z-10">
-                                <span id="deck-current-text" class="text-base sm:text-lg font-mono font-bold tracking-wider select-all">FF-RM03</span>
-                                <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1.5 rounded theme-elevated border hover:opacity-80">
+                            <!-- Current ID & Status Pill -->
+                            <div class="mt-3 flex items-center gap-2 z-10">
+                                <span id="deck-scanned-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase theme-elevated border flex items-center gap-1.5">
+                                    <span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready
+                                </span>
+                                <span id="deck-current-text" class="text-base font-mono font-bold tracking-wider select-all">FF-RM03</span>
+                                <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1 rounded theme-elevated border hover:opacity-80">
                                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
@@ -511,20 +535,17 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
                     </div>
 
-                    <!-- Manual Verification & Navigation Bar -->
-                    <div class="px-4 py-3 border-t theme-border theme-elevated flex flex-col sm:flex-row items-center gap-2">
-                        <input type="text" id="deck-scan-input" placeholder="Scan barcode with gun or type ID & hit Enter..." onkeydown="if(event.key==='Enter' || event.key==='Tab') { event.preventDefault(); handleDeckScanVerify(); }" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-500">
-                        <div class="flex gap-1.5 w-full sm:w-auto">
-                            <button onclick="stepDeck(-1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-semibold flex items-center gap-1">
-                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Prev
-                            </button>
-                            <button onclick="markAndNextDeck()" class="flex-grow sm:flex-none px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow flex items-center justify-center gap-1.5">
-                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Mark Scanned & Next
-                            </button>
-                            <button onclick="stepDeck(1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-semibold flex items-center gap-1">
-                                Next <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                            </button>
-                        </div>
+                    <!-- ACCESSIBLE PREV / MARK SCANNED & NEXT CONTROLS BAR -->
+                    <div class="px-4 py-3 border-t theme-border theme-elevated grid grid-cols-3 gap-2.5">
+                        <button onclick="stepDeck(-1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Previous
+                        </button>
+                        <button onclick="markAndNextDeck()" class="py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i> Mark Scanned & Next
+                        </button>
+                        <button onclick="stepDeck(1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                            Next <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
                     </div>
 
                     <!-- Export & Print Footer -->
@@ -545,11 +566,9 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 <!-- GRID VIEW PANEL -->
                 <div id="bulk-grid-panel" class="hidden theme-card border rounded-xl p-5 space-y-4 shadow-lg">
                     <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
-                                <button onclick="setBulkViewMode('carousel')" class="px-2.5 py-1 rounded font-medium theme-text-muted hover:text-emerald-500">← Back to 1-by-1</button>
-                                <button onclick="setBulkViewMode('grid')" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Grid View</button>
-                            </div>
+                        <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
+                            <button onclick="setBulkViewMode('carousel')" class="px-2.5 py-1 rounded font-medium theme-text-muted hover:text-emerald-500">← Back to 1-by-1</button>
+                            <button onclick="setBulkViewMode('grid')" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Grid View</button>
                         </div>
                         <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print All</button>
                     </div>
@@ -676,7 +695,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 <div class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     <div class="px-5 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <!-- 1-by-1 vs Grid View Switcher -->
                             <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
                                 <button onclick="setCarrierViewMode('single')" id="btn-cl-view-single" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">1-by-1 Preview</button>
                                 <button onclick="setCarrierViewMode('grid')" id="btn-cl-view-grid" class="px-2.5 py-1 rounded font-medium theme-text-muted">Grid View</button>
@@ -686,13 +704,9 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         <span id="cl-range-badge" class="text-xs font-mono text-emerald-500 font-bold">FF-RM26111901 → FF-RM26111904</span>
                     </div>
 
-                    <!-- MODE A: 1-BY-1 CARRIER PREVIEW -->
                     <div id="cl-single-view" class="grid grid-cols-1 md:grid-cols-12">
                         <div class="md:col-span-8 canvas-grid p-6 flex items-center justify-center overflow-auto min-h-[420px]">
-                            <!-- Dynamic Container that Rearranges Layout for Portrait vs Landscape -->
-                            <div id="cl-mockup-box" class="bg-white text-zinc-950 rounded-lg shadow-2xl border-2 border-zinc-400 p-4 flex flex-col justify-between transition-all duration-200" style="width: 400px; height: 266px;">
-                                <!-- Populated dynamically by renderSelectedCarrierMockup() -->
-                            </div>
+                            <div id="cl-mockup-box" class="bg-white text-zinc-950 rounded-lg shadow-2xl border-2 border-zinc-400 p-4 flex flex-col justify-between transition-all duration-200" style="width: 400px; height: 266px;"></div>
                         </div>
 
                         <div class="md:col-span-4 border-t md:border-t-0 md:border-l theme-border flex flex-col max-h-[420px]">
@@ -704,7 +718,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         </div>
                     </div>
 
-                    <!-- MODE B: CARRIER GRID VIEW -->
                     <div id="cl-grid-view" class="hidden p-4 canvas-grid max-h-[500px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
                 </div>
             </div>
@@ -716,11 +729,8 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
              ========================================== -->
         <section id="view-a4note" class="hidden space-y-4">
             
-            <!-- Ribbon Toolbar (Word / Excel Only + Section Toggle Checkboxes + Auto-Fit) -->
             <div class="theme-card border rounded-xl p-3 shadow-sm space-y-2.5">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b theme-border pb-2.5">
-                    
-                    <!-- Mode Toggle: Word Doc vs Excel Sheet (PPT Removed) -->
                     <div class="flex items-center gap-2">
                         <div class="flex theme-input p-0.5 rounded-lg border text-xs">
                             <button onclick="setOfficeMode('word')" id="btn-office-word" class="px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5">
@@ -731,7 +741,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </button>
                         </div>
 
-                        <!-- Toggle Any Section On/Off (Header, Barcode, Sign-Off Strip) -->
                         <div class="flex flex-wrap items-center gap-2 text-xs pl-2 border-l theme-border">
                             <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-header" checked onchange="toggleA4Section('a4-header-section', this.checked)" class="accent-emerald-500"> Header</label>
                             <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-barcode" checked onchange="toggleA4Section('a4-barcode-card', this.checked)" class="accent-emerald-500"> Barcode</label>
@@ -751,7 +760,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                     </div>
                 </div>
 
-                <!-- Formatting Ribbon -->
                 <div class="flex flex-wrap items-center gap-1.5 text-xs">
                     <select onchange="execDocCmd('fontName', this.value)" class="theme-input border rounded px-2 py-1 text-xs outline-none">
                         <option value="Inter, Arial, sans-serif" selected>Inter / Arial (Def)</option>
@@ -785,18 +793,15 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 </div>
             </div>
 
-            <!-- Auto-Resizing A4 Paper Stage -->
             <div class="canvas-grid border theme-border rounded-xl p-6 flex items-center justify-center overflow-auto">
                 <div id="a4-paper-sheet" oninput="autoFitA4Content()" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-8 flex flex-col justify-between overflow-hidden transition-all duration-200" style="width: 842px; height: 595px;">
                     
                     <div id="a4-inner-scaler" class="w-full h-full flex flex-col justify-between origin-top-left">
-                        <!-- Header Section -->
                         <div id="a4-header-section" class="border-b-4 border-zinc-900 pb-3 text-center">
                             <div contenteditable="true" class="text-4xl font-black tracking-tight uppercase outline-none">ASENDIA DELIVERY NOTE</div>
                             <div contenteditable="true" class="text-xl font-extrabold text-zinc-800 mt-1 uppercase outline-none">ASENDIA FROM BLECKMANN (FITFLOP)</div>
                         </div>
 
-                        <!-- Word Modular Sections -->
                         <div id="a4-word-body" class="my-auto py-3 flex flex-wrap gap-3 items-stretch justify-between">
                             <div id="a4-fields-grid" class="flex-grow flex flex-wrap gap-3 items-start">
                                 <div class="resizable-box border-2 border-zinc-900 bg-zinc-100 p-3 relative group" style="width: 100%;">
@@ -818,13 +823,11 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                                 </div>
                             </div>
 
-                            <!-- Optional Barcode Card -->
                             <div id="a4-barcode-card" class="resizable-box border-2 border-zinc-900 p-4 flex flex-col items-center justify-center bg-white shrink-0" style="width: 230px;">
                                 <canvas id="a4-prev-canvas" class="max-w-full"></canvas>
                             </div>
                         </div>
 
-                        <!-- Excel Grid Mode -->
                         <div id="a4-excel-body" class="hidden my-auto py-3 overflow-x-auto">
                             <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
                                 <thead>
@@ -846,7 +849,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </table>
                         </div>
 
-                        <!-- Optional Sign-Off Footer -->
                         <div id="a4-footer-section" class="border-t-4 border-zinc-900 pt-3 grid grid-cols-3 gap-4 font-mono text-xs font-bold">
                             <div contenteditable="true" class="outline-none">DISPATCHED BY: ______________</div>
                             <div contenteditable="true" class="outline-none">DRIVER SIGN: ________________</div>
@@ -854,70 +856,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         </div>
                     </div>
 
-                </div>
-            </div>
-        </section>
-
-        <!-- ==========================================
-             TAB 4: LPN CONSOLIDATION & MASTER LOG
-             ========================================== -->
-        <section id="view-tools" class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div class="lg:col-span-7 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
-                        <h2 class="text-xs font-semibold uppercase tracking-wider">Parent-Child Pallet Consolidation (LPN)</h2>
-                        <button onclick="printConsolidatedSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg">Print Master Sheet</button>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <input type="text" id="lpn-master" value="PLT-MASTER-001" oninput="renderLpnQr()" class="theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold">
-                        <div class="flex gap-1.5">
-                            <input type="text" id="lpn-child-input" placeholder="Scan carton..." onkeydown="if(event.key==='Enter') addLpnChild()" class="flex-grow theme-input border rounded-lg px-2.5 py-2 text-xs font-mono">
-                            <button onclick="addLpnChild()" class="bg-emerald-600 text-white text-xs font-semibold px-3 rounded-lg">+</button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
-                        <div class="sm:col-span-2 border theme-border rounded-lg theme-input p-3 max-h-36 overflow-y-auto">
-                            <div class="flex justify-between text-[10px] font-mono theme-text-dim mb-2">
-                                <span id="lpn-child-count">Child Cartons (2)</span>
-                                <button onclick="lpnChildren=[]; renderLpnQr();" class="text-red-400">Clear</button>
-                            </div>
-                            <div id="lpn-child-list" class="flex flex-wrap gap-1.5"></div>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg flex flex-col items-center justify-center">
-                            <canvas id="lpn-qr-canvas" class="max-w-full"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-5 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider">Decode Barcode from Image File</h2>
-                    <label class="flex flex-col items-center justify-center border-2 border-dashed theme-border hover:border-emerald-500 rounded-xl p-6 cursor-pointer transition theme-input">
-                        <i data-lucide="upload-cloud" class="w-7 h-7 text-emerald-500 mb-2"></i>
-                        <span class="text-xs font-medium">Upload PNG / JPG / Screenshot</span>
-                        <input type="file" accept="image/*" onchange="scanUploadedFile(event)" class="hidden">
-                    </label>
-                    <div id="file-scan-box" class="hidden theme-input p-3 rounded-lg border flex justify-between items-center">
-                        <span id="file-scan-text" class="text-xs font-mono font-bold"></span>
-                        <button onclick="copyTextValue(document.getElementById('file-scan-text').innerText)" class="text-xs px-2 py-1 theme-elevated rounded border">Copy</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="theme-card border rounded-xl p-5 space-y-3 shadow-sm">
-                <div class="flex justify-between items-center border-b theme-border pb-3">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Master Session Activity Log</span>
-                    <div class="flex gap-2">
-                        <button onclick="exportHistoryCSV()" class="theme-elevated border text-xs font-medium px-3 py-1.5 rounded-lg">Export CSV</button>
-                        <button onclick="clearHistoryLog()" class="theme-input border text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg">Clear</button>
-                    </div>
-                </div>
-                <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-60">
-                    <table class="w-full text-left border-collapse text-xs font-mono">
-                        <thead class="theme-elevated border-b theme-border">
-                            <tr><th class="p-2.5">#</th><th class="p-2.5">ID</th><th class="p-2.5">Source</th><th class="p-2.5">Time</th></tr>
-                        </thead>
-                        <tbody id="history-tbody" class="divide-y theme-border"></tbody>
-                    </table>
                 </div>
             </div>
         </section>
@@ -952,8 +890,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
         <span>Offline-Ready PWA</span>
     </footer>
 
-    </div><!-- END ZOOM ROOT -->
-
     <canvas id="offscreen-canvas" class="hidden"></canvas>
     <div id="toast" class="fixed bottom-5 right-5 theme-elevated border text-xs font-medium px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
         <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -963,117 +899,246 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
     <script>
         lucide.createIcons();
 
-        // 1. MANUAL & STEP WHOLE-PAGE ZOOM
+        // ==========================================
+        // 0. RESPONSIVE REFLOW PAGE ZOOM
+        // ==========================================
         function setManualPageZoom(val) {
-            const pct = Math.min(200, Math.max(50, parseInt(val) || 100));
+            const pct = Math.min(150, Math.max(60, parseInt(val) || 100));
             document.getElementById('page-zoom-input').value = pct;
-            document.getElementById('zoom-root').style.zoom = (pct / 100);
+            // Scales root rem font-size so Tailwind grid & flex elements reflow and rearrange cleanly
+            document.documentElement.style.fontSize = `${16 * (pct / 100)}px`;
         }
         function adjustPageZoom(delta) {
             const cur = parseInt(document.getElementById('page-zoom-input').value) || 100;
             setManualPageZoom(cur + delta);
         }
 
-        // 2. FLOATING CALCULATOR MINI-TAB
-        function toggleCalculator() {
-            document.getElementById('calc-popover').classList.toggle('hidden');
-        }
-        function calcInput(ch) {
-            const disp = document.getElementById('calc-display');
-            disp.value = (disp.value === '0' && ch !== '.') ? ch : disp.value + ch;
-        }
-        function calcClear() {
-            document.getElementById('calc-display').value = '0';
-            document.getElementById('calc-history').innerText = '0';
-        }
+        // ==========================================
+        // 1. DRAGGABLE FLOATING CALCULATOR
+        // ==========================================
+        function toggleCalculator() { document.getElementById('calc-popover').classList.toggle('hidden'); }
+        function calcInput(ch) { const d = document.getElementById('calc-display'); d.value = (d.value === '0' && ch !== '.') ? ch : d.value + ch; }
+        function calcClear() { document.getElementById('calc-display').value = '0'; document.getElementById('calc-history').innerText = '0'; }
         function calcEval() {
-            const disp = document.getElementById('calc-display');
-            try {
-                const expr = disp.value.replace(/[^0-9+\-*/().]/g, '');
-                document.getElementById('calc-history').innerText = expr + ' =';
-                disp.value = String(Number(Function('"use strict";return (' + expr + ')')().toFixed(4)));
-            } catch (e) { disp.value = 'Error'; }
+            const d = document.getElementById('calc-display');
+            try { const expr = d.value.replace(/[^0-9+\-*/().]/g, ''); document.getElementById('calc-history').innerText = expr + ' ='; d.value = String(Number(Function('"use strict";return (' + expr + ')')().toFixed(4))); } catch (e) { d.value = 'Error'; }
         }
-        function copyCalcResult() {
-            copyTextValue(document.getElementById('calc-display').value);
-        }
+        function copyCalcResult() { copyTextValue(document.getElementById('calc-display').value); }
 
-        // 3. SCAN-ONLY 3-GAME ARCADE + CHARACTERS + SOUND PACKS
-        let arcadeScore = 0, arcadeScans = 0, arcadeLevel = 1;
-        let stackBlocks = [140], blasterTargets = [80, 210, 340], runnerObs = [180, 340];
+        document.addEventListener('DOMContentLoaded', () => {
+            const calcBox = document.getElementById('calc-popover'), header = document.getElementById('calc-drag-header');
+            let isDragging = false, offsetX = 0, offsetY = 0;
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                const rect = calcBox.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                calcBox.style.right = 'auto';
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                calcBox.style.left = `${Math.max(0, Math.min(window.innerWidth - calcBox.offsetWidth, e.clientX - offsetX))}px`;
+                calcBox.style.top = `${Math.max(0, Math.min(window.innerHeight - calcBox.offsetHeight, e.clientY - offsetY))}px`;
+            });
+            window.addEventListener('mouseup', () => isDragging = false);
+        });
+
+        // ==========================================
+        // 2. PLAYABLE 3-GAME ARCADE (SNAKE, SUPER MARIO, CHROME DINO) + SCAN AUTO-PLAY
+        // ==========================================
+        let isScanningMode = false;
+        let arcadeScore = 0, arcadeHigh = parseInt(localStorage.getItem('wmsArcadeHigh') || '0');
+        let arcadeFrame = 0;
+
+        // Game States
+        let dino = { y: 0, vy: 0, obs: [{ x: 420, w: 14, h: 22 }] };
+        let mario = { x: 40, y: 0, vy: 0, pipes: [{ x: 260, h: 24 }], coins: [{ x: 180, y: 45, taken: false }] };
+        let snake = { body: [{ x: 8, y: 5 }, { x: 7, y: 5 }, { x: 6, y: 5 }], dir: { x: 1, y: 0 }, food: { x: 16, y: 5 } };
 
         function toggleArcadeDrawer() {
             const strip = document.getElementById('arcade-strip');
             strip.classList.toggle('hidden');
-            if (!strip.classList.contains('hidden')) drawArcadeStaticFrame();
         }
-        function resetArcadeGame() {
-            arcadeScore = 0; arcadeScans = 0; arcadeLevel = 1;
-            stackBlocks = [140]; blasterTargets = [80, 210, 340]; runnerObs = [180, 340];
-            drawArcadeStaticFrame();
-        }
-        function advanceArcadeOnScan() {
-            arcadeScans++;
-            arcadeLevel = Math.floor(arcadeScans / 5) + 1;
-            const game = document.getElementById('arcade-game-select').value;
 
-            if (game === 'runner') {
-                arcadeScore += 50;
-                runnerObs = runnerObs.map(x => (x - 85 < 20 ? 380 + Math.floor(Math.random() * 60) : x - 85));
-            } else if (game === 'stacker') {
-                arcadeScore += 75;
-                const lastW = stackBlocks[stackBlocks.length - 1];
-                stackBlocks.push(Math.max(40, lastW - 6));
-                if (stackBlocks.length > 5) stackBlocks = [140];
-            } else if (game === 'blaster') {
-                arcadeScore += 100;
-                blasterTargets.shift();
-                blasterTargets.push(360 + Math.floor(Math.random() * 50));
-            }
-            document.getElementById('nav-arcade-score').innerText = `Pts: ${arcadeScore}`;
-            document.getElementById('arcade-score-lbl').innerText = `PTS: ${String(arcadeScore).padStart(4, '0')}`;
-            document.getElementById('arcade-combo-lbl').innerText = `SCANS: ${arcadeScans} | LVL: ${arcadeLevel}`;
-            drawArcadeStaticFrame();
+        function initSelectedGame() {
+            arcadeScore = 0;
+            dino = { y: 0, vy: 0, obs: [{ x: 440, w: 14, h: 22 }] };
+            mario = { x: 40, y: 0, vy: 0, pipes: [{ x: 260, h: 24 }], coins: [{ x: 180, y: 45, taken: false }] };
+            snake = { body: [{ x: 8, y: 5 }, { x: 7, y: 5 }, { x: 6, y: 5 }], dir: { x: 1, y: 0 }, food: { x: 16, y: 5 } };
+            updateArcadeLabels();
         }
-        function drawArcadeStaticFrame() {
-            const canvas = document.getElementById('arcade-canvas'); if (!canvas) return;
+
+        function updateArcadeLabels() {
+            if (arcadeScore > arcadeHigh) { arcadeHigh = arcadeScore; localStorage.setItem('wmsArcadeHigh', arcadeHigh); }
+            document.getElementById('arcade-score-lbl').innerText = `SCORE: ${String(arcadeScore).padStart(4, '0')}`;
+            document.getElementById('arcade-hi-lbl').innerText = `BEST: ${String(arcadeHigh).padStart(4, '0')}`;
+            document.getElementById('nav-arcade-score').innerText = `Arcade: ${arcadeScore}`;
+        }
+
+        function handleArcadeCanvasClick() {
+            const g = document.getElementById('arcade-game-select').value;
+            if (g === 'dino' && dino.y === 0) dino.vy = 10.5;
+            else if (g === 'mario' && mario.y === 0) mario.vy = 11.5;
+            else if (g === 'snake') {
+                // Rotate direction clockwise on click
+                const d = snake.dir;
+                snake.dir = { x: -d.y, y: d.x };
+            }
+        }
+
+        // Triggered automatically whenever a barcode is scanned in Scanning Mode!
+        function triggerArcadeScanAction() {
+            const g = document.getElementById('arcade-game-select').value;
+            arcadeScore += 50;
+            if (g === 'dino' && dino.y === 0) dino.vy = 11;
+            else if (g === 'mario' && mario.y === 0) mario.vy = 12;
+            else if (g === 'snake') {
+                // Auto-steer snake toward food on scan
+                const head = snake.body[0];
+                if (head.x < snake.food.x && snake.dir.x !== -1) snake.dir = { x: 1, y: 0 };
+                else if (head.x > snake.food.x && snake.dir.x !== 1) snake.dir = { x: -1, y: 0 };
+                else if (head.y < snake.food.y && snake.dir.y !== -1) snake.dir = { x: 0, y: 1 };
+                else if (head.y > snake.food.y && snake.dir.y !== 1) snake.dir = { x: 0, y: -1 };
+            }
+            updateArcadeLabels();
+        }
+
+        function startArcadeEngine() {
+            const canvas = document.getElementById('arcade-canvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            const game = document.getElementById('arcade-game-select').value;
-            const charType = document.getElementById('arcade-char-select').value;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const charColors = { jack: '#10b981', forklift: '#f59e0b', bot: '#3b82f6', ninja: '#ec4899' };
-            const col = charColors[charType] || '#10b981';
+            function tick() {
+                arcadeFrame++;
+                const g = document.getElementById('arcade-game-select').value;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (game === 'runner') {
-                ctx.strokeStyle = '#52525b'; ctx.beginPath(); ctx.moveTo(0, 64); ctx.lineTo(440, 64); ctx.stroke();
-                ctx.fillStyle = col; ctx.fillRect(30, arcadeScans % 2 === 1 ? 26 : 42, 22, 22);
-                ctx.fillStyle = '#f59e0b'; runnerObs.forEach(x => ctx.fillRect(x, 48, 16, 16));
-            } else if (game === 'stacker') {
-                stackBlocks.forEach((w, idx) => {
-                    ctx.fillStyle = idx === stackBlocks.length - 1 ? col : '#3b82f6';
-                    ctx.fillRect(220 - w / 2, 62 - (idx + 1) * 11, w, 9);
-                });
-            } else if (game === 'blaster') {
-                ctx.fillStyle = col; ctx.fillRect(20, 30, 24, 16);
-                ctx.strokeStyle = '#10b981'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(44, 38); ctx.lineTo(420, 38); ctx.stroke(); ctx.setLineDash([]);
-                ctx.fillStyle = '#ef4444'; blasterTargets.forEach(x => { ctx.beginPath(); ctx.arc(x, 38, 10, 0, Math.PI * 2); ctx.fill(); });
+                if (g === 'dino') {
+                    // Chrome Dino Physics
+                    dino.y += dino.vy;
+                    if (dino.y > 0) dino.vy -= 0.7; else { dino.y = 0; dino.vy = 0; }
+                    if (arcadeFrame % 90 === 0) dino.obs.push({ x: 490, w: 14, h: 22 });
+
+                    for (let i = dino.obs.length - 1; i >= 0; i--) {
+                        dino.obs[i].x -= 4;
+                        const ob = dino.obs[i];
+                        // In Scanning Mode, auto-jump incoming cactus!
+                        if (isScanningMode && ob.x < 95 && ob.x > 60 && dino.y === 0) dino.vy = 10.5;
+                        if (ob.x < 56 && ob.x + ob.w > 34 && dino.y < ob.h - 3) {
+                            arcadeScore = Math.max(0, arcadeScore - 25); dino.obs.splice(i, 1); updateArcadeLabels();
+                        } else if (ob.x + ob.w < 0) {
+                            arcadeScore += 10; dino.obs.splice(i, 1); updateArcadeLabels();
+                        }
+                    }
+                    // Draw Ground & Dino
+                    ctx.strokeStyle = '#52525b'; ctx.beginPath(); ctx.moveTo(0, 92); ctx.lineTo(480, 92); ctx.stroke();
+                    ctx.fillStyle = '#10b981'; ctx.fillRect(34, 92 - 24 - dino.y, 22, 24);
+                    ctx.fillStyle = '#09090b'; ctx.fillRect(48, 92 - 20 - dino.y, 4, 4);
+                    ctx.fillStyle = '#ef4444'; dino.obs.forEach(ob => ctx.fillRect(ob.x, 92 - ob.h, ob.w, ob.h));
+
+                } else if (g === 'mario') {
+                    // Super Mario Platformer Physics
+                    mario.y += mario.vy;
+                    if (mario.y > 0) mario.vy -= 0.75; else { mario.y = 0; mario.vy = 0; }
+                    if (arcadeFrame % 110 === 0) {
+                        mario.pipes.push({ x: 490, h: 24 });
+                        mario.coins.push({ x: 495, y: 48, taken: false });
+                    }
+                    mario.pipes.forEach((p, idx) => {
+                        p.x -= 3.5;
+                        if (isScanningMode && p.x < 95 && p.x > 60 && mario.y === 0) mario.vy = 11.5;
+                        if (p.x < 60 && p.x + 20 > 40 && mario.y < p.h) { arcadeScore = Math.max(0, arcadeScore - 20); updateArcadeLabels(); }
+                    });
+                    mario.pipes = mario.pipes.filter(p => p.x > -30);
+
+                    mario.coins.forEach(c => {
+                        c.x -= 3.5;
+                        if (!c.taken && Math.abs(c.x - 48) < 22 && Math.abs(c.y - (mario.y + 12)) < 24) {
+                            c.taken = true; arcadeScore += 30; updateArcadeLabels();
+                        }
+                    });
+                    mario.coins = mario.coins.filter(c => c.x > -20 && !c.taken);
+
+                    // Draw Brick Floor, Pipes, Coins & Mario
+                    ctx.fillStyle = '#78350f'; ctx.fillRect(0, 92, 480, 18);
+                    ctx.fillStyle = '#16a34a'; mario.pipes.forEach(p => ctx.fillRect(p.x, 92 - p.h, 20, p.h));
+                    ctx.fillStyle = '#facc15'; mario.coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, 92 - c.y, 6, 0, Math.PI * 2); ctx.fill(); });
+                    // Mario Red Cap & Blue Overalls
+                    const my = 92 - 24 - mario.y;
+                    ctx.fillStyle = '#dc2626'; ctx.fillRect(40, my, 18, 10);
+                    ctx.fillStyle = '#2563eb'; ctx.fillRect(40, my + 10, 18, 14);
+
+                } else if (g === 'snake') {
+                    // Classic Grid Snake (Moves every 7 frames)
+                    if (arcadeFrame % 7 === 0) {
+                        const cols = 48, rows = 11;
+                        let head = { x: (snake.body[0].x + snake.dir.x + cols) % cols, y: (snake.body[0].y + snake.dir.y + rows) % rows };
+                        if (isScanningMode) {
+                            if (head.x < snake.food.x) snake.dir = { x: 1, y: 0 };
+                            else if (head.x > snake.food.x) snake.dir = { x: -1, y: 0 };
+                            else if (head.y < snake.food.y) snake.dir = { x: 0, y: 1 };
+                            else if (head.y > snake.food.y) snake.dir = { x: 0, y: -1 };
+                        }
+                        snake.body.unshift(head);
+                        if (head.x === snake.food.x && head.y === snake.food.y) {
+                            arcadeScore += 25; updateArcadeLabels();
+                            snake.food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+                        } else {
+                            snake.body.pop();
+                        }
+                    }
+                    ctx.fillStyle = '#ef4444'; ctx.fillRect(snake.food.x * 10, snake.food.y * 10, 9, 9);
+                    snake.body.forEach((seg, idx) => {
+                        ctx.fillStyle = idx === 0 ? '#34d399' : '#10b981';
+                        ctx.fillRect(seg.x * 10, seg.y * 10, 9, 9);
+                    });
+                }
+
+                requestAnimationFrame(tick);
+            }
+            tick();
+        }
+
+        // ==========================================
+        // 3. DEDICATED SCANNING MODE + QUEUE SEARCH & COPY COLUMN/ALL
+        // ==========================================
+        let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel';
+
+        function toggleScanningMode() {
+            isScanningMode = !isScanningMode;
+            const feederCol = document.getElementById('bulk-feeder-column');
+            const stageCol = document.getElementById('bulk-stage-column');
+            const btn = document.getElementById('btn-scan-mode');
+            const lbl = document.getElementById('lbl-scan-mode');
+            const modeBadge = document.getElementById('arcade-mode-badge');
+
+            if (isScanningMode) {
+                feederCol.classList.add('hidden');
+                stageCol.className = "lg:col-span-12 space-y-4";
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white flex items-center gap-1.5 shadow";
+                lbl.innerText = "Exit Scanning Mode";
+                if (modeBadge) {
+                    modeBadge.className = "px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold";
+                    modeBadge.innerText = "AUTO-PILOT ON SCAN ACTIVE";
+                }
+            } else {
+                feederCol.classList.remove('hidden');
+                stageCol.className = "lg:col-span-8 space-y-4";
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs";
+                lbl.innerText = "Enter Scanning Mode";
+                if (modeBadge) {
+                    modeBadge.className = "px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px] font-bold";
+                    modeBadge.innerText = "MANUAL PLAY (Arrows / Space / Click)";
+                }
             }
         }
 
-        // 4. BULK TAB: RESIZABLE SPLIT (QUEUE LEFT / BARCODE RIGHT) + BARCODE SIZE SLIDER
-        let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel';
-        let scanHistory = JSON.parse(localStorage.getItem('palletScanHistoryPro') || '[]');
-
-        function setBulkSplitRatio(leftPct) {
-            document.getElementById('bulk-left-queue').style.width = `${leftPct}%`;
-        }
+        function setBulkSplitRatio(leftPct) { document.getElementById('bulk-left-queue').style.width = `${leftPct}%`; }
         function updateBulkBarcodeSize(pct) {
-            document.getElementById('lbl-bulk-size').innerText = pct == 100 ? '100% (Default)' : `${pct}%`;
+            document.getElementById('lbl-bulk-size').innerText = `${pct}%`;
             document.getElementById('bulk-barcode-scaler').style.transform = `scale(${pct / 100})`;
         }
 
-        // Draggable Splitter Setup
         document.addEventListener('DOMContentLoaded', () => {
             const resizer = document.getElementById('bulk-resizer'), leftPane = document.getElementById('bulk-left-queue'), wrapper = document.getElementById('bulk-split-wrapper');
             if (resizer && leftPane && wrapper) {
@@ -1083,8 +1148,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 window.addEventListener('mousemove', (e) => {
                     if (!dragging) return;
                     const rect = wrapper.getBoundingClientRect();
-                    const pct = Math.min(75, Math.max(25, ((e.clientX - rect.left) / rect.width) * 100));
-                    leftPane.style.width = `${pct}%`;
+                    leftPane.style.width = `${Math.min(75, Math.max(25, ((e.clientX - rect.left) / rect.width) * 100))}%`;
                 });
             }
         });
@@ -1098,10 +1162,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 </div>
             `).join('');
         }
-        function addBulkColumn() {
-            const name = prompt("New column name:", `COL${bulkColumnHeaders.length + 1}`);
-            if (name && name.trim()) { bulkColumnHeaders.push(name.trim().toUpperCase()); renderBulkColumnEditor(); renderCurrentDeckSlide(); }
-        }
+        function addBulkColumn() { const name = prompt("New column name:", `COL${bulkColumnHeaders.length + 1}`); if (name?.trim()) { bulkColumnHeaders.push(name.trim().toUpperCase()); renderBulkColumnEditor(); renderCurrentDeckSlide(); } }
         function parseDynamicRow(line) { const parts = line.split(',').map(s => s.trim()); return { id: parts[0] || '', cols: parts }; }
         function extractGroupPrefix(idStr) { const m = idStr.trim().match(/^([A-Za-z\-_]+)/); return m ? m[1].replace(/[-_]+$/, '').toUpperCase() : 'ITEMS'; }
 
@@ -1137,48 +1198,70 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 routingHeader.innerHTML = rec.cols.slice(1).map((v, i) => v ? `<span class="px-2 py-0.5 rounded bg-zinc-100 border border-zinc-300 text-[11px]">${escapeHtml(bulkColumnHeaders[i + 1] || 'COL')}: ${escapeHtml(v)}</span>` : '').join('');
             } else routingHeader.classList.add('hidden');
 
-            badge.innerHTML = scannedSet.has(currentDeckIndex) ? `<span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Scanned (${currentDeckIndex + 1}/${bulkRecords.length})` : `<span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span> Ready (${currentDeckIndex + 1}/${bulkRecords.length})`;
-            try { bwipjs.toCanvas(canvas, { bcid: document.getElementById('batch-type').value, text: formatPayloadWithSuffix(rec.id, document.getElementById('batch-suffix').value), alttext: rec.id, parse: true, scale: 4, height: 18, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
+            badge.innerHTML = scannedSet.has(currentDeckIndex) ? `<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Scanned` : `<span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready`;
+            const barScale = parseInt(document.getElementById('stage-bar-scale')?.value) || 4;
+            const barHeight = parseInt(document.getElementById('stage-bar-height')?.value) || 18;
+            try { bwipjs.toCanvas(canvas, { bcid: document.getElementById('batch-type').value, text: formatPayloadWithSuffix(rec.id, document.getElementById('batch-suffix').value), alttext: rec.id, parse: true, scale: barScale, height: barHeight, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
             renderGroupedQueueColumns();
         }
+
+        // Queue with Search Filter + Copy Column + Copy All
         function renderGroupedQueueColumns() {
             const container = document.getElementById('deck-pills');
-            document.getElementById('vertical-queue-stats').innerText = `${scannedSet.size} / ${bulkRecords.length} Done`;
+            const query = (document.getElementById('queue-search-input')?.value || '').trim().toUpperCase();
+            document.getElementById('vertical-queue-stats').innerText = `${scannedSet.size}/${bulkRecords.length}`;
             container.innerHTML = '';
+
             const groups = new Map();
-            bulkRecords.forEach((rec, idx) => { const g = extractGroupPrefix(rec.id); if (!groups.has(g)) groups.set(g, []); groups.get(g).push({ rec, idx }); });
+            bulkRecords.forEach((rec, idx) => {
+                if (query && !rec.id.toUpperCase().includes(query)) return;
+                const g = extractGroupPrefix(rec.id);
+                if (!groups.has(g)) groups.set(g, []);
+                groups.get(g).push({ rec, idx });
+            });
+
             groups.forEach((entries, groupKey) => {
                 const colDiv = document.createElement('div');
-                colDiv.className = "min-w-[125px] flex-1 border theme-border rounded-lg theme-input p-1.5 space-y-1 shrink-0";
-                colDiv.innerHTML = `<div class="px-1.5 py-1 border-b theme-border text-[10px] font-mono font-bold text-emerald-500">${escapeHtml(groupKey)}</div>`;
+                colDiv.className = "min-w-[135px] flex-1 border theme-border rounded-lg theme-input p-1.5 space-y-1 shrink-0";
+                
+                // Column Header with Copy Column Button
+                const headerDiv = document.createElement('div');
+                headerDiv.className = "px-1.5 py-1 border-b theme-border flex items-center justify-between text-[10px] font-mono font-bold";
+                headerDiv.innerHTML = `<span class="text-emerald-500 truncate">${escapeHtml(groupKey)} (${entries.length})</span>`;
+                const copyColBtn = document.createElement('button');
+                copyColBtn.className = "px-1.5 py-0.2 rounded theme-elevated border text-[9px] hover:border-emerald-500";
+                copyColBtn.innerText = "Copy";
+                copyColBtn.onclick = () => copyTextValue(entries.map(e => e.rec.id).join('\n'));
+                headerDiv.appendChild(copyColBtn);
+                colDiv.appendChild(headerDiv);
+
                 entries.forEach(({ rec, idx }) => {
                     const btn = document.createElement('button');
                     btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
-                    btn.className = idx === currentDeckIndex ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-600 text-white font-bold" : scannedSet.has(idx) ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-500/15 text-emerald-500" : "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between theme-text-muted";
+                    btn.className = idx === currentDeckIndex ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-600 text-white font-bold" : scannedSet.has(idx) ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-500/15 text-emerald-500" : "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between theme-text-muted hover:theme-elevated";
                     btn.innerHTML = `<span class="truncate">${escapeHtml(rec.id)}</span><span>${scannedSet.has(idx) ? '✓' : '•'}</span>`;
                     colDiv.appendChild(btn);
                 });
                 container.appendChild(colDiv);
             });
         }
-        function handleDeckScanVerify() {
+
+        function copyAllQueueIds() {
             if (!bulkRecords.length) return;
-            const inp = document.getElementById('deck-scan-input'), val = inp.value.trim(), expected = bulkRecords[currentDeckIndex].id;
-            if (val === '' || val.toUpperCase() === expected.toUpperCase()) { inp.value = ''; markAndNextDeck(); }
-            else { playTone('error'); inp.value = ''; showToast(`Mismatch! Expected ${expected}`); }
+            copyTextValue(bulkRecords.map(r => r.id).join('\n'));
         }
+
         function markAndNextDeck() {
             if (!bulkRecords.length) return;
-            scannedSet.add(currentDeckIndex); playTone('success'); advanceArcadeOnScan(); logItem(bulkRecords[currentDeckIndex].id, 'Bulk Scan', true);
+            scannedSet.add(currentDeckIndex); playTone('success'); triggerArcadeScanAction();
             if (currentDeckIndex < bulkRecords.length - 1) currentDeckIndex++;
             renderCurrentDeckSlide();
         }
         function stepDeck(d) { if (bulkRecords.length) { currentDeckIndex = (currentDeckIndex + d + bulkRecords.length) % bulkRecords.length; renderCurrentDeckSlide(); } }
         function toggleAutoPlay() {
             const btn = document.getElementById('btn-autoplay');
-            if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Timer`; }
-            else { const sec = Math.max(0.5, parseFloat(document.getElementById('custom-timer-sec').value) || 2.5); autoPlayTimer = setInterval(() => stepDeck(1), sec * 1000); btn.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> ${sec}s`; }
-            lucide.createIcons();
+            if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; btn.innerText = "Play"; }
+            else { const sec = Math.max(0.5, parseFloat(document.getElementById('custom-timer-sec').value) || 2.5); autoPlayTimer = setInterval(() => stepDeck(1), sec * 1000); btn.innerText = "Pause"; }
         }
         function restartAutoPlayIfActive() { if (autoPlayTimer) { toggleAutoPlay(); toggleAutoPlay(); } }
         function generateSequenceList() {
@@ -1197,8 +1280,19 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 grid.appendChild(card);
             });
         }
+        async function decodeImageIntoBulk(e) {
+            const f = e.target.files[0]; if (!f) return;
+            try {
+                const t = await Html5Qrcode.scanFile(f, false);
+                const ta = document.getElementById('batch-input');
+                ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t;
+                loadBulkDeck(true); playTone('success'); showToast(`Decoded & Added: ${t}`);
+            } catch (err) { playTone('error'); alert("No barcode found in image."); }
+        }
 
-        // 5. CARRIER LABELS (1-BY-1 & GRID + TRUE PORTRAIT REARRANGEMENT)
+        // ==========================================
+        // 4. CARRIER LABELS, A4 NOTE, KEYBOARD CONTROLS & HELPERS
+        // ==========================================
         const DEFAULT_CLIENTS = [{ code: 'FF', name: 'FitFlop (Default)' }, { code: 'NC', name: "Nobody's Child" }, { code: 'OD', name: 'Oodie' }, { code: 'BLK', name: 'Bleckmann' }];
         const DEFAULT_CARRIERS = [{ code: 'RM', name: 'Royal Mail (Default)' }, { code: 'RMX', name: 'Royal Mail Express' }, { code: 'ASD', name: 'Asendia' }, { code: 'DPD', name: 'DPD UK' }, { code: 'DHL', name: 'DHL' }, { code: 'PF', name: 'Parcelforce' }, { code: 'EVR', name: 'Evri' }, { code: 'AMZ', name: 'Amazon' }];
         let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV2') || JSON.stringify(DEFAULT_CLIENTS));
@@ -1229,10 +1323,9 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
         }
         function setCarrierOrientation(orient) {
             carrierOrientation = orient;
-            const lBtn = document.getElementById('btn-orient-landscape'), pBtn = document.getElementById('btn-orient-portrait'), badge = document.getElementById('cl-orient-badge');
-            lBtn.className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            pBtn.className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            badge.innerText = orient === 'landscape' ? "150 × 100 MM LANDSCAPE" : "100 × 150 MM PORTRAIT";
+            document.getElementById('btn-orient-landscape').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
+            document.getElementById('btn-orient-portrait').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
+            document.getElementById('cl-orient-badge').innerText = orient === 'landscape' ? "150 × 100 MM LANDSCAPE" : "100 × 150 MM PORTRAIT";
             renderSelectedCarrierMockup();
             if (carrierViewMode === 'grid') renderCarrierGrid();
         }
@@ -1304,7 +1397,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         <div class="flex items-end"><span>SIGN:</span><span class="border-b border-zinc-800 flex-grow ml-1.5 h-3.5"></span></div>
                     </div>`;
             } else {
-                // Rearranged Vertical Portrait Layout (100x150mm) so nothing clips
                 box.innerHTML = `
                     <div class="border-b-2 border-zinc-900 pb-2 text-center font-mono font-black">
                         <div class="text-3xl tracking-tight">${escapeHtml(item.client)} — ${escapeHtml(item.carrier)}</div>
@@ -1336,9 +1428,8 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 const key = `${item.client}-${item.carrier}-${item.yymmdd}`;
                 if (!carrierUsageLedger[key]) carrierUsageLedger[key] = [];
                 if (!carrierUsageLedger[key].includes(item.serialNum)) carrierUsageLedger[key].push(item.serialNum);
-                logItem(item.fullCode, `Carrier (${item.client}-${item.carrier})`, true);
             });
-            localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); triggerRunnerJump(true); updateCarrierPreview();
+            localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); triggerArcadeScanAction(); updateCarrierPreview();
         }
         function resetCarrierDayHistory() {
             const c = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), r = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase(), y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
@@ -1360,21 +1451,14 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             win.document.close();
         }
 
-        // 6. A4 DELIVERY NOTE (AUTO-FIT + SECTION TOGGLES)
+        // A4 Delivery Note
         let a4Orientation = 'landscape';
-        function toggleA4Section(elId, show) {
-            document.getElementById(elId).classList.toggle('hidden', !show);
-            autoFitA4Content();
-        }
+        function toggleA4Section(elId, show) { document.getElementById(elId).classList.toggle('hidden', !show); autoFitA4Content(); }
         function autoFitA4Content() {
             const paper = document.getElementById('a4-paper-sheet'), inner = document.getElementById('a4-inner-scaler');
             inner.style.transform = 'scale(1)';
-            const availH = paper.clientHeight - 64;
-            const actualH = inner.scrollHeight;
-            if (actualH > availH) {
-                const ratio = Math.max(0.55, availH / actualH);
-                inner.style.transform = `scale(${ratio})`;
-            }
+            const availH = paper.clientHeight - 64, actualH = inner.scrollHeight;
+            if (actualH > availH) inner.style.transform = `scale(${Math.max(0.55, availH / actualH)})`;
         }
         function setOfficeMode(mode) {
             document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word');
@@ -1385,10 +1469,8 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             autoFitA4Content();
         }
         function setA4Orientation(orient) {
-            a4Orientation = orient;
-            const paper = document.getElementById('a4-paper-sheet');
-            paper.style.width = orient === 'landscape' ? "842px" : "595px";
-            paper.style.height = orient === 'landscape' ? "595px" : "842px";
+            a4Orientation = orient; const paper = document.getElementById('a4-paper-sheet');
+            paper.style.width = orient === 'landscape' ? "842px" : "595px"; paper.style.height = orient === 'landscape' ? "595px" : "842px";
             document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
             document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
             autoFitA4Content();
@@ -1396,11 +1478,9 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
         function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); }
         function addA4CustomField() {
             const label = prompt("Section Header:", "CUSTOM FIELD"); if (!label) return;
-            const div = document.createElement('div');
-            div.className = "resizable-box border-2 border-zinc-900 bg-zinc-50 text-zinc-950 p-3 relative group"; div.style.width = "48%";
+            const div = document.createElement('div'); div.className = "resizable-box border-2 border-zinc-900 bg-zinc-50 text-zinc-950 p-3 relative group"; div.style.width = "48%";
             div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button><div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">${escapeHtml(label)}</div><div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">ENTER VALUE</div>`;
-            document.getElementById('a4-fields-grid').appendChild(div);
-            autoFitA4Content();
+            document.getElementById('a4-fields-grid').appendChild(div); autoFitA4Content();
         }
         function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); autoFitA4Content(); }
         function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); }
@@ -1416,7 +1496,35 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             win.document.close();
         }
 
-        // 7. SOUND PACKS, FILE MANAGER, LISTENERS & GENERAL HELPERS
+        // Keyboard Controls for Games (Arrows, WASD, Space) + Scanner
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement?.tagName.toLowerCase(), isEd = document.activeElement?.isContentEditable;
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || isEd) return;
+
+            const g = document.getElementById('arcade-game-select').value;
+            const arcadeVisible = !document.getElementById('arcade-strip').classList.contains('hidden');
+
+            if (arcadeVisible) {
+                if (g === 'snake') {
+                    if ((e.key === 'ArrowUp' || e.key === 'w') && snake.dir.y !== 1) { e.preventDefault(); snake.dir = { x: 0, y: -1 }; return; }
+                    if ((e.key === 'ArrowDown' || e.key === 's') && snake.dir.y !== -1) { e.preventDefault(); snake.dir = { x: 0, y: 1 }; return; }
+                    if ((e.key === 'ArrowLeft' || e.key === 'a') && snake.dir.x !== 1) { e.preventDefault(); snake.dir = { x: -1, y: 0 }; return; }
+                    if ((e.key === 'ArrowRight' || e.key === 'd') && snake.dir.x !== -1) { e.preventDefault(); snake.dir = { x: 1, y: 0 }; return; }
+                } else if ((g === 'dino' || g === 'mario') && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w')) {
+                    e.preventDefault();
+                    handleArcadeCanvasClick();
+                    return;
+                }
+            }
+
+            if (!document.getElementById('view-bulk').classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') { e.preventDefault(); stepDeck(1); }
+                else if (e.key === 'ArrowLeft') { e.preventDefault(); stepDeck(-1); }
+                else if (e.key === ' ') { e.preventDefault(); markAndNextDeck(); }
+            }
+        });
+
+        // Sound Packs, File Manager & General Helpers
         let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true'), audioCtx = null;
         function playTone(type) {
             if (!audioEnabled) return;
@@ -1425,36 +1533,25 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 const now = audioCtx.currentTime, osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
                 const pack = document.getElementById('sound-pack-select')?.value || 'laser';
-                if (type === 'error') {
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(160, now); gain.gain.setValueAtTime(0.22, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
-                } else if (pack === 'arcade') {
-                    osc.type = 'square'; osc.frequency.setValueAtTime(987, now); osc.frequency.setValueAtTime(1318, now + 0.06);
-                    gain.gain.setValueAtTime(0.14, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
-                } else if (pack === 'click') {
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-                } else if (pack === 'chime') {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(1480, now); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-                } else {
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(2200, now); gain.gain.setValueAtTime(0.16, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                }
+                if (type === 'error') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(160, now); gain.gain.setValueAtTime(0.22, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18); }
+                else if (pack === 'arcade') { osc.type = 'square'; osc.frequency.setValueAtTime(987, now); osc.frequency.setValueAtTime(1318, now + 0.06); gain.gain.setValueAtTime(0.14, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16); }
+                else if (pack === 'click') { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03); }
+                else if (pack === 'chime') { osc.type = 'sine'; osc.frequency.setValueAtTime(1480, now); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15); }
+                else { osc.type = 'sine'; osc.frequency.setValueAtTime(2200, now); gain.gain.setValueAtTime(0.16, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08); }
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.18);
             } catch (e) {}
         }
-        function toggleAudio() {
-            audioEnabled = !audioEnabled; localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled));
-            const icon = document.getElementById('icon-audio'); icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x'); lucide.createIcons();
-        }
+        function toggleAudio() { audioEnabled = !audioEnabled; localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled)); const icon = document.getElementById('icon-audio'); icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x'); lucide.createIcons(); }
         function setTheme(mode) {
             document.documentElement.setAttribute('data-theme', mode); localStorage.setItem('wmsThemeMode', mode);
             ['dark', 'light', 'eye-protect'].forEach(m => { document.getElementById(`theme-${m}`).className = (m === mode) ? "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition" : "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition"; });
         }
         function switchTab(tab) {
-            ['bulk', 'carrier', 'a4note', 'tools'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all"; });
+            ['bulk', 'carrier', 'a4note'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all"; });
             document.getElementById(`view-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all";
-            if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'a4note') { renderA4Barcode(); autoFitA4Content(); } if (tab === 'tools') { renderLpnQr(); renderHistoryTable(); }
+            if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'a4note') { renderA4Barcode(); autoFitA4Content(); }
         }
 
-        // File Manager & Global Listeners
         let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || '{"folders":["Default Shift","Carrier Runs"],"activeFolder":"Default Shift","files":[]}');
         function saveWorkspaceState() { localStorage.setItem('wmsWorkspaceFilesV1', JSON.stringify(workspace)); document.getElementById('nav-file-count').innerText = workspace.files.length; }
         function toggleFileManager() { const d = document.getElementById('file-manager-drawer'), b = document.getElementById('file-manager-backdrop'); const open = !d.classList.contains('-translate-x-full'); d.classList.toggle('-translate-x-full', open); b.classList.toggle('hidden', open); if (!open) { renderFolderDropdown(); renderFileManager(); } }
@@ -1471,19 +1568,6 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
         function importWorkspaceJSON(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { workspace = JSON.parse(ev.target.result); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); }; r.readAsText(f); }
         function quickSavePrompt() { const n = prompt("Save task as:"); if (n) { document.getElementById('fm-task-name').value = n; saveCurrentTaskToFile(); } }
 
-        let gunBuffer = '', lastKeyTime = 0;
-        window.addEventListener('keydown', (e) => {
-            const tag = document.activeElement?.tagName.toLowerCase(), isEd = document.activeElement?.isContentEditable;
-            if (tag !== 'input' && tag !== 'textarea' && tag !== 'select' && !isEd) {
-                const now = Date.now(); if (now - lastKeyTime > 150) gunBuffer = ''; lastKeyTime = now;
-                if ((e.key === 'Enter' || e.key === 'Tab') && gunBuffer.length >= 3) {
-                    e.preventDefault(); const code = gunBuffer.trim(); gunBuffer = '';
-                    if (!document.getElementById('view-bulk').classList.contains('hidden')) { document.getElementById('deck-scan-input').value = code; handleDeckScanVerify(); }
-                    else if (!document.getElementById('view-tools').classList.contains('hidden')) { document.getElementById('lpn-child-input').value = code; addLpnChild(); }
-                } else if (e.key.length === 1) gunBuffer += e.key;
-            }
-        });
-
         function formatPayloadWithSuffix(raw, suf) { let t = raw.replace(/\\t/g, '^009').replace(/\\r/g, '^013'); return suf === 'enter' ? t + '^013' : (suf === 'tab' ? t + '^009' : t); }
         function exportCurrentPNG() { const l = document.createElement('a'); l.download = `barcode.png`; l.href = document.getElementById('deck-canvas').toDataURL('image/png'); l.click(); }
         function exportCurrentSVG() { const svg = bwipjs.toSVG({ bcid: document.getElementById('batch-type').value, text: bulkRecords[currentDeckIndex]?.id || '123', scale: 3, height: 18, includetext: true, textxalign: 'center' }); const l = document.createElement('a'); l.download = `barcode.svg`; l.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })); l.click(); }
@@ -1498,17 +1582,8 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             win.document.write(`<html><head><style>@page{size:150mm 100mm;margin:0;}body{margin:0;}</style></head><body>${ren.map(r => `<div style="width:150mm;height:100mm;padding:5mm;box-sizing:border-box;page-break-after:always;display:flex;justify-content:center;align-items:center;font-family:monospace;"><div style="border:2px solid #000;padding:12px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div>${escapeHtml(r.cols.slice(1).filter(Boolean).join(' | '))}</div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="font-weight:bold;">${escapeHtml(r.id)}</div></div></div>`).join('')}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
             win.document.close();
         }
-        let lpnChildren = ['CTN-00192', 'CTN-00193'];
-        function addLpnChild() { const inp = document.getElementById('lpn-child-input'); if (!inp.value.trim()) return; lpnChildren.push(inp.value.trim()); inp.value = ''; playTone('success'); advanceArcadeOnScan(); renderLpnQr(); }
-        function renderLpnQr() { const m = document.getElementById('lpn-master').value.trim() || 'PLT-MASTER', d = document.getElementById('lpn-delim').value; document.getElementById('lpn-child-count').innerText = `Child Cartons (${lpnChildren.length})`; document.getElementById('lpn-child-list').innerHTML = lpnChildren.map((c, i) => `<span class="px-2 py-0.5 rounded theme-elevated border text-[11px] font-mono">${escapeHtml(c)} <button onclick="lpnChildren.splice(${i},1);renderLpnQr();" class="text-red-400">×</button></span>`).join(''); bwipjs.toCanvas(document.getElementById('lpn-qr-canvas'), { bcid: 'qrcode', text: `MASTER:${m}|ITEMS:${lpnChildren.join(d)}`, scale: 3, backgroundcolor: 'ffffff' }); }
-        function printConsolidatedSheet() { const m = document.getElementById('lpn-master').value, q = document.getElementById('lpn-qr-canvas').toDataURL('image/png'), w = window.open('', '_blank'); w.document.write(`<html><body style="font-family:monospace;text-align:center;"><h2>${escapeHtml(m)}</h2><img src="${q}"/><p>${lpnChildren.join(', ')}</p><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`); w.document.close(); }
         function importSpreadsheet(e, id) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { document.getElementById(id).value = ev.target.result.trim(); loadBulkDeck(false); }; r.readAsText(f); }
-        async function scanUploadedFile(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); document.getElementById('file-scan-box').classList.remove('hidden'); document.getElementById('file-scan-text').innerText = t; playTone('success'); advanceArcadeOnScan(); logItem(t, 'Image', true); } catch (err) { playTone('error'); } }
-        function logItem(data, method) { scanHistory.unshift({ data, method, timestamp: new Date().toLocaleTimeString() }); localStorage.setItem('palletScanHistoryPro', JSON.stringify(scanHistory)); document.getElementById('nav-scan-count').innerText = scanHistory.length; renderHistoryTable(); }
-        function renderHistoryTable() { document.getElementById('history-tbody').innerHTML = scanHistory.map((i, idx) => `<tr><td class="p-2">${scanHistory.length-idx}</td><td class="p-2 font-bold">${escapeHtml(i.data)}</td><td class="p-2">${escapeHtml(i.method)}</td><td class="p-2">${i.timestamp}</td></tr>`).join(''); }
-        function exportHistoryCSV() { let csv = "data:text/csv;charset=utf-8,ID,Source,Time\n" + scanHistory.map(i => `"${i.data}","${i.method}","${i.timestamp}"`).join('\n'); const l = document.createElement('a'); l.href = encodeURI(csv); l.download = `log.csv`; l.click(); }
         function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
-        function clearHistoryLog() { scanHistory = []; localStorage.removeItem('palletScanHistoryPro'); renderHistoryTable(); document.getElementById('nav-scan-count').innerText = '0'; }
 
         let feedbackList = JSON.parse(localStorage.getItem('wmsFeedbackBoardV1') || '[]');
         function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); }
@@ -1525,8 +1600,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             saveWorkspaceState(); renderBulkColumnEditor(); renderClientCarrierPresets(); renderFeedbackBoard();
             document.getElementById('cl-date').value = getTodayIsoDate();
             autoSetNextAvailableSerial(); renderA4Barcode(); loadBulkDeck(false);
-            document.getElementById('nav-scan-count').innerText = scanHistory.length;
-            drawArcadeStaticFrame();
+            startArcadeEngine();
         };
 
         if ('serviceWorker' in navigator) {

@@ -35,7 +35,7 @@
     <style>
         :root, html[data-theme="dark"] {
             --bg-main: #09090b;
-            --bg-card: rgba(24, 24, 27, 0.82);
+            --bg-card: rgba(24, 24, 27, 0.85);
             --bg-input: #09090b;
             --bg-elevated: #18181b;
             --text-main: #f4f4f5;
@@ -83,15 +83,14 @@
             background-size: 16px 16px;
         }
         .checkerboard-bg {
-            background-image: linear-gradient(45deg, #e4e4e7 25%, transparent 25%), linear-gradient(-45deg, #e4e4e7 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e4e4e7 75%), linear-gradient(-45deg, transparent 75%, #e4e4e7 75%);
+            background-image: linear-gradient(45deg, #d4d4d8 25%, transparent 25%), linear-gradient(-45deg, #d4d4d8 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d4d4d8 75%), linear-gradient(-45deg, transparent 75%, #d4d4d8 75%);
             background-size: 14px 14px;
             background-position: 0 0, 0 7px, 7px -7px, -7px 0;
         }
-        .resizable-box { resize: both; overflow: auto; min-width: 110px; min-height: 40px; }
+        .resizable-box { resize: both; overflow: auto; min-width: 90px; min-height: 32px; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: var(--bg-main); }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-        input[type="range"] { accent-color: #10b981; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-500">
@@ -138,7 +137,7 @@
                 <span class="hidden lg:inline text-[11px]">Calc</span>
             </button>
 
-            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Reflow Page Zoom (Rearranges layout to fit)">
+            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Reflow Page Zoom">
                 <button onclick="adjustPageZoom(-10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">-</button>
                 <input type="number" id="page-zoom-input" value="100" min="60" max="150" onchange="setManualPageZoom(this.value)" class="w-11 bg-transparent text-center text-[11px] font-mono font-bold outline-none">
                 <span class="text-[10px] font-mono theme-text-dim pr-0.5">%</span>
@@ -147,7 +146,7 @@
 
             <button onclick="toggleArcadeDrawer()" title="Open 3-Game Arcade" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-                <span class="hidden xl:inline text-[11px] font-mono" id="nav-arcade-score">Arcade: 0</span>
+                <span class="hidden xl:inline text-[11px] font-mono" id="nav-arcade-score">Arcade</span>
             </button>
 
             <div class="flex items-center theme-input border rounded-lg p-0.5">
@@ -216,43 +215,48 @@
         </div>
     </div>
 
-    <!-- TOP ARCADE DOCK (Moves automatically into Scanning Mode when Scanning Mode is active) -->
+    <!-- TOP ARCADE DOCK (Moves automatically into Scanning Mode when enabled) -->
     <div id="arcade-top-host">
         <div id="arcade-strip" class="hidden border-b theme-border theme-card px-4 py-3 transition-all">
-            <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
                 
-                <!-- Game Controls & Start/Reset -->
+                <!-- Game Controls, Level 1-100 Selector & Start Button -->
                 <div class="space-y-1.5">
                     <div class="flex flex-wrap items-center gap-2">
                         <select id="arcade-game-select" onchange="prepareArcadeGame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none">
-                            <option value="dino" selected>1. Chrome Dino Runner (Def)</option>
+                            <option value="dino" selected>1. Chrome Dino (Def)</option>
                             <option value="mario">2. Super Mario World</option>
                             <option value="snake">3. Classic Snake</option>
                         </select>
+
+                        <div class="flex items-center gap-1 theme-input border rounded-lg px-2 py-1 text-xs font-mono">
+                            <span class="theme-text-dim text-[10px]">LVL (1-100):</span>
+                            <input type="number" id="arcade-level-input" value="1" min="1" max="100" onchange="syncArcadeLevel(this.value)" class="w-11 bg-transparent font-bold text-emerald-500 text-center outline-none">
+                        </div>
+
                         <button onclick="startSelectedArcadeGame()" id="btn-arcade-start" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow flex items-center gap-1">
-                            <i data-lucide="play" class="w-3.5 h-3.5"></i> Start Game
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i> Start
                         </button>
-                        <span id="arcade-mode-badge" class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px] font-bold">MANUAL (Arrows / Space / Click)</span>
                     </div>
-                    <p id="arcade-controls-hint" class="text-[11px] theme-text-muted font-mono">
-                        Press <b>Start Game</b> to begin! Difficulty increases as your score climbs.
-                    </p>
+                    <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono theme-text-muted">
+                        <span id="arcade-mode-badge" class="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-bold text-[10px]">MANUAL (Arrows / Space / Click)</span>
+                        <span>Level 1 = Easy → Level 100 = Extreme</span>
+                    </div>
                 </div>
 
-                <!-- Theme-Blended Game Canvas with Parallax Background Elements -->
+                <!-- Theme-Blended Game Canvas (Fits 100% Scale cleanly) -->
                 <div class="flex items-center gap-3 relative">
                     <div class="relative">
-                        <canvas id="arcade-canvas" width="520" height="124" onclick="handleArcadeCanvasClick()" class="rounded-xl border theme-border cursor-pointer"></canvas>
-                        <!-- Start / Game Over Overlay -->
-                        <div id="arcade-overlay" class="absolute inset-0 rounded-xl flex flex-col items-center justify-center bg-black/55 backdrop-blur-[1px] text-white">
-                            <div id="arcade-overlay-title" class="text-sm font-mono font-black tracking-wider uppercase">READY TO PLAY</div>
+                        <canvas id="arcade-canvas" width="460" height="116" onclick="handleArcadeCanvasClick()" class="rounded-xl border theme-border cursor-pointer"></canvas>
+                        <div id="arcade-overlay" class="absolute inset-0 rounded-xl flex flex-col items-center justify-center bg-black/60 backdrop-blur-[1px] text-white">
+                            <div id="arcade-overlay-title" class="text-xs sm:text-sm font-mono font-black tracking-wider uppercase">PRESS START TO PLAY</div>
                             <button onclick="startSelectedArcadeGame()" class="mt-1.5 px-4 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-xs font-bold shadow">START GAME</button>
                         </div>
                     </div>
                     <div class="text-right font-mono text-xs shrink-0 space-y-1">
                         <div class="font-bold text-emerald-500 text-sm" id="arcade-score-lbl">SCORE: 0000</div>
                         <div class="text-[11px] theme-text-dim" id="arcade-hi-lbl">BEST: 0000</div>
-                        <div class="text-[10px] text-amber-400 font-bold" id="arcade-lvl-lbl">SPEED: 1.0x</div>
+                        <div class="text-[11px] text-amber-400 font-bold" id="arcade-lvl-lbl">LVL 1 • ♥♥♥</div>
                     </div>
                 </div>
             </div>
@@ -318,7 +322,7 @@
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
-             TAB 1: BULK & LABELS (SIZE & APPEARANCE CONTROLS + GAP/DUP DETECTOR + N-UP A4 PRINT)
+             TAB 1: BULK & LABELS (SYMBOLOGY-STYLE APPEARANCE DROPDOWNS + REMOVE DUPLICATES + SCANNING MODE GAME TOGGLE)
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -367,7 +371,7 @@
                     <div>
                         <div class="flex justify-between text-[11px] theme-text-muted mb-1">
                             <span>Schema: <code id="bulk-schema-hint" class="font-mono text-emerald-500">ID, SKU, QTY, LANE</code></span>
-                            <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">6 items</span>
+                            <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">5 items</span>
                         </div>
                         <textarea id="batch-input" rows="5" oninput="loadBulkDeck(false)" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM01, SKU-101, 24, LANE-1
 FF-RM03, SKU-101, 24, LANE-1
@@ -376,78 +380,98 @@ FF-DPD01, SKU-505, 40, DOCK-A
 FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
 
-                    <!-- SIZE & APPEARANCE CUSTOMIZATION PANEL -->
-                    <div class="p-3 rounded-xl border theme-border theme-elevated/50 space-y-3">
-                        <div class="flex items-center justify-between border-b theme-border pb-1.5">
-                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">Size & Appearance</span>
-                            <button onclick="resetBulkAppearance()" class="text-[10px] theme-text-muted hover:underline">Reset (Default)</button>
+                    <!-- SYMBOLOGY, SUFFIX, SIZE & APPEARANCE (CLEAN MATCHING DROPDOWN STYLE) -->
+                    <div class="space-y-3 pt-2 border-t theme-border">
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
+                                <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="code128" selected>Code 128 (Default)</option>
+                                    <option value="gs1-128">GS1-128</option>
+                                    <option value="code39">Code 39</option>
+                                    <option value="qrcode">QR Code (2D)</option>
+                                    <option value="datamatrix">Data Matrix (2D)</option>
+                                    <option value="itf14">ITF-14</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Keystroke Suffix</label>
+                                <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="none" selected>None (Default)</option>
+                                    <option value="enter">Enter (\r)</option>
+                                    <option value="tab">Tab (\t)</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Size: Width (Scale), Height, Font Size -->
+                        <!-- Size Dropdowns (Width, Height, Font Size) -->
                         <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Width: <b id="lbl-b-width">4x (Def)</b></label>
-                                <input type="range" id="bulk-bar-width" min="1" max="6" value="4" oninput="document.getElementById('lbl-b-width').innerText=this.value+'x'; renderCurrentDeckSlide();" class="w-full">
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Width</label>
+                                <select id="bulk-bar-width" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="2">2x (Slim)</option>
+                                    <option value="3">3x (Medium)</option>
+                                    <option value="4" selected>4x (Default)</option>
+                                    <option value="5">5x (Wide)</option>
+                                    <option value="6">6x (XL)</option>
+                                </select>
                             </div>
                             <div>
-                                <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Height: <b id="lbl-b-height">18mm (Def)</b></label>
-                                <input type="range" id="bulk-bar-height" min="8" max="40" value="18" oninput="document.getElementById('lbl-b-height').innerText=this.value+'mm'; renderCurrentDeckSlide();" class="w-full">
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Height</label>
+                                <select id="bulk-bar-height" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="12">12mm (Short)</option>
+                                    <option value="18" selected>18mm (Default)</option>
+                                    <option value="24">24mm (Tall)</option>
+                                    <option value="32">32mm (XL)</option>
+                                </select>
                             </div>
                             <div>
-                                <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Font: <b id="lbl-b-font">12pt (Def)</b></label>
-                                <input type="range" id="bulk-font-size" min="8" max="20" value="12" oninput="document.getElementById('lbl-b-font').innerText=this.value+'pt'; renderCurrentDeckSlide();" class="w-full">
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Font Size</label>
+                                <select id="bulk-font-size" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="9">9pt (Small)</option>
+                                    <option value="12" selected>12pt (Default)</option>
+                                    <option value="15">15pt (Large)</option>
+                                    <option value="18">18pt (XL)</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Quiet Zone & HRI / Transparent Toggles -->
-                        <div class="grid grid-cols-3 gap-2 items-center pt-1">
+                        <!-- Appearance Dropdowns (HRI Text ON/OFF, Background / Transparent, Quiet Zone) -->
+                        <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Quiet Zone: <b id="lbl-b-pad">10px</b></label>
-                                <input type="range" id="bulk-quiet-zone" min="0" max="30" value="10" oninput="document.getElementById('lbl-b-pad').innerText=this.value+'px'; renderCurrentDeckSlide();" class="w-full">
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">HRI Text</label>
+                                <select id="bulk-hri-mode" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="on" selected>ON (Default)</option>
+                                    <option value="off">OFF (Bars Only)</option>
+                                </select>
                             </div>
-                            <label class="flex items-center gap-1.5 text-xs font-medium cursor-pointer pt-2">
-                                <input type="checkbox" id="chk-bulk-hri" checked onchange="renderCurrentDeckSlide()" class="accent-emerald-500">
-                                <span>HRI Text ON</span>
-                            </label>
-                            <label class="flex items-center gap-1.5 text-xs font-medium cursor-pointer pt-2">
-                                <input type="checkbox" id="chk-bulk-trans" onchange="renderCurrentDeckSlide()" class="accent-emerald-500">
-                                <span>Transparent</span>
-                            </label>
+                            <div>
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Background</label>
+                                <select id="bulk-bg-mode" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="solid" selected>Solid (Default)</option>
+                                    <option value="transparent">Transparent</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Quiet Zone</label>
+                                <select id="bulk-quiet-zone" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                    <option value="4">4px (Tight)</option>
+                                    <option value="10" selected>10px (Default)</option>
+                                    <option value="18">18px (Wide)</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <!-- Bar Color & Background Color -->
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                            <div class="flex items-center justify-between theme-input border rounded px-2.5 py-1.5 text-xs">
+                        <!-- Colours -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center justify-between theme-input border rounded-lg px-2.5 py-1.5 text-xs">
                                 <span class="theme-text-muted">Bar Colour</span>
                                 <input type="color" id="bulk-fg-color" value="#000000" onchange="renderCurrentDeckSlide()" class="w-5 h-5 bg-transparent border-0 cursor-pointer">
                             </div>
-                            <div class="flex items-center justify-between theme-input border rounded px-2.5 py-1.5 text-xs">
-                                <span class="theme-text-muted">Background</span>
+                            <div class="flex items-center justify-between theme-input border rounded-lg px-2.5 py-1.5 text-xs">
+                                <span class="theme-text-muted">Bg Colour</span>
                                 <input type="color" id="bulk-bg-color" value="#ffffff" onchange="renderCurrentDeckSlide()" class="w-5 h-5 bg-transparent border-0 cursor-pointer">
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Symbology & Keystroke Suffix -->
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
-                            <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
-                                <option value="code128" selected>Code 128 (Default)</option>
-                                <option value="gs1-128">GS1-128</option>
-                                <option value="code39">Code 39</option>
-                                <option value="qrcode">QR Code (2D)</option>
-                                <option value="datamatrix">Data Matrix (2D)</option>
-                                <option value="itf14">ITF-14</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Suffix</label>
-                            <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
-                                <option value="none" selected>None (Default)</option>
-                                <option value="enter">Enter (\r)</option>
-                                <option value="tab">Tab (\t)</option>
-                            </select>
                         </div>
                     </div>
                 </div>
@@ -456,18 +480,24 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             <!-- Right Column: Queue Status (Left) + Barcode Stage (Right) — Expands to 12 Cols in Scanning Mode -->
             <div id="bulk-stage-column" class="lg:col-span-8 space-y-4">
 
-                <!-- SCANNING MODE ARCADE DOCK (Arcade moves here automatically when Scanning Mode is toggled ON) -->
+                <!-- SCANNING MODE ARCADE DOCK -->
                 <div id="scanning-mode-arcade-dock"></div>
 
                 <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
-                    <!-- Top Stage Control Bar (Split Buttons Removed; Drag Handle Retained) -->
+                    <!-- Top Stage Control Bar -->
                     <div class="px-4 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <button onclick="toggleScanningMode()" id="btn-scan-mode" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs">
                                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
                                 <span id="lbl-scan-mode">Enter Scanning Mode</span>
                             </button>
+
+                            <!-- Option to Turn ON/OFF Game inside Scanning Mode -->
+                            <label id="scan-mode-game-toggle-wrap" class="hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border theme-input text-xs font-semibold cursor-pointer">
+                                <input type="checkbox" id="chk-scan-mode-game" checked onchange="toggleGameInsideScanMode(this.checked)" class="accent-emerald-500">
+                                <span>Game ON</span>
+                            </label>
 
                             <span class="px-2.5 py-1 rounded-md theme-elevated border font-mono text-xs font-bold" id="deck-counter">1 / 5</span>
 
@@ -493,14 +523,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 20%"></div>
                     </div>
 
-                    <!-- RESIZABLE SPLIT (DRAG HANDLE ONLY): LEFT = SMART QUEUE | RIGHT = BARCODE STAGE -->
-                    <div id="bulk-split-wrapper" class="flex flex-col md:flex-row min-h-[420px] relative">
+                    <!-- DRAG-RESIZABLE SPLIT: LEFT = SMART QUEUE (WITH REMOVE DUPLICATES) | RIGHT = BARCODE STAGE -->
+                    <div id="bulk-split-wrapper" class="flex flex-col md:flex-row min-h-[400px] relative">
                         
-                        <!-- LEFT PANEL: QUEUE STATUS WITH SMART GAP & DUPLICATE DETECTOR -->
-                        <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[500px] shrink-0">
+                        <!-- LEFT PANEL: QUEUE STATUS -->
+                        <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[480px] shrink-0">
                             <div class="px-3 py-2 border-b theme-border theme-elevated flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-mono">
                                 <span class="font-bold uppercase">Queue (<span id="vertical-queue-stats" class="text-emerald-500">0/5</span>)</span>
-                                <button onclick="copyAllQueueIds()" class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-semibold hover:bg-emerald-500">Copy All</button>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="removeDuplicateQueueIds()" id="btn-remove-dups" class="hidden px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] font-bold hover:bg-amber-500 hover:text-black">Remove Dups</button>
+                                    <button onclick="copyAllQueueIds()" class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-semibold hover:bg-emerald-500">Copy All</button>
+                                </div>
                             </div>
 
                             <!-- Smart Gap & Duplicate Detector Alert Banner -->
@@ -513,7 +546,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                                     <input type="text" id="queue-search-input" oninput="renderGroupedQueueColumns()" placeholder="Search ID..." class="w-full theme-card border rounded pl-8 pr-2 py-1 text-xs font-mono outline-none focus:border-emerald-500">
                                 </div>
                             </div>
-                            <!-- Grouped Columns Container -->
                             <div id="deck-pills" class="flex-grow overflow-auto p-2.5 flex gap-2 items-start"></div>
                         </div>
 
@@ -524,14 +556,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                         <!-- RIGHT PANEL: BARCODE DISPLAY STAGE -->
                         <div id="deck-stage-box" class="flex-grow canvas-grid p-6 flex flex-col items-center justify-center relative overflow-auto">
-                            
-                            <!-- Barcode Card -->
                             <div id="bulk-card-frame" class="bg-white text-zinc-950 p-5 rounded-xl shadow-2xl flex flex-col items-center justify-center max-w-full border-2 border-zinc-200 transition-colors">
                                 <div id="deck-routing-header" class="w-full border-b-2 border-zinc-900 pb-2 mb-3 flex flex-wrap justify-between items-center gap-2 text-xs font-mono font-bold"></div>
                                 <canvas id="deck-canvas" class="max-w-full"></canvas>
                             </div>
 
-                            <!-- Current ID & Status Pill -->
                             <div class="mt-4 flex items-center gap-2 z-10">
                                 <span id="deck-scanned-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase theme-elevated border flex items-center gap-1.5">
                                     <span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready
@@ -545,7 +574,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                     </div>
 
-                    <!-- ACCESSIBLE PREV / MARK SCANNED & NEXT CONTROLS BAR -->
+                    <!-- PREV / MARK SCANNED & NEXT CONTROLS BAR -->
                     <div class="px-4 py-3 border-t theme-border theme-elevated grid grid-cols-3 gap-2.5">
                         <button onclick="stepDeck(-1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.99]">
                             <i data-lucide="arrow-left" class="w-4 h-4"></i> Previous
@@ -558,7 +587,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </button>
                     </div>
 
-                    <!-- Export & Multi-Label "N-Up" A4 Sheet Print Footer -->
+                    <!-- Export & Multi-Label N-Up A4 Sheet Print Footer -->
                     <div class="px-4 py-2.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex gap-1.5">
                             <button onclick="exportCurrentPNG()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px]">PNG</button>
@@ -567,7 +596,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2">
-                            <!-- N-Up A4 Sheet Print Selector -->
                             <div class="flex items-center theme-input border rounded-lg p-0.5 gap-1">
                                 <select id="nup-layout-select" class="bg-transparent text-[11px] font-mono px-1.5 py-1 outline-none">
                                     <option value="8">8-Up A4 Sheet</option>
@@ -599,38 +627,14 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             </div>
         </section>
         <!-- ==========================================
-             TAB 2: CARRIER LABELS (1-CLICK DEFAULT SHIFT BATCH + 2 COPIES DEFAULT)
+             TAB 2: CARRIER LABELS (CUSTOM RUN ON TOP + SMART SAME-DAY CHECK + 1-CLICK SHIFT BATCH BELOW)
              ========================================== -->
         <section id="view-carrier" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             <!-- Left Column (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 
-                <!-- 1-CLICK DEFAULT SHIFT BATCH CARD (FF-DPD: 5, FF-RMX: 5, FF-ASD: 5, FF-RM: 25 | 2 COPIES DEFAULT) -->
-                <div class="theme-card border-2 border-emerald-500/40 rounded-xl p-4 space-y-3 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
-                            <i data-lucide="zap" class="w-4 h-4"></i> 1-Click Shift Preset Batch
-                        </span>
-                        <button onclick="customizeDefaultShiftBatch()" class="text-[11px] theme-text-muted hover:text-emerald-500 underline font-medium">Customise Batch</button>
-                    </div>
-
-                    <div id="shift-batch-summary-pills" class="flex flex-wrap gap-1.5 text-[11px] font-mono"></div>
-
-                    <div class="grid grid-cols-12 gap-2 items-center pt-1">
-                        <div class="col-span-5">
-                            <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Copies / Label (2 Def)</label>
-                            <input type="number" id="cl-copies-per-label" value="2" min="1" max="20" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold outline-none">
-                        </div>
-                        <div class="col-span-7 pt-3.5">
-                            <button onclick="executeOneClickShiftBatch()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition">
-                                <i data-lucide="printer" class="w-4 h-4"></i> Print Full Shift Batch
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Individual Carrier Label Builder -->
+                <!-- 1. CUSTOM CARRIER RUN (NOW ON TOP + COPIES PER LABEL INCLUDED) -->
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex items-center justify-between border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
@@ -702,28 +706,34 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </div>
                     </div>
 
-                    <!-- Start Serial # on Left, Labels Required (Qty) on Right -->
-                    <div class="grid grid-cols-2 gap-3 pt-2 border-t theme-border">
+                    <!-- Start Serial # (Left), Labels Required (Middle), Copies / Label (Right - 2 Def) -->
+                    <div class="grid grid-cols-3 gap-2.5 pt-2 border-t theme-border">
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label class="text-[10px] uppercase theme-text-dim">Start Serial #</label>
-                                <button onclick="autoSetNextAvailableSerial()" class="text-[10px] text-emerald-500 hover:underline font-semibold">Auto-Next</button>
+                                <label class="text-[10px] uppercase theme-text-dim">Start #</label>
+                                <button onclick="autoSetNextAvailableSerial()" class="text-[9px] text-emerald-500 hover:underline font-bold">Auto</button>
                             </div>
-                            <input type="number" id="cl-start-serial" value="1" min="1" max="9999" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none">
+                            <input type="number" id="cl-start-serial" value="1" min="1" max="9999" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-sm font-mono font-bold outline-none">
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Labels Required (Qty)</label>
-                            <input type="number" id="cl-qty" value="4" min="1" max="200" oninput="updateCarrierPreview()" class="w-full theme-input border-2 border-emerald-500/40 rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none">
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Qty Req</label>
+                            <input type="number" id="cl-qty" value="4" min="1" max="200" oninput="updateCarrierPreview()" class="w-full theme-input border-2 border-emerald-500/40 rounded-lg px-2.5 py-2 text-sm font-mono font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Copies (2 Def)</label>
+                            <input type="number" id="cl-copies-per-label" value="2" min="1" max="20" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-sm font-mono font-bold outline-none">
                         </div>
                     </div>
 
-                    <!-- Same-Day Usage Check -->
-                    <div class="p-3 rounded-lg border theme-elevated space-y-1.5">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="font-semibold">Same-Day Usage Check</span>
-                            <button onclick="resetCarrierDayHistory()" class="text-[10px] text-red-400 hover:underline">Reset Today</button>
+                    <!-- SMART SAME-DAY USAGE CHECK (SORTED BY CARRIER TYPE + SUGGESTS NEXT AVAILABLE) -->
+                    <div class="p-3 rounded-lg border theme-elevated space-y-2">
+                        <div class="flex items-center justify-between text-xs border-b theme-border pb-1.5">
+                            <span class="font-bold flex items-center gap-1.5">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-500"></i> Smart Same-Day Check (Sorted by Type)
+                            </span>
+                            <button onclick="resetCarrierDayHistory()" class="text-[10px] text-red-400 hover:underline">Reset All Today</button>
                         </div>
-                        <div id="cl-used-summary" class="text-xs font-mono theme-text-muted leading-relaxed">No labels used yet today.</div>
+                        <div id="cl-smart-usage-list" class="space-y-1.5 text-xs font-mono max-h-36 overflow-y-auto"></div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2.5 pt-1">
@@ -735,9 +745,43 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         </button>
                     </div>
                 </div>
+
+                <!-- 2. MOVED DOWN: 1-CLICK SHIFT PRESET BATCH WITH FULL INLINE EDITOR -->
+                <div class="theme-card border-2 border-emerald-500/40 rounded-xl p-4 space-y-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-4 h-4"></i> 1-Click Shift Preset Batch
+                        </span>
+                        <button onclick="toggleShiftBatchEditor()" class="text-[11px] text-emerald-500 hover:underline font-semibold">Edit / Add Rules</button>
+                    </div>
+
+                    <div id="shift-batch-summary-pills" class="flex flex-wrap gap-1.5 text-[11px] font-mono"></div>
+
+                    <!-- Expandable Full Shift Batch Customizer (Client, Carrier, Qty, Date, Start Serial) -->
+                    <div id="shift-batch-editor" class="hidden space-y-2 pt-2 border-t theme-border">
+                        <div class="grid grid-cols-12 gap-1 text-[9px] font-mono uppercase theme-text-dim px-1">
+                            <span class="col-span-2">Client</span>
+                            <span class="col-span-3">Carrier</span>
+                            <span class="col-span-2">Qty</span>
+                            <span class="col-span-2">Start#</span>
+                            <span class="col-span-2">Date</span>
+                            <span class="col-span-1"></span>
+                        </div>
+                        <div id="shift-batch-rows" class="space-y-1.5"></div>
+                        <div class="flex justify-between pt-1">
+                            <button onclick="addShiftBatchRuleRow()" class="text-xs text-emerald-500 hover:underline font-semibold">+ Add Carrier Row</button>
+                            <button onclick="saveShiftBatchRules()" class="px-3 py-1 rounded bg-emerald-600 text-white text-xs font-semibold">Save Batch Rules</button>
+                        </div>
+                    </div>
+
+                    <button onclick="executeOneClickShiftBatch()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Print Full Shift Batch (Uses Copies/Label Setting)
+                    </button>
+                </div>
+
             </div>
 
-            <!-- Right Column: 1-by-1 & Grid View Toggle + Copy Expansion Preview (7 Cols) -->
+            <!-- Right Column: 1-by-1 & Grid View Toggle + Preview (7 Cols) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     <div class="px-5 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
@@ -772,13 +816,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 3: NOTES (WORD DOC & EXCEL SHEET + ALL SECTIONS OPTIONAL + CURRENT DATE TEMPLATE)
+             TAB 3: NOTES (FULL WORD / EXCEL STUDIO + FONT SIZE 1-150 + LINE SPACING + REMOVE ANY ELEMENT)
              ========================================== -->
         <section id="view-a4note" class="hidden space-y-4">
             
             <div class="theme-card border rounded-xl p-3 shadow-sm space-y-2.5">
-                <div class="flex flex-wrap items-center justify-between gap-3 border-b theme-border pb-2.5">
-                    <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-2.5">
+                    <div class="flex flex-wrap items-center gap-2">
                         <div class="flex theme-input p-0.5 rounded-lg border text-xs">
                             <button onclick="setOfficeMode('word')" id="btn-office-word" class="px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5">
                                 <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Word Doc
@@ -788,49 +832,73 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </button>
                         </div>
 
-                        <!-- Toggle ANY Section On/Off (Header, Fields, Barcode, Sign Strip) -->
-                        <div class="flex flex-wrap items-center gap-2 text-xs pl-2 border-l theme-border">
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-header" checked onchange="toggleA4Section('a4-header-section', this.checked)" class="accent-emerald-500"> Title</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-fields" checked onchange="toggleA4Section('a4-fields-grid', this.checked)" class="accent-emerald-500"> Fields</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-barcode" checked onchange="toggleA4Section('a4-barcode-card', this.checked)" class="accent-emerald-500"> Barcode</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-sign" checked onchange="toggleA4Section('a4-footer-section', this.checked)" class="accent-emerald-500"> Sign Strip</label>
+                        <!-- Add New Elements Menu -->
+                        <div class="flex flex-wrap items-center gap-1.5 pl-2 border-l theme-border text-xs">
+                            <button onclick="addA4CustomField()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Field Box</button>
+                            <button onclick="addA4BarcodeBlock()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Barcode</button>
+                            <button onclick="addA4DividerLine()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Line</button>
+                            <button onclick="addA4SignBlock()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Sign Strip</button>
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-2">
                         <div class="flex theme-input p-0.5 rounded-lg border text-[11px]">
                             <button onclick="setA4Orientation('landscape')" id="btn-a4-land" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Landscape (Def)</button>
                             <button onclick="setA4Orientation('portrait')" id="btn-a4-port" class="px-2.5 py-1 rounded font-medium theme-text-muted">Portrait</button>
                         </div>
-                        <button onclick="addA4CustomField()" class="px-2.5 py-1.5 rounded-lg theme-elevated border hover:border-emerald-500 text-xs font-semibold">+ Add Box</button>
                         <button onclick="printA4DeliveryNote()" class="px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold shadow flex items-center gap-1.5">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print A4 Note
                         </button>
                     </div>
                 </div>
 
-                <!-- Word / Excel Formatting Ribbon -->
+                <!-- Full Word & Excel Formatting Ribbon (Font 1-150pt, Line Spacing, Highlight, Color, Lists, Alignment) -->
                 <div class="flex flex-wrap items-center gap-1.5 text-xs">
                     <select onchange="execDocCmd('fontName', this.value)" class="theme-input border rounded px-2 py-1 text-xs outline-none">
                         <option value="Inter, Arial, sans-serif" selected>Inter / Arial (Def)</option>
                         <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
                         <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="Georgia, serif">Georgia</option>
                     </select>
-                    <select onchange="execDocCmd('fontSize', this.value)" class="theme-input border rounded px-2 py-1 text-xs outline-none">
-                        <option value="3">12pt</option>
-                        <option value="4" selected>14pt (Def)</option>
-                        <option value="5">18pt</option>
-                        <option value="6">24pt</option>
-                        <option value="7">36pt</option>
-                    </select>
+
+                    <!-- Exact Font Size 1 to 150 pt -->
+                    <div class="flex items-center theme-input border rounded px-1.5 py-0.5 gap-1" title="Font Size (1 to 150 pt)">
+                        <span class="text-[10px] font-mono theme-text-dim">Size:</span>
+                        <input type="number" id="note-font-pt" value="18" min="1" max="150" onchange="applyExactFontSize(this.value)" class="w-11 bg-transparent font-mono font-bold text-xs text-center outline-none">
+                        <span class="text-[10px] font-mono theme-text-dim">pt</span>
+                    </div>
+
+                    <!-- Line Spacing Control -->
+                    <div class="flex items-center theme-input border rounded px-1.5 py-0.5 gap-1" title="Line Spacing">
+                        <span class="text-[10px] font-mono theme-text-dim">Spacing:</span>
+                        <select onchange="applyNoteLineSpacing(this.value)" class="bg-transparent font-mono text-xs outline-none">
+                            <option value="1.0">1.0</option>
+                            <option value="1.15" selected>1.15 (Def)</option>
+                            <option value="1.5">1.5</option>
+                            <option value="2.0">2.0</option>
+                            <option value="2.5">2.5</option>
+                        </select>
+                    </div>
+
                     <button onclick="execDocCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
                     <button onclick="execDocCmd('italic')" class="px-2.5 py-1 rounded theme-elevated border italic">I</button>
                     <button onclick="execDocCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
-                    <button onclick="execDocCmd('insertUnorderedList')" class="p-1.5 rounded theme-elevated border" title="Bullet List"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="execDocCmd('strikeThrough')" class="px-2 py-1 rounded theme-elevated border line-through">S</button>
+                    <button onclick="execDocCmd('insertUnorderedList')" class="p-1.5 rounded theme-elevated border" title="Bullets"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="execDocCmd('insertOrderedList')" class="p-1.5 rounded theme-elevated border" title="Numbering"><i data-lucide="list-ordered" class="w-3.5 h-3.5"></i></button>
                     <button onclick="execDocCmd('justifyLeft')" class="p-1.5 rounded theme-elevated border"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
                     <button onclick="execDocCmd('justifyCenter')" class="p-1.5 rounded theme-elevated border"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
                     <button onclick="execDocCmd('justifyRight')" class="p-1.5 rounded theme-elevated border"><i data-lucide="align-right" class="w-3.5 h-3.5"></i></button>
-                    <input type="color" value="#000000" onchange="execDocCmd('foreColor', this.value)" class="w-6 h-6 bg-transparent border-0 cursor-pointer" title="Text Color">
+
+                    <!-- Text Color & Highlight Color -->
+                    <label class="flex items-center gap-1 px-2 py-1 rounded theme-elevated border cursor-pointer" title="Text Colour">
+                        <span class="font-bold">A</span>
+                        <input type="color" value="#000000" onchange="execDocCmd('foreColor', this.value)" class="w-4 h-4 bg-transparent border-0 cursor-pointer">
+                    </label>
+                    <label class="flex items-center gap-1 px-2 py-1 rounded theme-elevated border cursor-pointer" title="Highlight Colour">
+                        <i data-lucide="highlighter" class="w-3 h-3"></i>
+                        <input type="color" value="#fef08a" onchange="execDocCmd('hiliteColor', this.value)" class="w-4 h-4 bg-transparent border-0 cursor-pointer">
+                    </label>
 
                     <div id="excel-ribbon-tools" class="hidden flex items-center gap-1.5 pl-2 border-l theme-border">
                         <button onclick="addExcelRow()" class="px-2 py-1 rounded bg-emerald-600 text-white font-semibold">+ Row</button>
@@ -838,49 +906,50 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
 
                     <div class="ml-auto flex items-center gap-1.5">
-                        <span class="text-[10px] font-mono theme-text-dim">Barcode Ref:</span>
-                        <input type="text" id="a4-ref" value="ASD-BLK-261119" oninput="renderA4Barcode()" class="w-36 theme-input border rounded px-2 py-1 text-xs font-mono font-bold uppercase outline-none">
+                        <span class="text-[10px] font-mono theme-text-dim">Barcode:</span>
+                        <input type="text" id="a4-ref" value="ASD-BLK-261119" oninput="renderA4Barcode()" class="w-32 theme-input border rounded px-2 py-1 text-xs font-mono font-bold uppercase outline-none">
                     </div>
                 </div>
             </div>
 
-            <!-- Auto-Resizing A4 Paper Stage (Pre-populated with ASENDIA FROM BLECKMANN (FITFLOP) & Current Date) -->
+            <!-- Auto-Resizing A4 Paper Stage (Every single section & line is individually removable via hover ×) -->
             <div class="canvas-grid border theme-border rounded-xl p-6 flex items-center justify-center overflow-auto">
                 <div id="a4-paper-sheet" oninput="autoFitA4Content()" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-8 flex flex-col justify-between overflow-hidden transition-all duration-200" style="width: 842px; height: 595px;">
                     
-                    <div id="a4-inner-scaler" class="w-full h-full flex flex-col justify-between origin-top-left">
-                        <div id="a4-header-section" class="border-b-4 border-zinc-900 pb-3 text-center">
+                    <div id="a4-inner-scaler" class="w-full h-full flex flex-col justify-between gap-3 origin-top-left">
+                        
+                        <!-- Removable Header Block -->
+                        <div id="a4-header-section" class="relative group text-center">
+                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-0 right-0 px-2 py-0.5 bg-red-600 text-white rounded text-xs font-bold print:hidden" title="Remove Title Block">×</button>
                             <div contenteditable="true" class="text-4xl font-black tracking-tight uppercase outline-none">ASENDIA DELIVERY NOTE</div>
                             <div contenteditable="true" class="text-xl font-extrabold text-zinc-800 mt-1 uppercase outline-none">ASENDIA FROM BLECKMANN (FITFLOP)</div>
                         </div>
 
-                        <div id="a4-word-body" class="my-auto py-3 flex flex-wrap gap-3 items-stretch justify-between">
+                        <!-- Removable Divider Line -->
+                        <div class="relative group py-1">
+                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-1.5 bg-red-600 text-white rounded text-[10px] font-bold print:hidden">×</button>
+                            <div class="border-b-4 border-zinc-900 w-full"></div>
+                        </div>
+
+                        <!-- Word Modular Sections -->
+                        <div id="a4-word-body" class="my-auto flex flex-wrap gap-3 items-stretch justify-between">
                             <div id="a4-fields-grid" class="flex-grow flex flex-wrap gap-3 items-start">
                                 <div class="resizable-box border-2 border-zinc-900 bg-zinc-100 p-3 relative group" style="width: 100%;">
                                     <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button>
                                     <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">SHIPPING DATE</div>
                                     <div contenteditable="true" id="a4-auto-ship-date" class="text-2xl font-mono font-black uppercase outline-none mt-0.5">NOV 19TH, 2026</div>
                                 </div>
-
-                                <div class="resizable-box border-2 border-zinc-900 p-3 relative group" style="width: 48%;">
-                                    <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button>
-                                    <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">DESTINATION / HUB</div>
-                                    <div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">ASENDIA UK HUB</div>
-                                </div>
-
-                                <div class="resizable-box border-2 border-zinc-900 p-3 relative group" style="width: 48%;">
-                                    <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button>
-                                    <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">TOTAL PALLETS / BAGS</div>
-                                    <div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">5 PALLETS</div>
-                                </div>
                             </div>
 
-                            <div id="a4-barcode-card" class="resizable-box border-2 border-zinc-900 p-4 flex flex-col items-center justify-center bg-white shrink-0" style="width: 230px;">
+                            <!-- Removable Barcode Card -->
+                            <div id="a4-barcode-card" class="resizable-box border-2 border-zinc-900 p-4 flex flex-col items-center justify-center bg-white shrink-0 relative group" style="width: 230px;">
+                                <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden" title="Remove Barcode">×</button>
                                 <canvas id="a4-prev-canvas" class="max-w-full"></canvas>
                             </div>
                         </div>
 
-                        <div id="a4-excel-body" class="hidden my-auto py-3 overflow-x-auto">
+                        <!-- Excel Grid Mode -->
+                        <div id="a4-excel-body" class="hidden my-auto overflow-x-auto">
                             <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
                                 <thead>
                                     <tr class="bg-zinc-200">
@@ -901,7 +970,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </table>
                         </div>
 
-                        <div id="a4-footer-section" class="border-t-4 border-zinc-900 pt-3 grid grid-cols-3 gap-4 font-mono text-xs font-bold">
+                        <!-- Removable Bottom Sign-Off Strip -->
+                        <div id="a4-footer-section" class="border-t-4 border-zinc-900 pt-3 grid grid-cols-3 gap-4 font-mono text-xs font-bold relative group">
+                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-3 right-0 px-2 py-0.5 bg-red-600 text-white rounded text-xs font-bold print:hidden" title="Remove Sign Strip">×</button>
                             <div contenteditable="true" class="outline-none">DISPATCHED BY: ______________</div>
                             <div contenteditable="true" class="outline-none">DRIVER SIGN: ________________</div>
                             <div contenteditable="true" class="outline-none">TIME / SEAL: ________________</div>
@@ -951,17 +1022,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
     <script>
         lucide.createIcons();
 
-        // ==========================================
         // 0. RESPONSIVE REFLOW ZOOM & DRAGGABLE CALCULATOR
-        // ==========================================
         function setManualPageZoom(val) {
             const pct = Math.min(150, Math.max(60, parseInt(val) || 100));
             document.getElementById('page-zoom-input').value = pct;
             document.documentElement.style.fontSize = `${16 * (pct / 100)}px`;
         }
-        function adjustPageZoom(delta) {
-            setManualPageZoom((parseInt(document.getElementById('page-zoom-input').value) || 100) + delta);
-        }
+        function adjustPageZoom(delta) { setManualPageZoom((parseInt(document.getElementById('page-zoom-input').value) || 100) + delta); }
 
         function toggleCalculator() { document.getElementById('calc-popover').classList.toggle('hidden'); }
         function calcInput(ch) { const d = document.getElementById('calc-display'); d.value = (d.value === '0' && ch !== '.') ? ch : d.value + ch; }
@@ -980,60 +1047,54 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             window.addEventListener('mouseup', () => isDragging = false);
         });
 
-        // ==========================================
-        // 1. FULL-RULE 3-GAME ARCADE (START BUTTON, GAME OVER, PROGRESSIVE DIFFICULTY, BLENDED BG)
-        // ==========================================
-        let isScanningMode = false, arcadeRunning = false, arcadeGameOver = false;
+        // 1. FULL-RULE 3-GAME ARCADE (LEVELS 1 TO 100 + START + GAME OVER)
+        let isScanningMode = false, arcadeRunning = false, arcadeLevel = 1, arcadeLives = 3;
         let arcadeScore = 0, arcadeHigh = parseInt(localStorage.getItem('wmsArcadeHigh') || '0'), arcadeFrame = 0;
-        let bgClouds = [{ x: 80, y: 22 }, { x: 260, y: 16 }, { x: 430, y: 28 }];
-
-        // Game Entities
+        let bgClouds = [{ x: 80, y: 22 }, { x: 240, y: 15 }, { x: 400, y: 26 }];
         let dino = { y: 0, vy: 0, obs: [] };
-        let mario = { y: 0, vy: 0, pipes: [], coins: [], blocks: [] };
-        let snake = { body: [{ x: 10, y: 6 }, { x: 9, y: 6 }, { x: 8, y: 6 }], dir: { x: 1, y: 0 }, food: { x: 18, y: 6 } };
+        let mario = { y: 0, vy: 0, pipes: [], coins: [] };
+        let snake = { body: [{ x: 10, y: 5 }, { x: 9, y: 5 }, { x: 8, y: 5 }], dir: { x: 1, y: 0 }, food: { x: 18, y: 5 } };
 
         function toggleArcadeDrawer() {
             const strip = document.getElementById('arcade-strip');
             strip.classList.toggle('hidden');
             if (!strip.classList.contains('hidden')) prepareArcadeGame();
         }
-
-        function prepareArcadeGame() {
-            arcadeRunning = false;
-            arcadeGameOver = false;
-            arcadeScore = 0;
-            dino = { y: 0, vy: 0, obs: [{ x: 480, w: 14, h: 22, flying: false }] };
-            mario = { y: 0, vy: 0, pipes: [{ x: 340, h: 24 }], coins: [{ x: 240, y: 55, taken: false }], blocks: [{ x: 220, y: 52, w: 45 }] };
-            snake = { body: [{ x: 10, y: 6 }, { x: 9, y: 6 }, { x: 8, y: 6 }], dir: { x: 1, y: 0 }, food: { x: 20, y: 6 } };
-            document.getElementById('arcade-overlay').classList.remove('hidden');
-            document.getElementById('arcade-overlay-title').innerText = "READY TO PLAY";
+        function toggleGameInsideScanMode(show) {
+            document.getElementById('arcade-strip').classList.toggle('hidden', !show);
+            if (show) prepareArcadeGame();
+        }
+        function syncArcadeLevel(val) {
+            arcadeLevel = Math.min(100, Math.max(1, parseInt(val) || 1));
+            document.getElementById('arcade-level-input').value = arcadeLevel;
             updateArcadeStats();
         }
-
+        function prepareArcadeGame() {
+            arcadeRunning = false; arcadeScore = 0; arcadeLives = 3;
+            dino = { y: 0, vy: 0, obs: [{ x: 440, w: 14, h: 22, yOff: 0, flying: false }] };
+            mario = { y: 0, vy: 0, pipes: [{ x: 320, h: 24 }], coins: [{ x: 220, y: 50, taken: false }] };
+            snake = { body: [{ x: 10, y: 5 }, { x: 9, y: 5 }, { x: 8, y: 5 }], dir: { x: 1, y: 0 }, food: { x: 20, y: 5 } };
+            document.getElementById('arcade-overlay').classList.remove('hidden');
+            document.getElementById('arcade-overlay-title').innerText = `LEVEL ${arcadeLevel} — READY`;
+            updateArcadeStats();
+        }
         function startSelectedArcadeGame() {
             prepareArcadeGame();
             arcadeRunning = true;
             document.getElementById('arcade-overlay').classList.add('hidden');
         }
-
         function triggerArcadeGameOver(reason) {
-            arcadeRunning = false;
-            arcadeGameOver = true;
-            playTone('error');
+            arcadeRunning = false; playTone('error');
             const ov = document.getElementById('arcade-overlay');
             ov.classList.remove('hidden');
             document.getElementById('arcade-overlay-title').innerText = `GAME OVER — ${reason}`;
         }
-
         function updateArcadeStats() {
             if (arcadeScore > arcadeHigh) { arcadeHigh = arcadeScore; localStorage.setItem('wmsArcadeHigh', arcadeHigh); }
-            const mult = (1 + Math.floor(arcadeScore / 150) * 0.25).toFixed(2);
             document.getElementById('arcade-score-lbl').innerText = `SCORE: ${String(arcadeScore).padStart(4, '0')}`;
             document.getElementById('arcade-hi-lbl').innerText = `BEST: ${String(arcadeHigh).padStart(4, '0')}`;
-            document.getElementById('arcade-lvl-lbl').innerText = `SPEED: ${mult}x`;
-            document.getElementById('nav-arcade-score').innerText = `Arcade: ${arcadeScore}`;
+            document.getElementById('arcade-lvl-lbl').innerText = `LVL ${arcadeLevel} • ${'♥'.repeat(Math.max(0, arcadeLives))}`;
         }
-
         function handleArcadeCanvasClick() {
             if (!arcadeRunning) return;
             const g = document.getElementById('arcade-game-select').value;
@@ -1041,8 +1102,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             else if (g === 'mario' && mario.y === 0) mario.vy = 12;
             else if (g === 'snake') { const d = snake.dir; snake.dir = { x: -d.y, y: d.x }; }
         }
-
         function triggerArcadeScanAction() {
+            if (!isScanningMode || !document.getElementById('chk-scan-mode-game')?.checked) return;
             if (!arcadeRunning) startSelectedArcadeGame();
             const g = document.getElementById('arcade-game-select').value;
             arcadeScore += 50;
@@ -1057,190 +1118,127 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
             updateArcadeStats();
         }
-
         function startArcadeEngine() {
             const canvas = document.getElementById('arcade-canvas'); if (!canvas) return;
             const ctx = canvas.getContext('2d');
-
             function loop() {
                 arcadeFrame++;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                // Theme-blended parallax background elements (clouds & distant warehouse skyline)
                 const isLight = document.documentElement.getAttribute('data-theme') !== 'dark';
                 ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.05)';
                 bgClouds.forEach(c => {
-                    if (arcadeRunning) c.x = c.x < -50 ? 540 : c.x - 0.6;
-                    ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI * 2); ctx.arc(c.x + 14, c.y - 3, 15, 0, Math.PI * 2); ctx.arc(c.x + 28, c.y, 11, 0, Math.PI * 2); ctx.fill();
+                    if (arcadeRunning) c.x = c.x < -50 ? 480 : c.x - 0.5;
+                    ctx.beginPath(); ctx.arc(c.x, c.y, 11, 0, Math.PI * 2); ctx.arc(c.x + 13, c.y - 3, 14, 0, Math.PI * 2); ctx.arc(c.x + 25, c.y, 10, 0, Math.PI * 2); ctx.fill();
                 });
 
                 const g = document.getElementById('arcade-game-select').value;
-                const speedMult = 1 + Math.floor(arcadeScore / 150) * 0.25;
+                // Level 1 to 100 scaling factor (1.0x at Lvl 1 up to 3.5x at Lvl 100)
+                const diffScale = 1 + ((arcadeLevel - 1) / 99) * 2.5;
 
                 if (g === 'dino') {
-                    ctx.strokeStyle = isLight ? '#94a3b8' : '#3f3f46';
-                    ctx.beginPath(); ctx.moveTo(0, 104); ctx.lineTo(520, 104); ctx.stroke();
-
+                    ctx.strokeStyle = isLight ? '#94a3b8' : '#3f3f46'; ctx.beginPath(); ctx.moveTo(0, 98); ctx.lineTo(460, 98); ctx.stroke();
                     if (arcadeRunning) {
-                        dino.y += dino.vy;
-                        if (dino.y > 0) dino.vy -= 0.72; else { dino.y = 0; dino.vy = 0; }
-
-                        const spawnRate = Math.max(48, Math.floor(95 / speedMult));
-                        if (arcadeFrame % spawnRate === 0) {
-                            const isBird = arcadeScore >= 150 && Math.random() > 0.65;
-                            dino.obs.push({ x: 530, w: isBird ? 20 : 14, h: isBird ? 14 : 24, yOff: isBird ? 32 : 0, flying: isBird });
+                        dino.y += dino.vy; if (dino.y > 0) dino.vy -= 0.72; else { dino.y = 0; dino.vy = 0; }
+                        const spawnGap = Math.max(36, Math.floor(95 / diffScale));
+                        if (arcadeFrame % spawnGap === 0) {
+                            const isBird = arcadeLevel >= 10 && Math.random() > 0.6;
+                            dino.obs.push({ x: 470, w: isBird ? 18 : 14, h: isBird ? 13 : 22, yOff: isBird ? 30 : 0, flying: isBird });
                         }
-
                         for (let i = dino.obs.length - 1; i >= 0; i--) {
-                            const ob = dino.obs[i];
-                            ob.x -= 4.2 * speedMult;
-                            if (isScanningMode && ob.x < 105 && ob.x > 65 && !ob.flying && dino.y === 0) dino.vy = 11.2;
-
-                            // Collision Check
-                            const dinoBottom = dino.y, dinoTop = dino.y + 24;
-                            const obBottom = ob.yOff, obTop = ob.yOff + ob.h;
-                            if (ob.x < 56 && ob.x + ob.w > 34 && dinoBottom < obTop - 3 && dinoTop > obBottom + 3) {
-                                triggerArcadeGameOver("HIT OBSTACLE");
+                            const ob = dino.obs[i]; ob.x -= 3.6 * diffScale;
+                            if (isScanningMode && ob.x < 100 && ob.x > 60 && !ob.flying && dino.y === 0) dino.vy = 11.2;
+                            if (ob.x < 54 && ob.x + ob.w > 34 && dino.y < ob.yOff + ob.h - 3 && dino.y + 24 > ob.yOff + 3) {
+                                dino.obs.splice(i, 1); arcadeLives--; updateArcadeStats();
+                                if (arcadeLives <= 0) triggerArcadeGameOver("NO LIVES LEFT");
                             } else if (ob.x + ob.w < 0) {
-                                arcadeScore += 15; dino.obs.splice(i, 1); updateArcadeStats();
+                                arcadeScore += 10 * arcadeLevel; dino.obs.splice(i, 1); updateArcadeStats();
                             }
                         }
                     }
-
-                    // Draw Dino
-                    ctx.fillStyle = '#10b981'; ctx.fillRect(34, 104 - 24 - dino.y, 22, 24);
-                    ctx.fillStyle = isLight ? '#ffffff' : '#09090b'; ctx.fillRect(48, 104 - 20 - dino.y, 4, 4);
-                    // Draw Cacti & Pterodactyls
-                    dino.obs.forEach(ob => {
-                        ctx.fillStyle = ob.flying ? '#f59e0b' : '#ef4444';
-                        ctx.fillRect(ob.x, 104 - ob.h - ob.yOff, ob.w, ob.h);
-                    });
-
+                    ctx.fillStyle = '#10b981'; ctx.fillRect(34, 98 - 24 - dino.y, 20, 24);
+                    dino.obs.forEach(ob => { ctx.fillStyle = ob.flying ? '#f59e0b' : '#ef4444'; ctx.fillRect(ob.x, 98 - ob.h - ob.yOff, ob.w, ob.h); });
                 } else if (g === 'mario') {
-                    // Ground Bricks
-                    ctx.fillStyle = '#92400e'; ctx.fillRect(0, 104, 520, 20);
-
+                    ctx.fillStyle = '#92400e'; ctx.fillRect(0, 98, 460, 18);
                     if (arcadeRunning) {
-                        mario.y += mario.vy;
-                        if (mario.y > 0) mario.vy -= 0.75; else { mario.y = 0; mario.vy = 0; }
-
-                        const spawnRate = Math.max(55, Math.floor(110 / speedMult));
-                        if (arcadeFrame % spawnRate === 0) {
-                            const tallPipe = arcadeScore >= 150 && Math.random() > 0.5;
-                            mario.pipes.push({ x: 530, h: tallPipe ? 34 : 22 });
-                            mario.coins.push({ x: 535, y: tallPipe ? 58 : 46, taken: false });
+                        mario.y += mario.vy; if (mario.y > 0) mario.vy -= 0.75; else { mario.y = 0; mario.vy = 0; }
+                        const spawnGap = Math.max(42, Math.floor(105 / diffScale));
+                        if (arcadeFrame % spawnGap === 0) {
+                            const tall = arcadeLevel >= 15 && Math.random() > 0.5;
+                            mario.pipes.push({ x: 470, h: tall ? 32 : 22 });
+                            mario.coins.push({ x: 475, y: tall ? 55 : 44, taken: false });
                         }
-
-                        mario.pipes.forEach(p => {
-                            p.x -= 3.8 * speedMult;
-                            if (isScanningMode && p.x < 105 && p.x > 65 && mario.y === 0) mario.vy = 12;
-                            if (p.x < 58 && p.x + 22 > 38 && mario.y < p.h - 2) {
-                                triggerArcadeGameOver("HIT WARP PIPE");
-                            }
-                        });
-                        mario.pipes = mario.pipes.filter(p => p.x > -30);
-
-                        mario.coins.forEach(c => {
-                            c.x -= 3.8 * speedMult;
-                            if (!c.taken && Math.abs(c.x - 48) < 22 && Math.abs(c.y - (mario.y + 12)) < 24) {
-                                c.taken = true; arcadeScore += 30; updateArcadeStats();
-                            }
-                        });
+                        for (let i = mario.pipes.length - 1; i >= 0; i--) {
+                            const p = mario.pipes[i]; p.x -= 3.4 * diffScale;
+                            if (isScanningMode && p.x < 100 && p.x > 60 && mario.y === 0) mario.vy = 12;
+                            if (p.x < 56 && p.x + 20 > 38 && mario.y < p.h - 2) {
+                                mario.pipes.splice(i, 1); arcadeLives--; updateArcadeStats();
+                                if (arcadeLives <= 0) triggerArcadeGameOver("HIT PIPE");
+                            } else if (p.x < -25) mario.pipes.splice(i, 1);
+                        }
+                        mario.coins.forEach(c => { c.x -= 3.4 * diffScale; if (!c.taken && Math.abs(c.x - 46) < 22 && Math.abs(c.y - (mario.y + 12)) < 24) { c.taken = true; arcadeScore += 25 * arcadeLevel; updateArcadeStats(); } });
                         mario.coins = mario.coins.filter(c => c.x > -20 && !c.taken);
                     }
-
-                    ctx.fillStyle = '#16a34a'; mario.pipes.forEach(p => ctx.fillRect(p.x, 104 - p.h, 22, p.h));
-                    ctx.fillStyle = '#facc15'; mario.coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, 104 - c.y, 6, 0, Math.PI * 2); ctx.fill(); });
-                    const my = 104 - 24 - mario.y;
-                    ctx.fillStyle = '#dc2626'; ctx.fillRect(38, my, 20, 9);
-                    ctx.fillStyle = '#2563eb'; ctx.fillRect(38, my + 9, 20, 15);
-
+                    ctx.fillStyle = '#16a34a'; mario.pipes.forEach(p => ctx.fillRect(p.x, 98 - p.h, 20, p.h));
+                    ctx.fillStyle = '#facc15'; mario.coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, 98 - c.y, 5.5, 0, Math.PI * 2); ctx.fill(); });
+                    const my = 98 - 24 - mario.y; ctx.fillStyle = '#dc2626'; ctx.fillRect(38, my, 18, 9); ctx.fillStyle = '#2563eb'; ctx.fillRect(38, my + 9, 18, 15);
                 } else if (g === 'snake') {
-                    // Subtle Gridlines
                     ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.03)';
-                    for (let gx = 0; gx < 520; gx += 12) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 124); ctx.stroke(); }
-
-                    const tickRate = Math.max(3, Math.floor(8 / speedMult));
+                    for (let gx = 0; gx < 460; gx += 12) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, 116); ctx.stroke(); }
+                    const tickRate = Math.max(2, Math.floor(9 - (arcadeLevel / 14)));
                     if (arcadeRunning && arcadeFrame % tickRate === 0) {
-                        const cols = 43, rows = 10;
-                        const nextX = snake.body[0].x + snake.dir.x;
-                        const nextY = snake.body[0].y + snake.dir.y;
-
-                        // Wall Collision Check
-                        if (nextX < 0 || nextX >= cols || nextY < 0 || nextY >= rows) {
-                            triggerArcadeGameOver("HIT WALL");
-                        } else if (snake.body.some(seg => seg.x === nextX && seg.y === nextY)) {
-                            // Self-Collision (Snake Eats Its Own Body) -> Game Over!
-                            triggerArcadeGameOver("ATE OWN BODY");
-                        } else {
+                        const cols = 38, rows = 9;
+                        const nextX = snake.body[0].x + snake.dir.x, nextY = snake.body[0].y + snake.dir.y;
+                        if (nextX < 0 || nextX >= cols || nextY < 0 || nextY >= rows) triggerArcadeGameOver("HIT WALL");
+                        else if (snake.body.some(seg => seg.x === nextX && seg.y === nextY)) triggerArcadeGameOver("ATE OWN BODY");
+                        else {
                             snake.body.unshift({ x: nextX, y: nextY });
                             if (nextX === snake.food.x && nextY === snake.food.y) {
-                                arcadeScore += 25; updateArcadeStats();
+                                arcadeScore += 20 * arcadeLevel; updateArcadeStats();
                                 snake.food = { x: Math.floor(Math.random() * (cols - 2)) + 1, y: Math.floor(Math.random() * (rows - 2)) + 1 };
-                            } else {
-                                snake.body.pop();
-                            }
+                            } else snake.body.pop();
                         }
                     }
-
                     ctx.fillStyle = '#ef4444'; ctx.fillRect(snake.food.x * 12, snake.food.y * 12, 11, 11);
-                    snake.body.forEach((seg, idx) => {
-                        ctx.fillStyle = idx === 0 ? '#34d399' : '#10b981';
-                        ctx.fillRect(seg.x * 12, seg.y * 12, 11, 11);
-                    });
+                    snake.body.forEach((seg, idx) => { ctx.fillStyle = idx === 0 ? '#34d399' : '#10b981'; ctx.fillRect(seg.x * 12, seg.y * 12, 11, 11); });
                 }
-
                 requestAnimationFrame(loop);
             }
             loop();
         }
 
         // ==========================================
-        // 2. BULK & LABELS: APPEARANCE, GAP/DUPLICATE DETECTOR & N-UP A4 SHEET
+        // 2. BULK & LABELS: REMOVE DUPLICATES, FIXED HRI, N-UP A4 PRINT
         // ==========================================
-        let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel';
-
-        function resetBulkAppearance() {
-            document.getElementById('bulk-bar-width').value = 4; document.getElementById('lbl-b-width').innerText = '4x (Def)';
-            document.getElementById('bulk-bar-height').value = 18; document.getElementById('lbl-b-height').innerText = '18mm (Def)';
-            document.getElementById('bulk-font-size').value = 12; document.getElementById('lbl-b-font').innerText = '12pt (Def)';
-            document.getElementById('bulk-quiet-zone').value = 10; document.getElementById('lbl-b-pad').innerText = '10px';
-            document.getElementById('chk-bulk-hri').checked = true;
-            document.getElementById('chk-bulk-trans').checked = false;
-            document.getElementById('bulk-fg-color').value = '#000000';
-            document.getElementById('bulk-bg-color').value = '#ffffff';
-            renderCurrentDeckSlide();
-        }
+        let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel', duplicateIdSet = new Set();
 
         function toggleScanningMode() {
             isScanningMode = !isScanningMode;
             const feederCol = document.getElementById('bulk-feeder-column'), stageCol = document.getElementById('bulk-stage-column');
             const btn = document.getElementById('btn-scan-mode'), lbl = document.getElementById('lbl-scan-mode');
-            const arcadeStrip = document.getElementById('arcade-strip');
-            const topHost = document.getElementById('arcade-top-host'), scanDock = document.getElementById('scanning-mode-arcade-dock');
+            const gameWrap = document.getElementById('scan-mode-game-toggle-wrap');
+            const arcadeStrip = document.getElementById('arcade-strip'), topHost = document.getElementById('arcade-top-host'), scanDock = document.getElementById('scanning-mode-arcade-dock');
 
             if (isScanningMode) {
                 feederCol.classList.add('hidden');
                 stageCol.className = "lg:col-span-12 space-y-4";
                 btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white flex items-center gap-1.5 shadow";
                 lbl.innerText = "Exit Scanning Mode";
-                // Move Arcade directly inside Scanning Mode Stage
-                arcadeStrip.classList.remove('hidden');
-                arcadeStrip.className = "border theme-border theme-card rounded-xl px-4 py-3 shadow-sm";
+                gameWrap.classList.remove('hidden');
                 scanDock.appendChild(arcadeStrip);
-                document.getElementById('arcade-mode-badge').innerText = "AUTO-PLAY ON SCAN ACTIVE";
+                arcadeStrip.className = document.getElementById('chk-scan-mode-game').checked ? "border theme-border theme-card rounded-xl px-4 py-2.5 shadow-sm" : "hidden";
+                document.getElementById('arcade-mode-badge').innerText = "AUTO-PLAY ON SCAN";
             } else {
                 feederCol.classList.remove('hidden');
                 stageCol.className = "lg:col-span-8 space-y-4";
                 btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs";
                 lbl.innerText = "Enter Scanning Mode";
-                arcadeStrip.className = "hidden border-b theme-border theme-card px-4 py-3";
+                gameWrap.classList.add('hidden');
                 topHost.appendChild(arcadeStrip);
+                arcadeStrip.className = "hidden border-b theme-border theme-card px-4 py-3";
                 document.getElementById('arcade-mode-badge').innerText = "MANUAL (Arrows / Space / Click)";
             }
         }
 
-        // Draggable Splitter Setup
         document.addEventListener('DOMContentLoaded', () => {
             const resizer = document.getElementById('bulk-resizer'), leftPane = document.getElementById('bulk-left-queue'), wrapper = document.getElementById('bulk-split-wrapper');
             if (resizer && leftPane && wrapper) {
@@ -1275,6 +1273,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             ta.value = lines.join('\n'); scannedSet.clear(); loadBulkDeck(false); playTone('success');
         }
 
+        function removeDuplicateQueueIds() {
+            const ta = document.getElementById('batch-input');
+            const seen = new Set();
+            const uniqueLines = [];
+            ta.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(line => {
+                const idKey = line.split(',')[0].trim().toUpperCase();
+                if (!seen.has(idKey)) { seen.add(idKey); uniqueLines.push(line); }
+            });
+            ta.value = uniqueLines.join('\n');
+            scannedSet.clear();
+            loadBulkDeck(false);
+            playTone('success');
+            showToast("Removed duplicate IDs!");
+        }
+
         function loadBulkDeck(preserve = false) {
             bulkRecords = document.getElementById('batch-input').value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(parseDynamicRow).filter(r => r.id);
             document.getElementById('bulk-line-count').innerText = `${bulkRecords.length} items`;
@@ -1284,20 +1297,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (bulkViewMode === 'grid') generateBatchGrid();
         }
 
-        // Smart Gap & Duplicate Detector
-        let duplicateIdSet = new Set();
         function runQueueDiagnostics() {
-            const bar = document.getElementById('queue-diagnostics-bar');
-            const counts = new Map();
-            duplicateIdSet.clear();
-
-            bulkRecords.forEach(r => {
-                const k = r.id.toUpperCase();
-                counts.set(k, (counts.get(k) || 0) + 1);
-            });
+            const bar = document.getElementById('queue-diagnostics-bar'), dupBtn = document.getElementById('btn-remove-dups');
+            const counts = new Map(); duplicateIdSet.clear();
+            bulkRecords.forEach(r => { const k = r.id.toUpperCase(); counts.set(k, (counts.get(k) || 0) + 1); });
             counts.forEach((cnt, k) => { if (cnt > 1) duplicateIdSet.add(k); });
+            dupBtn.classList.toggle('hidden', duplicateIdSet.size === 0);
 
-            // Detect numerical sequence gaps per prefix
             const prefixNums = new Map();
             bulkRecords.forEach(r => {
                 const m = r.id.match(/^([A-Za-z\-_]+)(\d+)$/);
@@ -1313,23 +1319,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 arr.sort((a, b) => a.num - b.num);
                 for (let i = 1; i < arr.length; i++) {
                     if (arr[i].num - arr[i - 1].num > 1 && arr[i].num - arr[i - 1].num <= 10) {
-                        for (let g = arr[i - 1].num + 1; g < arr[i].num; g++) {
-                            missingGaps.push(`${pref}${String(g).padStart(arr[i].pad, '0')}`);
-                        }
+                        for (let g = arr[i - 1].num + 1; g < arr[i].num; g++) missingGaps.push(`${pref}${String(g).padStart(arr[i].pad, '0')}`);
                     }
                 }
             });
 
             const alerts = [];
-            if (duplicateIdSet.size > 0) alerts.push(`⚠ Duplicates (${duplicateIdSet.size}): ${Array.from(duplicateIdSet).join(', ')}`);
-            if (missingGaps.length > 0) alerts.push(`🔍 Sequence Gaps: ${missingGaps.join(', ')}`);
-
-            if (alerts.length > 0) {
-                bar.classList.remove('hidden');
-                bar.innerHTML = alerts.map(a => `<div>${escapeHtml(a)}</div>`).join('');
-            } else {
-                bar.classList.add('hidden');
-            }
+            if (duplicateIdSet.size > 0) alerts.push(`⚠ Duplicates: ${Array.from(duplicateIdSet).join(', ')}`);
+            if (missingGaps.length > 0) alerts.push(`🔍 Missing Gaps: ${missingGaps.join(', ')}`);
+            if (alerts.length > 0) { bar.classList.remove('hidden'); bar.innerHTML = alerts.map(a => `<div>${escapeHtml(a)}</div>`).join(''); }
+            else bar.classList.add('hidden');
         }
 
         function setBulkViewMode(mode) {
@@ -1354,28 +1353,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
             badge.innerHTML = scannedSet.has(currentDeckIndex) ? `<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Scanned` : `<span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready`;
 
-            // Size & Appearance Options
             const barWidth = parseInt(document.getElementById('bulk-bar-width')?.value) || 4;
             const barHeight = parseInt(document.getElementById('bulk-bar-height')?.value) || 18;
             const fontSize = parseInt(document.getElementById('bulk-font-size')?.value) || 12;
             const quietZone = parseInt(document.getElementById('bulk-quiet-zone')?.value) || 10;
-            const showHri = document.getElementById('chk-bulk-hri')?.checked ?? true;
-            const isTrans = document.getElementById('chk-bulk-trans')?.checked ?? false;
+            const showHri = (document.getElementById('bulk-hri-mode')?.value || 'on') === 'on';
+            const isTrans = (document.getElementById('bulk-bg-mode')?.value || 'solid') === 'transparent';
             const fgHex = (document.getElementById('bulk-fg-color')?.value || '#000000').replace('#', '');
             const bgHex = (document.getElementById('bulk-bg-color')?.value || '#ffffff').replace('#', '');
 
-            if (isTrans) {
-                cardFrame.style.backgroundColor = 'transparent';
-                cardFrame.classList.add('checkerboard-bg');
-            } else {
-                cardFrame.style.backgroundColor = `#${bgHex}`;
-                cardFrame.classList.remove('checkerboard-bg');
-            }
+            if (isTrans) { cardFrame.style.backgroundColor = 'transparent'; cardFrame.classList.add('checkerboard-bg'); }
+            else { cardFrame.style.backgroundColor = `#${bgHex}`; cardFrame.classList.remove('checkerboard-bg'); }
 
             const opts = {
                 bcid: document.getElementById('batch-type').value,
                 text: formatPayloadWithSuffix(rec.id, document.getElementById('batch-suffix').value),
-                alttext: rec.id,
                 parse: true,
                 scale: barWidth,
                 height: barHeight,
@@ -1387,6 +1379,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 barcolor: fgHex,
                 textcolor: fgHex
             };
+            if (showHri) opts.alttext = rec.id;
             if (!isTrans) opts.backgroundcolor = bgHex;
 
             try { bwipjs.toCanvas(canvas, opts); } catch (e) {}
@@ -1456,60 +1449,31 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 grid.appendChild(card);
             });
         }
-
-        // Multi-Label "N-Up" A4 Sheet Printing (8, 12, 16, or 24 labels per A4 sheet)
         function printNUpA4Sheet() {
             if (!bulkRecords.length) return;
-            const nUp = parseInt(document.getElementById('nup-layout-select').value) || 12;
-            const cols = nUp === 8 ? 2 : (nUp === 12 ? 3 : 4);
+            const nUp = parseInt(document.getElementById('nup-layout-select').value) || 12, cols = nUp === 8 ? 2 : (nUp === 12 ? 3 : 4);
             const sym = document.getElementById('batch-type').value, off = document.getElementById('offscreen-canvas'), rendered = [];
-            bulkRecords.forEach(r => {
-                try {
-                    bwipjs.toCanvas(off, { bcid: sym, text: r.id, scale: 3, height: 14, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
-                    rendered.push({ ...r, dataUrl: off.toDataURL('image/png') });
-                } catch (e) {}
-            });
+            bulkRecords.forEach(r => { try { bwipjs.toCanvas(off, { bcid: sym, text: r.id, scale: 3, height: 14, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); rendered.push({ ...r, dataUrl: off.toDataURL('image/png') }); } catch (e) {} });
             const win = window.open('', '_blank');
-            const cellsHtml = rendered.map(r => `
-                <div class="nup-cell">
-                    <div class="meta-line">${escapeHtml(r.cols.slice(1).filter(Boolean).join(' | '))}</div>
-                    <img src="${r.dataUrl}" />
-                </div>
-            `).join('');
-            win.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>A4 ${nUp}-Up Barcode Sheet</title>
-                    <style>
-                        @page { size: A4 portrait; margin: 8mm; }
-                        body { margin: 0; font-family: monospace; }
-                        .nup-grid { display: grid; grid-template-columns: repeat(${cols}, 1fr); gap: 4mm; }
-                        .nup-cell { border: 1px dashed #999; padding: 3mm; text-align: center; page-break-inside: avoid; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-                        .meta-line { font-size: 8pt; font-weight: bold; margin-bottom: 1.5mm; }
-                        .nup-cell img { max-width: 100%; max-height: 24mm; }
-                    </style>
-                </head>
-                <body><div class="nup-grid">${cellsHtml}</div><script>window.onload=function(){window.print();window.close();}<\/script></body>
-                </html>
-            `);
+            const cellsHtml = rendered.map(r => `<div style="border:1px dashed #999;padding:3mm;text-align:center;page-break-inside:avoid;display:flex;flex-direction:column;justify-content:center;align-items:center;"><div style="font-size:8pt;font-weight:bold;margin-bottom:1.5mm;">${escapeHtml(r.cols.slice(1).filter(Boolean).join(' | '))}</div><img src="${r.dataUrl}" style="max-width:100%;max-height:24mm;"/></div>`).join('');
+            win.document.write(`<!DOCTYPE html><html><head><style>@page{size:A4 portrait;margin:8mm;}body{margin:0;font-family:monospace;}.grid{display:grid;grid-template-columns:repeat(${cols},1fr);gap:4mm;}</style></head><body><div class="grid">${cellsHtml}</div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
             win.document.close();
         }
         // ==========================================
-        // 3. CARRIER LABELS: 1-CLICK SHIFT BATCH + COPIES PER LABEL (2 DEFAULT)
+        // 3. CARRIER LABELS: SMART USAGE CHECK (SORTED BY TYPE) + FULL SHIFT BATCH EDITOR
         // ==========================================
         const DEFAULT_CLIENTS = [{ code: 'FF', name: 'FitFlop (Default)' }, { code: 'NC', name: "Nobody's Child" }, { code: 'OD', name: 'Oodie' }, { code: 'BLK', name: 'Bleckmann' }];
         const DEFAULT_CARRIERS = [{ code: 'RM', name: 'Royal Mail (Default)' }, { code: 'RMX', name: 'Royal Mail Express' }, { code: 'ASD', name: 'Asendia' }, { code: 'DPD', name: 'DPD UK' }, { code: 'DHL', name: 'DHL' }, { code: 'PF', name: 'Parcelforce' }, { code: 'EVR', name: 'Evri' }, { code: 'AMZ', name: 'Amazon' }];
         const DEFAULT_SHIFT_BATCH = [
-            { client: 'FF', carrier: 'DPD', qty: 5 },
-            { client: 'FF', carrier: 'RMX', qty: 5 },
-            { client: 'FF', carrier: 'ASD', qty: 5 },
-            { client: 'FF', carrier: 'RM', qty: 25 }
+            { client: 'FF', carrier: 'DPD', qty: 5, start: 0, date: '' },
+            { client: 'FF', carrier: 'RMX', qty: 5, start: 0, date: '' },
+            { client: 'FF', carrier: 'ASD', qty: 5, start: 0, date: '' },
+            { client: 'FF', carrier: 'RM', qty: 25, start: 0, date: '' }
         ];
 
         let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV2') || JSON.stringify(DEFAULT_CLIENTS));
         let savedCarriers = JSON.parse(localStorage.getItem('wmsCustomCarriersV2') || JSON.stringify(DEFAULT_CARRIERS));
-        let shiftBatchConfig = JSON.parse(localStorage.getItem('wmsDefaultShiftBatchV1') || JSON.stringify(DEFAULT_SHIFT_BATCH));
+        let shiftBatchConfig = JSON.parse(localStorage.getItem('wmsDefaultShiftBatchV2') || JSON.stringify(DEFAULT_SHIFT_BATCH));
         let carrierUsageLedger = JSON.parse(localStorage.getItem('wmsCarrierDailyUsageV1') || '{}');
         let carrierOrientation = 'landscape', carrierViewMode = 'single', currentCarrierBatch = [], previewCarrierIndex = 0;
 
@@ -1521,42 +1485,56 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             `).join('');
         }
 
-        function customizeDefaultShiftBatch() {
-            const currentStr = shiftBatchConfig.map(i => `${i.client}-${i.carrier}:${i.qty}`).join(', ');
-            const input = prompt("Edit Shift Batch (Format: CLIENT-CARRIER:QTY separated by commas):", currentStr);
-            if (!input || !input.trim()) return;
-            const parsed = [];
-            input.split(',').forEach(part => {
-                const [pair, qStr] = part.trim().split(':');
-                if (pair && pair.includes('-')) {
-                    const [c, r] = pair.split('-');
-                    parsed.push({ client: c.trim().toUpperCase(), carrier: r.trim().toUpperCase(), qty: Math.max(1, parseInt(qStr) || 5) });
-                }
-            });
-            if (parsed.length > 0) {
-                shiftBatchConfig = parsed;
-                localStorage.setItem('wmsDefaultShiftBatchV1', JSON.stringify(shiftBatchConfig));
-                renderShiftBatchPills();
-                showToast("Updated 1-Click Shift Batch!");
-            }
+        function toggleShiftBatchEditor() {
+            const ed = document.getElementById('shift-batch-editor');
+            ed.classList.toggle('hidden');
+            if (!ed.classList.contains('hidden')) renderShiftBatchEditorRows();
+        }
+
+        function renderShiftBatchEditorRows() {
+            const container = document.getElementById('shift-batch-rows');
+            const today = getTodayIsoDate();
+            container.innerHTML = shiftBatchConfig.map((r, idx) => `
+                <div class="grid grid-cols-12 gap-1 items-center text-xs font-mono">
+                    <input type="text" value="${escapeHtml(r.client)}" onchange="shiftBatchConfig[${idx}].client=this.value.toUpperCase()" class="col-span-2 theme-input border rounded px-1.5 py-1 uppercase font-bold">
+                    <input type="text" value="${escapeHtml(r.carrier)}" onchange="shiftBatchConfig[${idx}].carrier=this.value.toUpperCase()" class="col-span-3 theme-input border rounded px-1.5 py-1 uppercase font-bold">
+                    <input type="number" value="${r.qty}" min="1" onchange="shiftBatchConfig[${idx}].qty=parseInt(this.value)||1" class="col-span-2 theme-input border rounded px-1.5 py-1">
+                    <input type="number" value="${r.start || 0}" min="0" placeholder="Auto" title="0 = Auto-Next" onchange="shiftBatchConfig[${idx}].start=parseInt(this.value)||0" class="col-span-2 theme-input border rounded px-1.5 py-1">
+                    <input type="date" value="${r.date || today}" onchange="shiftBatchConfig[${idx}].date=this.value" class="col-span-2 theme-input border rounded px-1 py-1 text-[10px]">
+                    <button onclick="shiftBatchConfig.splice(${idx},1); renderShiftBatchEditorRows();" class="col-span-1 text-red-400 font-bold text-center">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addShiftBatchRuleRow() {
+            shiftBatchConfig.push({ client: 'FF', carrier: 'RM', qty: 5, start: 0, date: getTodayIsoDate() });
+            renderShiftBatchEditorRows();
+        }
+
+        function saveShiftBatchRules() {
+            localStorage.setItem('wmsDefaultShiftBatchV2', JSON.stringify(shiftBatchConfig));
+            renderShiftBatchPills();
+            toggleShiftBatchEditor();
+            showToast("Saved custom shift batch rules!");
         }
 
         function executeOneClickShiftBatch() {
-            const dateIso = document.getElementById('cl-date').value || getTodayIsoDate();
-            const humanDate = formatHumanDate(dateIso, document.getElementById('cl-date-style').value);
-            const yymmdd = formatIsoToYYMMDD(dateIso);
+            const defaultDateIso = document.getElementById('cl-date').value || getTodayIsoDate();
+            const dateStyle = document.getElementById('cl-date-style').value;
             const digits = parseInt(document.getElementById('cl-digits').value) || 2;
             const copies = Math.max(1, parseInt(document.getElementById('cl-copies-per-label').value) || 2);
 
             const fullBatch = [];
             shiftBatchConfig.forEach(rule => {
+                const useDate = rule.date || defaultDateIso;
+                const yymmdd = formatIsoToYYMMDD(useDate);
+                const humanDate = formatHumanDate(useDate, dateStyle);
                 const key = `${rule.client}-${rule.carrier}-${yymmdd}`;
                 const used = carrierUsageLedger[key] || [];
-                const startSerial = used.length > 0 ? Math.max(...used) + 1 : 1;
+                const startSerial = (rule.start && rule.start > 0) ? rule.start : (used.length > 0 ? Math.max(...used) + 1 : 1);
 
                 for (let i = 0; i < rule.qty; i++) {
-                    const sNum = startSerial + i;
-                    const sPad = String(sNum).padStart(digits, '0');
+                    const sNum = startSerial + i, sPad = String(sNum).padStart(digits, '0');
                     const fullCode = `${rule.client}-${rule.carrier}${yymmdd}${sPad}`;
                     for (let c = 0; c < copies; c++) {
                         fullBatch.push({ client: rule.client, carrier: rule.carrier, yymmdd, humanDate, serialNum: sNum, serialPadded: sPad, fullCode, copyIndex: c + 1, totalCopies: copies, isAlreadyUsed: false });
@@ -1568,6 +1546,49 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             previewCarrierIndex = 0;
             updateCarrierPreview(true);
             generateAndPrintCarrierLabels();
+        }
+
+        function renderSmartUsageCheck(yymmdd, digits) {
+            const box = document.getElementById('cl-smart-usage-list');
+            if (!box) return;
+            // Find all keys matching today's YYMMDD, sorted alphabetically by Client-Carrier type
+            const todayKeys = Object.keys(carrierUsageLedger).filter(k => k.endsWith(`-${yymmdd}`) && carrierUsageLedger[k].length > 0).sort();
+
+            if (todayKeys.length === 0) {
+                box.innerHTML = `<div class="theme-text-dim text-[11px]">No labels generated yet for ${yymmdd}.</div>`;
+                return;
+            }
+
+            box.innerHTML = todayKeys.map(k => {
+                const parts = k.split('-');
+                const cCode = parts[0], rCode = parts[1];
+                const nums = [...new Set(carrierUsageLedger[k])].sort((a, b) => a - b);
+                const maxUsed = Math.max(...nums);
+                const nextFree = maxUsed + 1;
+                const rangeStr = nums.length > 1 ? `#${String(nums[0]).padStart(digits, '0')}–#${String(maxUsed).padStart(digits, '0')}` : `#${String(nums[0]).padStart(digits, '0')}`;
+
+                return `
+                    <div class="p-2 rounded border theme-input flex items-center justify-between gap-2">
+                        <div>
+                            <span class="font-bold text-emerald-500">${escapeHtml(cCode)}-${escapeHtml(rCode)}</span>
+                            <span class="theme-text-muted text-[11px] ml-1">Used: ${rangeStr}</span>
+                        </div>
+                        <button onclick="applySuggestedNext('${escapeHtml(cCode)}', '${escapeHtml(rCode)}', ${nextFree})" class="px-2 py-0.5 rounded bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition">
+                            Next: #${String(nextFree).padStart(digits, '0')}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applySuggestedNext(clientCode, carrierCode, nextNum) {
+            document.getElementById('cl-client-code').value = clientCode;
+            document.getElementById('cl-carrier-code').value = carrierCode;
+            if ([...document.getElementById('cl-client-preset').options].some(o => o.value === clientCode)) document.getElementById('cl-client-preset').value = clientCode;
+            if ([...document.getElementById('cl-carrier-preset').options].some(o => o.value === carrierCode)) document.getElementById('cl-carrier-preset').value = carrierCode;
+            document.getElementById('cl-start-serial').value = nextNum;
+            updateCarrierPreview(false);
+            showToast(`Set ${clientCode}-${carrierCode} to start at #${nextNum}`);
         }
 
         function renderClientCarrierPresets() {
@@ -1629,9 +1650,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const digits = parseInt(document.getElementById('cl-digits').value) || 2, startSerial = Math.max(1, parseInt(document.getElementById('cl-start-serial').value) || 1), qty = Math.min(200, Math.max(1, parseInt(document.getElementById('cl-qty').value) || 1));
             const copies = Math.max(1, parseInt(document.getElementById('cl-copies-per-label').value) || 2);
 
-            const usedSerials = [...new Set(carrierUsageLedger[`${client}-${carrier}-${yymmdd}`] || [])].sort((a, b) => a - b);
-            document.getElementById('cl-used-summary').innerText = usedSerials.length ? `Used serials today: ${usedSerials.map(n => '#' + String(n).padStart(digits, '0')).join(', ')}` : `No labels used yet for ${client}-${carrier} on ${humanDate}.`;
+            renderSmartUsageCheck(yymmdd, digits);
 
+            const usedSerials = [...new Set(carrierUsageLedger[`${client}-${carrier}-${yymmdd}`] || [])];
             if (!keepCustomBatch) {
                 currentCarrierBatch = [];
                 for (let i = 0; i < qty; i++) {
@@ -1708,8 +1729,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); triggerArcadeScanAction(); updateCarrierPreview(true);
         }
         function resetCarrierDayHistory() {
-            const c = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), r = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase(), y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
-            delete carrierUsageLedger[`${c}-${r}-${y}`]; localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); document.getElementById('cl-start-serial').value = 1; updateCarrierPreview();
+            const y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
+            if (confirm(`Reset ALL carrier serial usage logs for ${y}?`)) {
+                Object.keys(carrierUsageLedger).forEach(k => { if (k.endsWith(`-${y}`)) delete carrierUsageLedger[k]; });
+                localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger));
+                document.getElementById('cl-start-serial').value = 1;
+                updateCarrierPreview();
+            }
         }
         function copyAllCarrierCodes() { navigator.clipboard.writeText(currentCarrierBatch.map(i => i.fullCode).join('\n')); showToast(`Copied ${currentCarrierBatch.length} labels!`); }
         function sendCarrierLabelsToBulkDeck() { recordCarrierBatchAsUsed(); document.getElementById('batch-input').value = currentCarrierBatch.map(i => i.fullCode).join('\n'); scannedSet.clear(); switchTab('bulk'); loadBulkDeck(false); }
@@ -1727,7 +1753,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             win.document.close();
         }
 
-        // Notes Tab (Auto-Date + Section Toggles + Auto-Fit)
+        // ==========================================
+        // 4. NOTES STUDIO (1-150PT FONT, LINE SPACING, ADD/REMOVE ANY SECTION)
+        // ==========================================
         let a4Orientation = 'landscape';
         function setAutoFormattedCurrentDateOnNote() {
             const now = new Date();
@@ -1737,7 +1765,48 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const el = document.getElementById('a4-auto-ship-date');
             if (el) el.innerText = `${months[now.getMonth()]} ${day}${suffix}, ${now.getFullYear()}`;
         }
-        function toggleA4Section(elId, show) { document.getElementById(elId).classList.toggle('hidden', !show); autoFitA4Content(); }
+        function applyExactFontSize(ptVal) {
+            const pt = Math.min(150, Math.max(1, parseInt(ptVal) || 14));
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+                const span = document.createElement('span');
+                span.style.fontSize = `${pt}pt`;
+                try { sel.getRangeAt(0).surroundContents(span); } catch (e) {}
+            } else if (document.activeElement && document.activeElement.isContentEditable) {
+                document.activeElement.style.fontSize = `${pt}pt`;
+            }
+            autoFitA4Content();
+        }
+        function applyNoteLineSpacing(val) {
+            document.getElementById('a4-inner-scaler').style.lineHeight = val;
+            autoFitA4Content();
+        }
+        function addA4BarcodeBlock() {
+            if (document.getElementById('a4-barcode-card')) return showToast("Barcode card already on sheet");
+            const div = document.createElement('div');
+            div.id = "a4-barcode-card";
+            div.className = "resizable-box border-2 border-zinc-900 p-4 flex flex-col items-center justify-center bg-white shrink-0 relative group";
+            div.style.width = "230px";
+            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button><canvas id="a4-prev-canvas" class="max-w-full"></canvas>`;
+            document.getElementById('a4-word-body').appendChild(div);
+            renderA4Barcode(); autoFitA4Content();
+        }
+        function addA4DividerLine() {
+            const div = document.createElement('div');
+            div.className = "relative group py-1 w-full";
+            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-1.5 bg-red-600 text-white rounded text-[10px] font-bold print:hidden">×</button><div class="border-b-4 border-zinc-900 w-full"></div>`;
+            document.getElementById('a4-inner-scaler').insertBefore(div, document.getElementById('a4-word-body'));
+            autoFitA4Content();
+        }
+        function addA4SignBlock() {
+            if (document.getElementById('a4-footer-section')) return showToast("Sign strip already on sheet");
+            const div = document.createElement('div');
+            div.id = "a4-footer-section";
+            div.className = "border-t-4 border-zinc-900 pt-3 grid grid-cols-3 gap-4 font-mono text-xs font-bold relative group";
+            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-3 right-0 px-2 py-0.5 bg-red-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" class="outline-none">DISPATCHED BY: ______________</div><div contenteditable="true" class="outline-none">DRIVER SIGN: ________________</div><div contenteditable="true" class="outline-none">TIME / SEAL: ________________</div>`;
+            document.getElementById('a4-inner-scaler').appendChild(div);
+            autoFitA4Content();
+        }
         function autoFitA4Content() {
             const paper = document.getElementById('a4-paper-sheet'), inner = document.getElementById('a4-inner-scaler');
             inner.style.transform = 'scale(1)';
@@ -1768,11 +1837,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
         function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); autoFitA4Content(); }
         function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); }
-        function renderA4Barcode() { try { bwipjs.toCanvas(document.getElementById('a4-prev-canvas'), { bcid: 'code128', text: document.getElementById('a4-ref').value.trim() || 'ASD-BLK-261119', scale: 3, height: 16, includetext: true, textxalign: 'center', textsize: 11, backgroundcolor: 'ffffff' }); } catch (e) {} }
+        function renderA4Barcode() { const c = document.getElementById('a4-prev-canvas'); if (!c) return; try { bwipjs.toCanvas(c, { bcid: 'code128', text: document.getElementById('a4-ref').value.trim() || 'ASD-BLK-261119', scale: 3, height: 16, includetext: true, textxalign: 'center', textsize: 11, backgroundcolor: 'ffffff' }); } catch (e) {} }
         function printA4DeliveryNote() {
             renderA4Barcode();
             const clone = document.getElementById('a4-paper-sheet').cloneNode(true), orig = document.getElementById('a4-prev-canvas'), cCanv = clone.querySelector('#a4-prev-canvas');
-            if (orig && cCanv && !document.getElementById('a4-barcode-card').classList.contains('hidden')) { const img = document.createElement('img'); img.src = orig.toDataURL('image/png'); img.style.maxWidth = '100%'; cCanv.replaceWith(img); }
+            if (orig && cCanv) { const img = document.createElement('img'); img.src = orig.toDataURL('image/png'); img.style.maxWidth = '100%'; cCanv.replaceWith(img); }
             clone.querySelectorAll('button').forEach(b => b.remove());
             clone.style.width = a4Orientation === 'landscape' ? '277mm' : '190mm'; clone.style.height = a4Orientation === 'landscape' ? '190mm' : '277mm';
             const win = window.open('', '_blank');
@@ -1780,7 +1849,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             win.document.close();
         }
 
-        // Keyboard Controls for Games & Deck
+        // Keyboard & General Helpers
         window.addEventListener('keydown', (e) => {
             const tag = document.activeElement?.tagName.toLowerCase(), isEd = document.activeElement?.isContentEditable;
             if (tag === 'input' || tag === 'textarea' || tag === 'select' || isEd) return;
@@ -1802,7 +1871,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
         });
 
-        // Sound Packs, File Manager & General Helpers
         let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true'), audioCtx = null;
         function playTone(type) {
             if (!audioEnabled) return;
@@ -1856,6 +1924,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             win.document.close();
         }
         function importSpreadsheet(e, id) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { document.getElementById(id).value = ev.target.result.trim(); loadBulkDeck(false); }; r.readAsText(f); }
+        async function decodeImageIntoBulk(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); const ta = document.getElementById('batch-input'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t; loadBulkDeck(true); playTone('success'); showToast(`Decoded & Added: ${t}`); } catch (err) { playTone('error'); } }
         function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
 
         let feedbackList = JSON.parse(localStorage.getItem('wmsFeedbackBoardV1') || '[]');
@@ -1874,6 +1943,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('cl-date').value = getTodayIsoDate();
             setAutoFormattedCurrentDateOnNote();
             autoSetNextAvailableSerial(); renderA4Barcode(); loadBulkDeck(false);
+            prepareArcadeGame();
             startArcadeEngine();
         };
 

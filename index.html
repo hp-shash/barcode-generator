@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BARCODE GENERATOR // shash</title>
+    <title>BARCODE GENERATOR // SHASH</title>
 
     <!-- PWA Manifest & Mobile Meta -->
     <link rel="manifest" href="./manifest.json">
@@ -157,13 +157,11 @@
 
         <!-- Right Controls: Quick Feedback Jump, Audio Toggle & Segmented Theme Icons -->
         <div class="flex items-center gap-2">
-            <!-- Jump to Feedback Button -->
             <button onclick="scrollToFeedback()" title="Leave Feedback or Feature Request" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="message-square-plus" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span class="hidden xl:inline text-[11px]">Feedback</span>
             </button>
 
-            <!-- Audio Beep Toggle -->
             <button onclick="toggleAudio()" id="btn-audio-toggle" title="Toggle Beep & Buzzer Sounds" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated transition">
                 <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span id="lbl-audio" class="hidden md:inline text-[11px]">Audio ON</span>
@@ -189,8 +187,6 @@
          ========================================== -->
     <div id="file-manager-backdrop" onclick="toggleFileManager()" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden transition-opacity"></div>
     <aside id="file-manager-drawer" class="fixed top-0 left-0 bottom-0 w-full max-w-md theme-card border-r theme-border z-50 transform -translate-x-full transition-transform duration-200 flex flex-col shadow-2xl">
-        
-        <!-- Drawer Header -->
         <div class="p-4 border-b theme-border flex items-center justify-between theme-elevated">
             <div class="flex items-center gap-2">
                 <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-500"></i>
@@ -201,7 +197,6 @@
             </button>
         </div>
 
-        <!-- 1. Folder Selection & Creation -->
         <div class="p-4 border-b theme-border space-y-3">
             <div>
                 <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">1. Active Workspace Folder</label>
@@ -216,7 +211,6 @@
                 </div>
             </div>
 
-            <!-- 2. Save Current Work (Browser / Local Disk / Cloud) -->
             <div class="pt-2 border-t theme-border space-y-2">
                 <label class="block text-[10px] font-mono uppercase theme-text-dim">2. Save Active Work as Task File</label>
                 <div class="flex gap-1.5">
@@ -231,24 +225,22 @@
                     <button onclick="saveCurrentTaskToFile()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 px-2.5 rounded-lg shadow flex items-center justify-center gap-1.5 transition">
                         <i data-lucide="bookmark-plus" class="w-3.5 h-3.5"></i> Save to App Folder
                     </button>
-                    <button onclick="saveActiveTaskToLocalDisk()" class="theme-elevated border hover:border-emerald-500 text-xs font-semibold py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition" title="Save directly to PC / OneDrive / Google Drive folder">
+                    <button onclick="saveActiveTaskToLocalDisk()" class="theme-elevated border hover:border-emerald-500 text-xs font-semibold py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition">
                         <i data-lucide="hard-drive-download" class="w-3.5 h-3.5 text-emerald-500"></i> Save to Local Disk
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Saved Task Files List -->
         <div class="px-4 pt-3 pb-1 flex items-center justify-between text-[10px] font-mono uppercase theme-text-dim">
             <span>Files in Current Folder</span>
             <label class="text-emerald-500 hover:underline cursor-pointer flex items-center gap-1 font-sans font-medium text-xs">
-                <i data-lucide="file-up" class="w-3 h-3"></i> Open Local File (.CSV/.XLSX/.JSON)
+                <i data-lucide="file-up" class="w-3 h-3"></i> Open Local File
                 <input type="file" accept=".csv,.txt,.xlsx,.xls,.json" onchange="openLocalFileIntoFolder(event)" class="hidden">
             </label>
         </div>
         <div class="flex-grow p-4 overflow-y-auto space-y-2" id="fm-file-list"></div>
 
-        <!-- 4. Cloud Drive & Live Cloud Sync Section -->
         <div class="p-3.5 border-t theme-border theme-elevated space-y-2.5">
             <details class="group">
                 <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
@@ -258,27 +250,24 @@
                     <i data-lucide="chevron-up" class="w-3.5 h-3.5 group-open:rotate-180 transition"></i>
                 </summary>
                 <div class="pt-3 space-y-2 text-xs">
-                    <p class="text-[11px] theme-text-dim">Sync your folders to a cloud endpoint (Supabase / JSONBin / Webhook) or share directly to Google Drive / OneDrive / iCloud:</p>
                     <input type="url" id="cloud-sync-url" placeholder="https://your-cloud-endpoint.com/workspace" onchange="localStorage.setItem('wmsCloudUrl', this.value)" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono outline-none">
                     <input type="password" id="cloud-sync-key" placeholder="Optional API Key / Bearer Token" onchange="localStorage.setItem('wmsCloudKey', this.value)" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono outline-none">
                     <div class="grid grid-cols-3 gap-1.5 pt-1">
                         <button onclick="pushWorkspaceToCloud()" class="py-1.5 px-2 rounded bg-emerald-600 text-white font-semibold flex items-center justify-center gap-1">
-                            <i data-lucide="cloud-upload" class="w-3 h-3"></i> Push Cloud
+                            <i data-lucide="cloud-upload" class="w-3 h-3"></i> Push
                         </button>
                         <button onclick="pullWorkspaceFromCloud()" class="py-1.5 px-2 rounded border theme-input font-medium flex items-center justify-center gap-1">
-                            <i data-lucide="cloud-download" class="w-3 h-3 text-emerald-500"></i> Pull Cloud
+                            <i data-lucide="cloud-download" class="w-3 h-3 text-emerald-500"></i> Pull
                         </button>
-                        <button onclick="shareToCloudDriveApp()" class="py-1.5 px-2 rounded border theme-input font-medium flex items-center justify-center gap-1" title="Send file to Google Drive, OneDrive, or Files app">
+                        <button onclick="shareToCloudDriveApp()" class="py-1.5 px-2 rounded border theme-input font-medium flex items-center justify-center gap-1">
                             <i data-lucide="share-2" class="w-3 h-3 text-emerald-500"></i> Drive App
                         </button>
                     </div>
                 </div>
             </details>
-
-            <!-- Full Workspace Backup Bar -->
             <div class="grid grid-cols-2 gap-2 pt-2 border-t theme-border text-xs">
                 <button onclick="exportWorkspaceJSON()" class="py-1.5 px-2.5 rounded border theme-input hover:border-emerald-500 flex items-center justify-center gap-1.5 font-medium">
-                    <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-500"></i> Backup All (.JSON)
+                    <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-500"></i> Backup (.JSON)
                 </button>
                 <label class="py-1.5 px-2.5 rounded border theme-input hover:border-emerald-500 flex items-center justify-center gap-1.5 font-medium cursor-pointer">
                     <i data-lucide="upload" class="w-3.5 h-3.5 text-emerald-500"></i> Restore (.JSON)
@@ -292,44 +281,65 @@
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
-             TAB 1: BULK GENERATOR, MULTI-COL CSV & SCAN-TO-ADVANCE
+             TAB 1: BULK GENERATOR, AUTO-SORT BY CARRIER & SCAN-TO-ADVANCE
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- LEFT COLUMN: BULK FEEDER, SEQUENCE & SPECIALTY LABELS (5 Cols) -->
+            <!-- LEFT COLUMN: BULK FEEDER, AUTO-SORT & SEQUENCE BUILDER (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 
                 <!-- Bulk & Multi-Column CSV Feeder Card -->
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <div class="flex items-center justify-between border-b theme-border pb-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Multi-Column Feeder
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Carrier Feeder
                         </span>
-                        <div class="flex items-center gap-2.5 text-xs">
+                        <div class="flex items-center gap-2 text-xs">
                             <label class="text-emerald-500 hover:underline cursor-pointer font-medium flex items-center gap-1">
                                 <i data-lucide="upload" class="w-3.5 h-3.5"></i> .XLSX / .CSV
                                 <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'batch-input')" class="hidden">
                             </label>
-                            <button onclick="quickSavePrompt('bulk')" class="theme-text-muted hover:text-emerald-500 flex items-center gap-1" title="Save list to File Manager">
+                            <button onclick="quickSavePrompt('bulk')" class="theme-text-muted hover:text-emerald-500 flex items-center gap-1">
                                 <i data-lucide="save" class="w-3.5 h-3.5"></i> Save
                             </button>
-                            <button onclick="loadMultiColSample()" class="theme-text-muted hover:underline">Reset</button>
                             <button onclick="clearBulkInput()" class="text-red-400 hover:underline">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Auto-Sort by Carrier & Sequence Action Bar -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-lg theme-elevated border">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="arrow-down-a-z" class="w-4 h-4 text-emerald-500"></i>
+                            <span class="text-[11px] font-semibold">Auto-Sort:</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <select id="sort-direction" class="theme-input border rounded px-2 py-1 text-[11px] font-mono outline-none">
+                                <option value="asc" selected>Carrier A→Z + 01→99 (Default)</option>
+                                <option value="desc">Carrier Z→A + 99→01</option>
+                            </select>
+                            <button onclick="autoSortCarrierSequence('batch-input', false)" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> Sort List
+                            </button>
                         </div>
                     </div>
 
                     <div>
                         <div class="flex justify-between text-[11px] theme-text-muted mb-1.5">
-                            <span>Columns: <code class="font-mono text-emerald-500">Pallet_ID, SKU, Qty, Lane</code></span>
-                            <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">4 items</span>
+                            <span>Paste mixed IDs (e.g. <code class="font-mono text-emerald-500">FF-RM01, FF-DPD02, FF-ASD04</code>)</span>
+                            <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">9 items</span>
                         </div>
-                        <textarea id="batch-input" rows="6" oninput="loadBulkDeck(false)" placeholder="FF-RM028262738, SKU-901, 48, LANE-01" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition leading-relaxed">FF-RM028262738, SKU-8821, 48, LANE-01
-FF-RM028262739, SKU-8821, 48, LANE-01
-FF-RM028262740, SKU-4410, 24, LANE-04
-FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
+                        <textarea id="batch-input" rows="7" oninput="loadBulkDeck(false)" placeholder="FF-RM03&#10;FF-DPD02&#10;FF-RMX01&#10;FF-ASD04" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition leading-relaxed">FF-RM03
+FF-DPD02
+FF-RMX03
+FF-ASD04
+FF-RM01
+FF-RMX01
+FF-DPD01
+FF-ASD01
+FF-RM02</textarea>
                     </div>
 
-                    <!-- Symbology, Suffix, Scale & Height Customization with Defaults -->
+                    <!-- Symbology & Suffix -->
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <label class="block text-[10px] uppercase tracking-wider theme-text-dim mb-1">Symbology</label>
@@ -382,7 +392,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 </div>
 
                 <!-- Customizable Sequential Range Generator -->
-                <details class="theme-card border rounded-xl p-4 shadow-sm group" open>
+                <details class="theme-card border rounded-xl p-4 shadow-sm group">
                     <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
                         <span class="flex items-center gap-2"><i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-500"></i> Auto-Sequence Range Builder</span>
                         <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition"></i>
@@ -395,7 +405,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                             </div>
                             <div>
                                 <label class="text-[10px] uppercase theme-text-dim block mb-1">Start Number</label>
-                                <input type="text" id="seq-start" value="028262738" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                                <input type="text" id="seq-start" value="01" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                             <div>
                                 <label class="text-[10px] uppercase theme-text-dim block mb-1">Suffix (Opt)</label>
@@ -413,7 +423,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                             </div>
                             <div>
                                 <label class="text-[10px] uppercase theme-text-dim block mb-1">Default Lane</label>
-                                <input type="text" id="seq-lane" value="LANE-01" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                                <input type="text" id="seq-lane" value="" placeholder="Optional" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                         </div>
                         <button onclick="generateSequenceList()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition shadow-sm">
@@ -422,7 +432,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </div>
                 </details>
 
-                <!-- Specialty Warehouse Labels (Racking & Quarantine Hold Tags) -->
+                <!-- Specialty Warehouse Labels -->
                 <details class="theme-card border rounded-xl p-4 shadow-sm group">
                     <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
                         <span class="flex items-center gap-2"><i data-lucide="tag" class="w-3.5 h-3.5 text-amber-500"></i> Racking Signs & Quarantine Hold Tags</span>
@@ -455,7 +465,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         <div class="space-y-2">
                             <span class="text-[11px] font-semibold text-red-400 block">4×6 Quarantine / Damaged Hold Tag</span>
                             <div class="grid grid-cols-3 gap-2">
-                                <input type="text" id="hold-pallet" value="FF-RM028262738" placeholder="Pallet ID" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                                <input type="text" id="hold-pallet" value="FF-RM01" placeholder="Pallet ID" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                                 <select id="hold-reason" class="theme-input border rounded px-2 py-1.5 text-xs">
                                     <option value="DAMAGED STOCK" selected>Damaged (Default)</option>
                                     <option value="QA QUARANTINE">QA Quarantine</option>
@@ -473,30 +483,30 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             </div>
 
-            <!-- RIGHT COLUMN: 1-BY-1 CAROUSEL WITH STATUS PILLS & CUSTOM TIMER (7 Cols) -->
+            <!-- RIGHT COLUMN: 1-BY-1 CAROUSEL WITH CARRIER GROUP PILLS & INSTANT AUTO-NEXT (7 Cols) -->
             <div class="lg:col-span-7 space-y-4">
 
                 <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
                     <!-- Deck Header & Custom Timer Controls -->
                     <div class="px-5 py-3.5 border-b theme-border flex flex-wrap items-center justify-between gap-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold" id="deck-counter">1 / 4</span>
-                            <span class="text-xs font-semibold uppercase tracking-wider">One-by-One Scan Stage</span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold" id="deck-counter">1 / 9</span>
+                            <span id="deck-carrier-badge" class="px-2 py-1 rounded bg-blue-500/15 border border-blue-500/30 text-blue-400 font-mono text-xs font-bold">CARRIER: FF-RM</span>
                         </div>
 
                         <!-- Customizable Timer Controls -->
                         <div class="flex flex-wrap items-center gap-2">
-                            <label class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded border theme-input cursor-pointer" title="Automatically advance slide when scanned">
+                            <label class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded border theme-input cursor-pointer">
                                 <input type="checkbox" id="chk-scan-advance" checked class="accent-emerald-500">
                                 <span>Auto-Next (Default)</span>
                             </label>
 
                             <div class="flex items-center theme-input border rounded-lg px-2 py-1 gap-1.5">
                                 <i data-lucide="timer" class="w-3.5 h-3.5 text-emerald-500"></i>
-                                <input type="number" id="custom-timer-sec" value="2.5" min="0.5" max="60" step="0.5" onchange="restartAutoPlayIfActive()" title="Custom Timer Seconds (2.5s Default)" class="w-12 bg-transparent text-xs font-mono font-bold text-center outline-none">
+                                <input type="number" id="custom-timer-sec" value="2.5" min="0.5" max="60" step="0.5" onchange="restartAutoPlayIfActive()" class="w-12 bg-transparent text-xs font-mono font-bold text-center outline-none">
                                 <span class="text-[10px] font-mono theme-text-dim">sec</span>
-                                <label class="flex items-center gap-1 text-[10px] theme-text-muted pl-1.5 border-l theme-border cursor-pointer" title="Loop back to item #1 after reaching the end">
+                                <label class="flex items-center gap-1 text-[10px] theme-text-muted pl-1.5 border-l theme-border cursor-pointer">
                                     <input type="checkbox" id="chk-timer-loop" checked class="accent-emerald-500"> Loop
                                 </label>
                             </div>
@@ -509,7 +519,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
                     <!-- Progress Bar Strip -->
                     <div class="w-full theme-input h-1.5 overflow-hidden">
-                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 25%"></div>
+                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 11%"></div>
                     </div>
 
                     <!-- Center Stage with Floating Scanning Status Pill -->
@@ -517,7 +527,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         
                         <!-- FLOATING SCANNING STATUS PILL -->
                         <div id="deck-scanned-badge" class="mb-4 px-3.5 py-1 rounded-full text-xs font-mono uppercase tracking-wider theme-elevated border flex items-center gap-2 shadow-sm">
-                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span> Ready to Scan (1 of 4)
+                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span> Ready to Scan (1 of 9)
                         </div>
 
                         <!-- Crisp White Label Card -->
@@ -532,7 +542,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
                         <!-- Large Monospace Payload Readout -->
                         <div class="mt-4 flex items-center gap-2">
-                            <span id="deck-current-text" class="text-lg sm:text-xl font-mono font-bold tracking-wider select-all">FF-RM028262738</span>
+                            <span id="deck-current-text" class="text-lg sm:text-xl font-mono font-bold tracking-wider select-all">FF-RM01</span>
                             <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1.5 rounded theme-elevated border hover:opacity-80" title="Copy ID">
                                 <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                             </button>
@@ -545,7 +555,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                             <i data-lucide="zap" class="w-4 h-4"></i>
                             <span>Scan-to-Advance:</span>
                         </div>
-                        <input type="text" id="deck-scan-input" placeholder="Scan current barcode with gun (or hit Enter) to verify & show next..." onkeydown="if(event.key==='Enter') handleDeckScanVerify()" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-500">
+                        <input type="text" id="deck-scan-input" placeholder="Scan current barcode (advances instantly upon match)..." onkeydown="if(event.key==='Enter' || event.key==='Tab') { event.preventDefault(); handleDeckScanVerify(); }" class="flex-grow theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none focus:border-emerald-500">
                         <div class="flex gap-1.5 w-full sm:w-auto">
                             <button onclick="stepDeck(-1)" class="px-3 py-2 rounded-lg theme-input border text-xs font-semibold hover:opacity-90 flex items-center gap-1">
                                 <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Prev
@@ -559,10 +569,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         </div>
                     </div>
 
-                    <!-- Queue Pills & Print Bar -->
-                    <div class="px-5 py-3 border-t theme-border flex flex-wrap items-center justify-between gap-3 text-xs">
-                        <div id="deck-pills" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto"></div>
-                        <div class="flex gap-2 shrink-0 ml-auto">
+                    <!-- Carrier-Grouped Queue Pills & Print Bar -->
+                    <div class="px-5 py-3 border-t theme-border space-y-2.5 text-xs">
+                        <div id="deck-pills" class="space-y-2 max-h-36 overflow-y-auto"></div>
+                        <div class="flex justify-end gap-2 pt-2 border-t theme-border">
                             <button onclick="exportZPL(bulkRecords[currentDeckIndex]?.id)" class="px-2.5 py-1.5 rounded-lg theme-elevated border font-mono text-[11px] hover:border-emerald-500">.ZPL</button>
                             <button onclick="printCurrentDeckLabel()" class="px-3 py-1.5 rounded-lg theme-elevated border font-medium hover:border-emerald-500">Print Current</button>
                             <button onclick="printBatchSheet()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">Print All 4×6</button>
@@ -573,7 +583,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 <!-- Grid All Panel -->
                 <div id="bulk-grid-panel" class="hidden theme-card border rounded-xl p-5 space-y-4 shadow-lg">
                     <div class="flex justify-between items-center border-b theme-border pb-3">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Complete Batch Grid</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider">Complete Batch Grid (Grouped by Carrier)</span>
                         <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print All 4×6</button>
                     </div>
                     <div id="batch-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto"></div>
@@ -622,17 +632,21 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-semibold uppercase tracking-wider">1. Expected JDA Manifest</span>
                             <div class="flex gap-2 text-xs">
+                                <button onclick="autoSortCarrierSequence('audit-manifest-input', true)" class="text-emerald-500 hover:underline font-semibold flex items-center gap-1">
+                                    <i data-lucide="arrow-down-a-z" class="w-3.5 h-3.5"></i> Sort
+                                </button>
                                 <label class="text-emerald-500 hover:underline cursor-pointer font-medium">
-                                    .XLSX / .CSV
+                                    .XLSX/.CSV
                                     <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'audit-manifest-input', true)" class="hidden">
                                 </label>
                                 <button onclick="quickSavePrompt('audit')" class="theme-text-muted hover:text-emerald-500">Save</button>
                             </div>
                         </div>
-                        <textarea id="audit-manifest-input" rows="7" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none">FF-RM028262738, SKU-8821, 48, LANE-01
-FF-RM028262739, SKU-8821, 48, LANE-01
-FF-RM028262740, SKU-4410, 24, LANE-04
-FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
+                        <textarea id="audit-manifest-input" rows="7" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none">FF-RM01, SKU-8821, 48, LANE-01
+FF-RM02, SKU-8821, 48, LANE-01
+FF-RMX01, SKU-4410, 24, LANE-04
+FF-DPD01, SKU-9012, 96, DOCK-NORTH
+FF-ASD01, SKU-3301, 12, LANE-02</textarea>
                         <button onclick="loadAuditManifest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition">Load / Reset Manifest</button>
                     </div>
 
@@ -652,9 +666,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                                 <input type="number" id="guard-len" value="0" min="0" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                         </div>
-                        <label class="flex items-center gap-2 text-xs theme-text-muted pt-1 cursor-pointer">
-                            <input type="checkbox" id="guard-case" checked class="accent-emerald-500"> Case-Insensitive Match (Default)
-                        </label>
                     </div>
 
                     <!-- Shift Handover Summary -->
@@ -675,19 +686,16 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         <button onclick="processAuditScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2.5 rounded-lg shrink-0">Verify Scan</button>
                     </div>
 
-                    <!-- Live Status Alert Banner -->
                     <div id="audit-alert-banner" class="hidden p-3 rounded-lg font-mono text-xs font-semibold flex justify-between items-center">
                         <span id="audit-alert-text"></span>
                         <span id="audit-alert-time" class="text-[10px] opacity-75"></span>
                     </div>
 
-                    <!-- Rogue Pallets Box -->
                     <div id="audit-rogue-box" class="hidden bg-red-950/30 border border-red-500/40 rounded-lg p-3 space-y-1.5">
                         <span class="text-[11px] font-bold uppercase text-red-400 block">Unexpected Rogue / Rejected Scans:</span>
                         <div id="audit-rogue-list" class="flex flex-wrap gap-1.5"></div>
                     </div>
 
-                    <!-- Filter Tabs for Audit Table -->
                     <div class="flex items-center justify-between border-b theme-border pb-2 text-xs">
                         <div class="flex gap-1">
                             <button onclick="setAuditFilter('all')" id="af-all" class="px-2.5 py-1 rounded bg-emerald-600 text-white font-medium">All</button>
@@ -702,10 +710,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                             <thead class="sticky top-0 theme-elevated border-b theme-border">
                                 <tr>
                                     <th class="p-3">Status</th>
+                                    <th class="p-3">Carrier</th>
                                     <th class="p-3">Pallet ID</th>
                                     <th class="p-3">SKU / Lane</th>
                                     <th class="p-3" id="th-qty-col">Expected Qty</th>
-                                    <th class="p-3">Verified Time</th>
                                     <th class="p-3 text-right">Action</th>
                                 </tr>
                             </thead>
@@ -722,7 +730,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
              ========================================== -->
         <section id="view-single" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Left Controls with Explicit Defaults (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex justify-between items-center border-b theme-border pb-2.5">
@@ -757,7 +764,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
                     <div>
                         <label class="block text-[10px] uppercase theme-text-dim mb-1">Payload Data</label>
-                        <input type="text" id="bc-data" value="FF-RM028262738" oninput="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500">
+                        <input type="text" id="bc-data" value="FF-RM01" oninput="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500">
                     </div>
 
                     <div>
@@ -765,7 +772,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         <input type="text" id="bc-alttext" oninput="renderSingleBarcode()" placeholder="Blank = Encoded Data (Default)" class="w-full theme-input border rounded-lg px-3 py-1.5 text-xs font-mono outline-none">
                     </div>
 
-                    <!-- Scale, Height, Quiet Zone with Default Indicators -->
                     <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
                         <div>
                             <span class="text-[10px] theme-text-dim block mb-1">Scale: <b id="lbl-scale">3x (Default)</b></span>
@@ -810,7 +816,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         </div>
                     </div>
 
-                    <!-- ZPL Customization Settings -->
                     <div class="grid grid-cols-2 gap-3 pt-2 border-t theme-border">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Zebra ZPL Resolution</label>
@@ -830,7 +835,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </div>
                 </div>
 
-                <!-- WMS Multi-Step Macro Presets -->
                 <div class="theme-card border rounded-xl p-4 space-y-2.5 shadow-sm">
                     <span class="text-xs font-semibold uppercase tracking-wider block">WMS Terminal Macro Presets</span>
                     <div class="grid grid-cols-2 gap-2">
@@ -846,7 +850,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 </div>
             </div>
 
-            <!-- Right Preview Stage (7 Cols) -->
             <div class="lg:col-span-7 theme-card border rounded-xl overflow-hidden shadow-sm flex flex-col">
                 <div class="px-5 py-3.5 border-b theme-border flex justify-between items-center">
                     <span class="text-xs font-semibold uppercase tracking-wider">Live Vector & Raster Stage</span>
@@ -876,7 +879,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         <section id="view-tools" class="hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                <!-- Master LPN Consolidation Builder (7 Cols) -->
                 <div class="lg:col-span-7 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
                         <div>
@@ -926,7 +928,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </div>
                 </div>
 
-                <!-- Image File Decoder (5 Cols) -->
                 <div class="lg:col-span-5 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <h2 class="text-xs font-semibold uppercase tracking-wider">Decode Barcode from Image File</h2>
                     <label class="flex flex-col items-center justify-center border-2 border-dashed theme-border hover:border-emerald-500 rounded-xl p-6 cursor-pointer transition theme-input">
@@ -942,7 +943,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             </div>
 
-            <!-- Master Session Scan Log -->
             <div class="theme-card border rounded-xl p-5 space-y-3 shadow-sm">
                 <div class="flex flex-wrap justify-between items-center gap-2 border-b theme-border pb-3">
                     <span class="text-xs font-semibold uppercase tracking-wider">Master Session Activity Log</span>
@@ -991,8 +991,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    
-                    <!-- Left: Submit Comment Form (5 Cols) -->
                     <div class="lg:col-span-5 space-y-3.5 theme-input p-4 rounded-xl border">
                         <div class="grid grid-cols-2 gap-2.5">
                             <div>
@@ -1011,7 +1009,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                             </div>
                         </div>
 
-                        <!-- Interactive Star Rating -->
                         <div>
                             <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Experience Rating</label>
                             <div class="flex items-center gap-1.5" id="fb-star-bar">
@@ -1032,13 +1029,12 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                             <button onclick="submitFeedbackComment()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow transition flex items-center justify-center gap-1.5">
                                 <i data-lucide="send" class="w-3.5 h-3.5"></i> Post Comment
                             </button>
-                            <button onclick="submitFeedbackToGitHub()" class="theme-elevated border hover:border-emerald-500 text-xs font-medium py-2.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5" title="Open pre-filled GitHub Issue on hp-shash/barcode-generator">
+                            <button onclick="submitFeedbackToGitHub()" class="theme-elevated border hover:border-emerald-500 text-xs font-medium py-2.5 px-3 rounded-lg transition flex items-center justify-center gap-1.5">
                                 <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i> Send to GitHub Issues
                             </button>
                         </div>
                     </div>
 
-                    <!-- Right: Live Comments Feed (7 Cols) -->
                     <div class="lg:col-span-7 space-y-3">
                         <div class="flex items-center justify-between text-xs">
                             <span class="font-mono uppercase text-[11px] theme-text-muted" id="fb-count-label">Recent Suggestions & Comments</span>
@@ -1046,7 +1042,6 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                         </div>
                         <div id="fb-comments-list" class="space-y-2.5 max-h-[310px] overflow-y-auto pr-1"></div>
                     </div>
-
                 </div>
             </div>
         </section>
@@ -1056,7 +1051,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
     <!-- Footer -->
     <footer class="border-t theme-border py-4 px-6 text-center text-[11px] font-mono theme-text-dim flex flex-wrap items-center justify-between max-w-[1440px] w-full mx-auto">
         <span>BARCODE GENERATOR // SHASH</span>
-        <span>Offline-Ready PWA • Local & Cloud File Manager</span>
+        <span>Offline-Ready PWA • Auto-Sort by Carrier & Sequence</span>
     </footer>
 
     <!-- Offscreen Canvas -->
@@ -1073,6 +1068,60 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         lucide.createIcons();
 
         // ==========================================
+        // 0. CARRIER & NATURAL SEQUENCE AUTO-SORTER
+        // ==========================================
+        function extractCarrierPrefix(palletId) {
+            // Separates prefix like "FF-RM", "FF-RMX", "FF-DPD", "FF-ASD" from trailing digits "01", "02"
+            const match = palletId.trim().match(/^([A-Za-z\-_]+?)(\d+)(.*)$/);
+            if (match) {
+                return {
+                    carrier: match[1].toUpperCase(),
+                    num: BigInt(match[2]),
+                    suffix: match[3] || ''
+                };
+            }
+            return { carrier: palletId.toUpperCase(), num: 0n, suffix: '' };
+        }
+
+        function autoSortCarrierSequence(textareaId, isAudit = false) {
+            const textarea = document.getElementById(textareaId);
+            const rawLines = textarea.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (rawLines.length === 0) return;
+
+            const dir = document.getElementById('sort-direction')?.value || 'asc';
+            const mult = dir === 'asc' ? 1 : -1;
+
+            rawLines.sort((lineA, lineB) => {
+                const idA = lineA.split(',')[0].trim();
+                const idB = lineB.split(',')[0].trim();
+
+                const parsedA = extractCarrierPrefix(idA);
+                const parsedB = extractCarrierPrefix(idB);
+
+                // 1. Group strictly by Carrier Prefix first (e.g., FF-ASD vs FF-DPD vs FF-RM vs FF-RMX)
+                const carrierCmp = parsedA.carrier.localeCompare(parsedB.carrier, undefined, { sensitivity: 'base' });
+                if (carrierCmp !== 0) return carrierCmp * mult;
+
+                // 2. Sort trailing numeric sequence accurately (01, 02, 03, 10)
+                if (parsedA.num < parsedB.num) return -1 * mult;
+                if (parsedA.num > parsedB.num) return 1 * mult;
+
+                // 3. Fallback natural sort for any remaining characters
+                return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' }) * mult;
+            });
+
+            textarea.value = rawLines.join('\n');
+            if (isAudit) {
+                loadAuditManifest();
+            } else {
+                scannedSet.clear();
+                loadBulkDeck(false);
+            }
+            playTone('success');
+            showToast(`Sorted ${rawLines.length} pallets by Carrier & Sequence!`);
+        }
+
+        // ==========================================
         // 1. WORKSPACE FOLDER, LOCAL DISK & CLOUD FILE MANAGER
         // ==========================================
         const DEFAULT_WORKSPACE = {
@@ -1082,10 +1131,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 {
                     id: 'task-1',
                     folder: 'Default Shift',
-                    name: 'Morning Inbound Batch',
+                    name: 'Mixed Carrier Pallet Run',
                     type: 'bulk',
                     updated: 'Today',
-                    content: "FF-RM028262738, SKU-8821, 48, LANE-01\nFF-RM028262739, SKU-8821, 48, LANE-01\nFF-RM028262740, SKU-4410, 24, LANE-04\nFF-RM028262741, SKU-9012, 96, DOCK-NORTH"
+                    content: "FF-RM03\nFF-DPD02\nFF-RMX03\nFF-ASD04\nFF-RM01\nFF-RMX01\nFF-DPD01\nFF-ASD01\nFF-RM02"
                 },
                 {
                     id: 'task-2',
@@ -1093,7 +1142,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     name: 'Dock Door 4 Audit Manifest',
                     type: 'audit',
                     updated: 'Today',
-                    content: "FF-RM028262738, SKU-8821, 48, LANE-01\nFF-RM028262739, SKU-8821, 48, LANE-01\nFF-RM028262740, SKU-4410, 24, LANE-04\nFF-RM028262741, SKU-9012, 96, DOCK-NORTH"
+                    content: "FF-RM01, SKU-8821, 48, LANE-01\nFF-RM02, SKU-8821, 48, LANE-01\nFF-RMX01, SKU-4410, 24, LANE-04\nFF-DPD01, SKU-9012, 96, DOCK-NORTH\nFF-ASD01, SKU-3301, 12, LANE-02"
                 }
             ]
         };
@@ -1129,9 +1178,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const name = prompt("Enter new folder name (e.g., Night Shift, Carrier X):");
             if (!name || !name.trim()) return;
             const clean = name.trim();
-            if (!workspace.folders.includes(clean)) {
-                workspace.folders.push(clean);
-            }
+            if (!workspace.folders.includes(clean)) workspace.folders.push(clean);
             workspace.activeFolder = clean;
             saveWorkspaceState();
             renderFolderDropdown();
@@ -1166,12 +1213,8 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const content = getActiveTaskPayload(type);
 
             workspace.files.unshift({
-                id: 'task-' + Date.now(),
-                folder,
-                name,
-                type,
-                updated: new Date().toLocaleString('en-GB', { hour12: false }),
-                content
+                id: 'task-' + Date.now(), folder, name, type,
+                updated: new Date().toLocaleString('en-GB', { hour12: false }), content
             });
 
             if (nameInput) nameInput.value = '';
@@ -1193,10 +1236,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 if ('showSaveFilePicker' in window) {
                     const handle = await window.showSaveFilePicker({
                         suggestedName: filename,
-                        types: [{
-                            description: 'WMS Task File',
-                            accept: { 'text/plain': [ext, '.txt'] }
-                        }]
+                        types: [{ description: 'WMS Task File', accept: { 'text/plain': [ext, '.txt'] } }]
                     });
                     const writable = await handle.createWritable();
                     await writable.write(content);
@@ -1268,7 +1308,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(workspace) });
                 if (res.ok) { playTone('success'); showToast("Workspace synced to Cloud!"); }
                 else alert(`Cloud responded with status ${res.status}`);
-            } catch (e) { alert("Could not reach Cloud URL. Check CORS or network connection."); }
+            } catch (e) { alert("Could not reach Cloud URL."); }
         }
 
         async function pullWorkspaceFromCloud() {
@@ -1285,7 +1325,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     workspace = payload;
                     saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
                     playTone('success'); showToast("Pulled latest workspace from Cloud!");
-                } else { alert("Cloud response did not contain a valid workspace structure."); }
+                } else { alert("Cloud response did not contain a valid workspace."); }
             } catch (e) { alert("Failed to pull from Cloud URL."); }
         }
 
@@ -1370,7 +1410,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
                         <button onclick="loadTaskFile('${f.id}')" class="px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold">Open</button>
-                        <button onclick="saveExistingTaskToDisk('${f.id}')" title="Save this task to Local Disk / Cloud Drive folder" class="p-1.5 rounded theme-elevated border text-emerald-500 hover:opacity-80">
+                        <button onclick="saveExistingTaskToDisk('${f.id}')" title="Save to Local Disk" class="p-1.5 rounded theme-elevated border text-emerald-500 hover:opacity-80">
                             <i data-lucide="download" class="w-3.5 h-3.5"></i>
                         </button>
                         <button onclick="deleteTaskFile('${f.id}')" title="Delete Task" class="p-1.5 rounded theme-elevated text-red-400 hover:opacity-80">×</button>
@@ -1393,9 +1433,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     const parsed = JSON.parse(e.target.result);
                     if (parsed.folders && parsed.files) {
                         workspace = parsed;
-                        saveWorkspaceState();
-                        renderFolderDropdown();
-                        renderFileManager();
+                        saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
                         showToast("Workspace restored!");
                     }
                 } catch (err) { alert("Invalid workspace JSON file."); }
@@ -1404,7 +1442,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 2. COMMUNITY FEEDBACK & IMPROVEMENT BOARD
+        // 2. COMMUNITY FEEDBACK BOARD
         // ==========================================
         const DEFAULT_FEEDBACK = [
             {
@@ -1412,7 +1450,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 name: 'Warehouse Ops Team',
                 category: 'Feature Request',
                 rating: 5,
-                comment: 'The 1-by-1 Scan-to-Advance deck and 4x6 routing labels save huge time during morning dispatch.',
+                comment: 'Auto-sorting mixed carrier pallets (FF-RM, FF-RMX, FF-DPD, FF-ASD) in sequence saves huge dispatch time!',
                 time: 'Pinned',
                 likes: 4
             }
@@ -1428,37 +1466,29 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
         function setFeedbackRating(stars) {
             currentFbRating = stars;
-            const btns = document.querySelectorAll('#fb-star-bar .fb-star');
-            btns.forEach((btn, idx) => {
-                const s = idx + 1;
-                if (s === stars) {
-                    btn.className = "fb-star px-2.5 py-1 rounded border bg-emerald-600 text-white border-emerald-500 text-xs font-mono font-bold transition";
-                } else {
-                    btn.className = "fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono opacity-75 hover:opacity-100 transition";
-                }
+            document.querySelectorAll('#fb-star-bar .fb-star').forEach((btn, idx) => {
+                btn.className = (idx + 1 === stars)
+                    ? "fb-star px-2.5 py-1 rounded border bg-emerald-600 text-white border-emerald-500 text-xs font-mono font-bold transition"
+                    : "fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono opacity-75 hover:opacity-100 transition";
             });
         }
 
         function submitFeedbackComment() {
-            const nameInp = document.getElementById('fb-name');
-            const catInp = document.getElementById('fb-category');
-            const commInp = document.getElementById('fb-comment');
-            const comment = commInp.value.trim();
-
+            const comment = document.getElementById('fb-comment').value.trim();
             if (!comment) return alert("Please enter a comment or suggestion before posting.");
 
             feedbackList.unshift({
                 id: 'fb-' + Date.now(),
-                name: nameInp.value.trim() || 'Anonymous Operator',
-                category: catInp.value,
+                name: document.getElementById('fb-name').value.trim() || 'Anonymous Operator',
+                category: document.getElementById('fb-category').value,
                 rating: currentFbRating,
-                comment: comment,
+                comment,
                 time: new Date().toLocaleString('en-GB', { hour12: false }),
                 likes: 1
             });
 
             localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
-            commInp.value = '';
+            document.getElementById('fb-comment').value = '';
             playTone('success');
             renderFeedbackBoard();
             showToast("Thank you! Your feedback has been posted.");
@@ -1497,26 +1527,15 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         function exportFeedbackCSV() {
-            if (feedbackList.length === 0) return alert("No feedback entries to export.");
+            if (!feedbackList.length) return;
             let csv = "data:text/csv;charset=utf-8,Author,Category,Rating,Comment,Timestamp,Upvotes\n";
-            feedbackList.forEach(f => {
-                csv += `"${f.name.replace(/"/g, '""')}","${f.category}","${f.rating}","${f.comment.replace(/"/g, '""')}","${f.time}","${f.likes || 0}"\n`;
-            });
-            const link = document.createElement('a');
-            link.href = encodeURI(csv);
-            link.download = `shash-barcode-feedback-${Date.now()}.csv`;
-            link.click();
+            feedbackList.forEach(f => { csv += `"${f.name.replace(/"/g, '""')}","${f.category}","${f.rating}","${f.comment.replace(/"/g, '""')}","${f.time}","${f.likes || 0}"\n`; });
+            const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `shash-barcode-feedback-${Date.now()}.csv`; link.click();
         }
 
         function renderFeedbackBoard() {
             const list = document.getElementById('fb-comments-list');
             document.getElementById('fb-count-label').innerText = `Suggestions & Comments (${feedbackList.length})`;
-
-            if (feedbackList.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-xs theme-text-dim font-mono">No comments yet. Be the first to suggest an improvement!</div>`;
-                return;
-            }
-
             list.innerHTML = feedbackList.map(f => `
                 <div class="p-3.5 rounded-xl border theme-input space-y-1.5">
                     <div class="flex items-center justify-between gap-2">
@@ -1537,7 +1556,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 3. AUDIO SYNTHESIZER & SEGMENTED THEME BAR
+        // 3. AUDIO & THEME ENGINE
         // ==========================================
         let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true');
         let audioCtx = null;
@@ -1595,19 +1614,32 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             localStorage.setItem('wmsThemeMode', mode);
             ['dark', 'light', 'eye-protect'].forEach(m => {
                 const btn = document.getElementById(`theme-${m}`);
-                if (m === mode) {
-                    btn.className = "px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 bg-emerald-600 text-white transition";
-                } else {
-                    btn.className = "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition";
-                }
+                btn.className = (m === mode)
+                    ? "px-2 py-1 rounded-md text-[11px] font-semibold flex items-center gap-1 bg-emerald-600 text-white transition"
+                    : "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition";
             });
         }
 
         // ==========================================
-        // 4. GLOBAL HARDWARE GUN INTERCEPTOR
+        // 4. INSTANT AUTO-NEXT & GLOBAL SCAN LISTENER
         // ==========================================
         let gunBuffer = '';
         let lastKeyTime = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const deckInput = document.getElementById('deck-scan-input');
+            if (deckInput) {
+                deckInput.addEventListener('input', () => {
+                    if (bulkRecords.length === 0) return;
+                    const val = deckInput.value.trim();
+                    const expected = bulkRecords[currentDeckIndex].id;
+                    if (val.toUpperCase() === expected.toUpperCase()) {
+                        deckInput.value = '';
+                        markAndNextDeck();
+                    }
+                });
+            }
+        });
 
         window.addEventListener('keydown', (e) => {
             const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
@@ -1615,10 +1647,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             if (!isTypingInInput) {
                 const now = Date.now();
-                if (now - lastKeyTime > 60) gunBuffer = '';
+                if (now - lastKeyTime > 150) gunBuffer = '';
                 lastKeyTime = now;
 
-                if (e.key === 'Enter' && gunBuffer.length >= 3) {
+                if ((e.key === 'Enter' || e.key === 'Tab') && gunBuffer.length >= 3) {
                     e.preventDefault();
                     const code = gunBuffer.trim();
                     gunBuffer = '';
@@ -1626,6 +1658,14 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     return;
                 } else if (e.key.length === 1) {
                     gunBuffer += e.key;
+                    if (!document.getElementById('view-bulk').classList.contains('hidden') && bulkRecords.length > 0) {
+                        const expected = bulkRecords[currentDeckIndex].id;
+                        if (gunBuffer.trim().toUpperCase() === expected.toUpperCase()) {
+                            gunBuffer = '';
+                            markAndNextDeck();
+                            return;
+                        }
+                    }
                 }
 
                 if (!document.getElementById('view-bulk').classList.contains('hidden')) {
@@ -1650,7 +1690,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         // ==========================================
-        // 5. BULK DECK, CUSTOM TIMER & STATUS PILLS
+        // 5. BULK DECK, CARRIER GROUPING & SCAN-TO-ADVANCE
         // ==========================================
         let bulkRecords = [];
         let scannedSet = new Set();
@@ -1661,7 +1701,9 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
         function parseCsvLine(line) {
             const parts = line.split(',').map(s => s.trim());
-            return { id: parts[0] || '', sku: parts[1] || '', qty: parts[2] || '', lane: parts[3] || '' };
+            const id = parts[0] || '';
+            const carrier = extractCarrierPrefix(id).carrier;
+            return { id, carrier, sku: parts[1] || '', qty: parts[2] || '', lane: parts[3] || '' };
         }
 
         function formatPayloadWithSuffix(rawText, suffixMode) {
@@ -1683,6 +1725,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         function renderCurrentDeckSlide() {
             const canvas = document.getElementById('deck-canvas');
             const counter = document.getElementById('deck-counter');
+            const carrierBadge = document.getElementById('deck-carrier-badge');
             const currentText = document.getElementById('deck-current-text');
             const progress = document.getElementById('deck-progress');
             const badge = document.getElementById('deck-scanned-badge');
@@ -1694,6 +1737,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             if (bulkRecords.length === 0) {
                 counter.innerText = "0 / 0";
+                carrierBadge.innerText = "CARRIER: --";
                 currentText.innerText = "No items in list";
                 progress.style.width = "0%";
                 routingHeader.classList.add('hidden');
@@ -1704,6 +1748,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
             const rec = bulkRecords[currentDeckIndex];
             counter.innerText = `${currentDeckIndex + 1} / ${bulkRecords.length}`;
+            carrierBadge.innerText = `CARRIER: ${rec.carrier}`;
             currentText.innerText = rec.id;
             progress.style.width = `${((currentDeckIndex + 1) / bulkRecords.length) * 100}%`;
 
@@ -1766,7 +1811,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             const rec = bulkRecords[currentDeckIndex];
             scannedSet.add(currentDeckIndex);
             playTone('success');
-            logItem(rec.id, 'Bulk 1-by-1 Scan', true);
+            logItem(rec.id, `Bulk Scan (${rec.carrier})`, true);
 
             const stage = document.getElementById('deck-stage-box');
             stage.classList.remove('scan-flash');
@@ -1816,19 +1861,38 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
             if (autoPlayTimer) { toggleAutoPlay(); toggleAutoPlay(); }
         }
 
+        // Group Queue Pills visually by Carrier Prefix
         function renderDeckPills() {
             const container = document.getElementById('deck-pills');
             container.innerHTML = '';
+            if (bulkRecords.length === 0) return;
+
+            const groups = new Map();
             bulkRecords.forEach((rec, idx) => {
-                const btn = document.createElement('button');
-                btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
-                btn.className = idx === currentDeckIndex
-                    ? "px-2.5 py-1 rounded text-xs font-mono font-bold bg-emerald-600 text-white shadow"
-                    : scannedSet.has(idx)
-                        ? "px-2.5 py-1 rounded text-xs font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
-                        : "px-2.5 py-1 rounded text-xs font-mono theme-elevated border opacity-75 hover:opacity-100";
-                btn.innerText = `${idx + 1}. ${rec.id}`;
-                container.appendChild(btn);
+                if (!groups.has(rec.carrier)) groups.set(rec.carrier, []);
+                groups.get(rec.carrier).push({ rec, idx });
+            });
+
+            groups.forEach((entries, carrier) => {
+                const row = document.createElement('div');
+                row.className = "flex flex-wrap items-center gap-1.5";
+                const tag = document.createElement('span');
+                tag.className = "text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30";
+                tag.innerText = carrier;
+                row.appendChild(tag);
+
+                entries.forEach(({ rec, idx }) => {
+                    const btn = document.createElement('button');
+                    btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
+                    btn.className = idx === currentDeckIndex
+                        ? "px-2 py-0.5 rounded text-xs font-mono font-bold bg-emerald-600 text-white shadow"
+                        : scannedSet.has(idx)
+                            ? "px-2 py-0.5 rounded text-xs font-mono bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
+                            : "px-2 py-0.5 rounded text-xs font-mono theme-elevated border opacity-75 hover:opacity-100";
+                    btn.innerText = rec.id;
+                    row.appendChild(btn);
+                });
+                container.appendChild(row);
             });
         }
 
@@ -1879,7 +1943,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 const rec = parseCsvLine(line);
                 if (rec.id) {
                     auditManifest.set(rec.id.toUpperCase(), {
-                        id: rec.id, sku: rec.sku || '-', expectedQty: parseInt(rec.qty) || 1,
+                        id: rec.id, carrier: rec.carrier, sku: rec.sku || '-', expectedQty: parseInt(rec.qty) || 1,
                         countedQty: null, lane: rec.lane || '-', verified: false, time: null
                     });
                 }
@@ -1922,8 +1986,8 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                 item.countedQty = isBlind ? blindQtyVal : item.expectedQty;
                 playTone('success');
                 banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-emerald-500/20 border border-emerald-500 text-emerald-400 flex justify-between";
-                bannerText.innerText = `✓ VERIFIED MATCH: ${item.id} (${item.lane})`;
-                logItem(item.id, 'Audit Verified', true);
+                bannerText.innerText = `✓ VERIFIED MATCH: ${item.id} (${item.carrier})`;
+                logItem(item.id, `Audit Verified (${item.carrier})`, true);
             } else {
                 playTone('error');
                 auditRogues.unshift({ id: rawScan, time: now });
@@ -1977,10 +2041,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
                 tr.innerHTML = `
                     <td class="p-3">${statusBadge}</td>
+                    <td class="p-3"><span class="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-bold">${escapeHtml(item.carrier)}</span></td>
                     <td class="p-3 font-bold">${escapeHtml(item.id)}</td>
                     <td class="p-3 theme-text-muted">${escapeHtml(item.sku)} | ${escapeHtml(item.lane)}</td>
                     <td class="p-3">${qtyDisplay}</td>
-                    <td class="p-3 theme-text-dim">${item.time || '--:--:--'}</td>
                     <td class="p-3 text-right"><button onclick="toggleManualAudit('${escapeHtml(key)}')" class="underline text-[11px] hover:text-emerald-500">${item.verified ? 'Undo' : 'Verify'}</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -2048,7 +2112,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         }
 
         function exportZPL(code) {
-            const val = code || 'FF-RM028262738';
+            const val = code || 'FF-RM01';
             const darkness = document.getElementById('zpl-darkness')?.value || '15';
             const zpl = `^XA\n~SD${darkness}\n^FO50,50^ADN,36,20^FD${val}^FS\n^FO50,100^BY3^BCN,120,Y,N,N^FD${val}^FS\n^XZ`;
             const blob = new Blob([zpl], { type: 'text/plain' });
@@ -2062,7 +2126,7 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
         function resetSingleStudioDefaults() {
             document.getElementById('bc-type').value = 'code128';
             document.getElementById('bc-suffix').value = 'none';
-            document.getElementById('bc-data').value = 'FF-RM028262738';
+            document.getElementById('bc-data').value = 'FF-RM01';
             document.getElementById('bc-alttext').value = '';
             document.getElementById('bc-scale').value = 3;
             document.getElementById('lbl-scale').innerText = '3x (Default)';
@@ -2238,17 +2302,10 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
                     const card = document.createElement('div');
                     card.className = "theme-input border rounded-lg p-3 flex flex-col items-center gap-2 cursor-pointer hover:border-emerald-500";
                     card.onclick = () => { currentDeckIndex = idx; setBulkViewMode('carousel'); };
-                    card.innerHTML = `<div class="w-full flex justify-between text-[10px] font-mono"><span>#${idx+1} ${escapeHtml(rec.id)}</span><span class="text-emerald-500 font-bold">${escapeHtml(rec.lane)}</span></div><div class="bg-white p-2 rounded w-full flex justify-center"><img src="${offCanvas.toDataURL('image/png')}" class="max-h-16"/></div>`;
+                    card.innerHTML = `<div class="w-full flex justify-between text-[10px] font-mono"><span class="px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-400 font-bold">${escapeHtml(rec.carrier)}</span><span>#${idx+1} ${escapeHtml(rec.id)}</span></div><div class="bg-white p-2 rounded w-full flex justify-center"><img src="${offCanvas.toDataURL('image/png')}" class="max-h-16"/></div>`;
                     grid.appendChild(card);
                 } catch (e) {}
             });
-        }
-
-        function loadMultiColSample() {
-            document.getElementById('batch-input').value = "FF-RM028262738, SKU-8821, 48, LANE-01\nFF-RM028262739, SKU-8821, 48, LANE-01\nFF-RM028262740, SKU-4410, 24, LANE-04\nFF-RM028262741, SKU-9012, 96, DOCK-NORTH";
-            scannedSet.clear();
-            loadBulkDeck(false);
-            showToast("Reset to default sample list");
         }
 
         function printCurrentDeckLabel() { if (bulkRecords.length) printRoutingBatch([bulkRecords[currentDeckIndex]]); }
@@ -2353,8 +2410,8 @@ FF-RM028262741, SKU-9012, 96, DOCK-NORTH</textarea>
 
         function exportAuditReportCSV() {
             if (!auditManifest.size) return;
-            let csv = "data:text/csv;charset=utf-8,Pallet_ID,Status,SKU,Expected_Qty,Counted_Qty,Lane,Time\n";
-            auditManifest.forEach(i => { csv += `"${i.id}","${i.verified?'VERIFIED':'MISSING'}","${i.sku}","${i.expectedQty}","${i.countedQty||''}","${i.lane}","${i.time||''}"\n`; });
+            let csv = "data:text/csv;charset=utf-8,Carrier,Pallet_ID,Status,SKU,Expected_Qty,Counted_Qty,Lane,Time\n";
+            auditManifest.forEach(i => { csv += `"${i.carrier}","${i.id}","${i.verified?'VERIFIED':'MISSING'}","${i.sku}","${i.expectedQty}","${i.countedQty||''}","${i.lane}","${i.time||''}"\n`; });
             const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `audit-report.csv`; link.click();
         }
 

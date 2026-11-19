@@ -137,7 +137,7 @@
             </div>
         </div>
 
-        <!-- Master 5-Tab Navigation (Includes Carrier Labels right next to Bulk & Labels) -->
+        <!-- Master 5-Tab Navigation -->
         <nav class="flex flex-wrap items-center gap-1 theme-input p-1 rounded-lg border">
             <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all">
                 <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk & Labels
@@ -145,12 +145,11 @@
             <button onclick="switchTab('carrier')" id="tab-carrier" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
                 <i data-lucide="truck" class="w-3.5 h-3.5"></i> Carrier Labels
             </button>
-            <button onclick="switchTab('audit')" id="tab-audit" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
-                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Audit & Cycle
-                <span id="nav-audit-badge" class="px-1.5 py-0.2 bg-amber-500/20 text-amber-500 rounded text-[10px] font-mono">0/0</span>
+            <button onclick="switchTab('a4note')" id="tab-a4note" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> A4 Delivery Note
             </button>
-            <button onclick="switchTab('single')" id="tab-single" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
-                <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Single & Macros
+            <button onclick="switchTab('webportal')" id="tab-webportal" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
+                <i data-lucide="globe" class="w-3.5 h-3.5"></i> Web Portal
             </button>
             <button onclick="switchTab('tools')" id="tab-tools" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
                 <i data-lucide="boxes" class="w-3.5 h-3.5"></i> Consolidate & Log
@@ -220,7 +219,7 @@
                     <input type="text" id="fm-task-name" placeholder="Task name (e.g. Shift-A Pallets)..." class="flex-grow theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-emerald-500">
                     <select id="fm-task-type" class="theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                         <option value="bulk" selected>Bulk List (Default)</option>
-                        <option value="audit">Audit Manifest</option>
+                        <option value="a4note">A4 Delivery Note</option>
                         <option value="lpn">LPN Consolidation</option>
                     </select>
                 </div>
@@ -284,18 +283,18 @@
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
-             TAB 1: BULK GENERATOR (GENERIC SORT + ZOOM + VERTICAL QUEUE)
+             TAB 1: BULK & LABELS (WITH ZOOM + VERTICAL STATUS QUEUE + MACROS)
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- LEFT COLUMN: BULK INPUT & SEQUENCE BUILDER (4 Cols) -->
+            <!-- Left Column: Bulk Input, Natural Sort, Sequence & Macros (4 Cols) -->
             <div class="lg:col-span-4 space-y-4">
                 
-                <!-- Bulk & Multi-Column Feeder Card -->
+                <!-- Bulk & Single ID Feeder Card -->
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk Data Feeder
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Label Feeder
                         </span>
                         <div class="flex items-center gap-2 text-xs">
                             <label class="text-emerald-500 hover:underline cursor-pointer font-medium flex items-center gap-1">
@@ -320,7 +319,7 @@
                                 <option value="asc" selected>A→Z / 01→99 (Default)</option>
                                 <option value="desc">Z→A / 99→01</option>
                             </select>
-                            <button onclick="autoSortNaturalSequence('batch-input', false)" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                            <button onclick="autoSortNaturalSequence('batch-input')" class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
                                 <i data-lucide="sparkles" class="w-3 h-3"></i> Sort
                             </button>
                         </div>
@@ -328,10 +327,10 @@
 
                     <div>
                         <div class="flex justify-between text-[11px] theme-text-muted mb-1.5">
-                            <span>Paste IDs or <code class="font-mono text-emerald-500">ID, Col2, Col3, Col4</code></span>
+                            <span>Paste 1 or more IDs (or <code class="font-mono text-emerald-500">ID, Col2, Col3, Col4</code>)</span>
                             <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">6 items</span>
                         </div>
-                        <textarea id="batch-input" rows="7" oninput="loadBulkDeck(false)" placeholder="Enter any IDs, SKUs, locations, or pallet numbers (one per line)..." class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition leading-relaxed">FF-RM03
+                        <textarea id="batch-input" rows="6" oninput="loadBulkDeck(false)" placeholder="Enter any IDs, SKUs, locations, or pallet numbers (one per line)..." class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 transition leading-relaxed">FF-RM03
 FF-RM01
 FF-RM02
 LOC-A10
@@ -339,7 +338,7 @@ LOC-A02
 SKU-9981</textarea>
                     </div>
 
-                    <!-- Symbology & Suffix -->
+                    <!-- Symbology & Keystroke Suffix -->
                     <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <label class="block text-[10px] uppercase tracking-wider theme-text-dim mb-1">Symbology</label>
@@ -350,6 +349,8 @@ SKU-9981</textarea>
                                 <option value="qrcode">QR Code (2D)</option>
                                 <option value="datamatrix">Data Matrix (2D)</option>
                                 <option value="itf14">ITF-14</option>
+                                <option value="ean13">EAN-13</option>
+                                <option value="upca">UPC-A</option>
                             </select>
                         </div>
                         <div>
@@ -364,7 +365,7 @@ SKU-9981</textarea>
 
                     <div class="grid grid-cols-3 gap-2 pt-2 border-t theme-border">
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Scale</label>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Scale</label>
                             <select id="batch-scale" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-md px-2 py-1 text-xs outline-none">
                                 <option value="2">2x</option>
                                 <option value="3">3x</option>
@@ -373,7 +374,7 @@ SKU-9981</textarea>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Height</label>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Height</label>
                             <select id="batch-height" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-md px-2 py-1 text-xs outline-none">
                                 <option value="12">12mm</option>
                                 <option value="18" selected>18mm (Default)</option>
@@ -382,16 +383,18 @@ SKU-9981</textarea>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">View</label>
-                            <div class="grid grid-cols-2 theme-input p-0.5 rounded-md border">
-                                <button onclick="setBulkViewMode('carousel')" id="btn-mode-carousel" class="text-[11px] font-semibold py-1 rounded bg-emerald-600 text-white transition">1-by-1</button>
-                                <button onclick="setBulkViewMode('grid')" id="btn-mode-grid" class="text-[11px] font-medium py-1 rounded theme-text-muted transition">Grid</button>
-                            </div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Rotation</label>
+                            <select id="batch-rotate" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-md px-2 py-1 text-xs outline-none">
+                                <option value="N" selected>0° (Default)</option>
+                                <option value="R">90° CW</option>
+                                <option value="I">180°</option>
+                                <option value="L">270°</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Customizable Sequential Range Generator -->
+                <!-- Auto-Sequence Generator -->
                 <details class="theme-card border rounded-xl p-4 shadow-sm group">
                     <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
                         <span class="flex items-center gap-2"><i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-500"></i> Auto-Sequence Generator</span>
@@ -404,22 +407,12 @@ SKU-9981</textarea>
                                 <input type="text" id="seq-prefix" value="ITEM-" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Start Number</label>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Start #</label>
                                 <input type="text" id="seq-start" value="001" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Suffix (Opt)</label>
-                                <input type="text" id="seq-suffix" value="" placeholder="None (Default)" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Qty (10 Default)</label>
+                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Qty (10 Def)</label>
                                 <input type="number" id="seq-count" value="10" min="1" max="500" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            </div>
-                            <div>
-                                <label class="text-[10px] uppercase theme-text-dim block mb-1">Step (1 Default)</label>
-                                <input type="number" id="seq-step" value="1" min="1" max="100" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
                             </div>
                         </div>
                         <button onclick="generateSequenceList()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition shadow-sm">
@@ -428,49 +421,62 @@ SKU-9981</textarea>
                     </div>
                 </details>
 
-                <!-- Specialty Warehouse Labels -->
+                <!-- WMS Terminal Macros & Specialty Racking/Hold Tags (Merged from Single & Macros) -->
                 <details class="theme-card border rounded-xl p-4 shadow-sm group">
                     <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
-                        <span class="flex items-center gap-2"><i data-lucide="tag" class="w-3.5 h-3.5 text-amber-500"></i> Racking Signs & Hold Tags</span>
+                        <span class="flex items-center gap-2"><i data-lucide="terminal" class="w-3.5 h-3.5 text-amber-500"></i> Macros, Racking & Hold Tags</span>
                         <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition"></i>
                     </summary>
                     <div class="pt-3.5 space-y-4 border-t theme-border mt-3">
+                        <!-- Terminal Macro Quick-Insert -->
+                        <div class="space-y-1.5 pb-3 border-b theme-border">
+                            <span class="text-[11px] font-semibold block">WMS Control Keystroke Macros</span>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <button onclick="insertMacroToBulk('PART-01\\t48\\r')" class="theme-elevated border text-left p-2 rounded text-[11px] font-mono hover:border-emerald-500">
+                                    + SKU + Tab + Qty
+                                </button>
+                                <button onclick="insertMacroToBulk('CONFIRMED\\r')" class="theme-elevated border text-left p-2 rounded text-[11px] font-mono hover:border-emerald-500">
+                                    + Confirm + Enter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Racking Sign -->
                         <div class="space-y-2 pb-3 border-b theme-border">
-                            <span class="text-[11px] font-semibold block">Warehouse Location / Racking Sign</span>
+                            <span class="text-[11px] font-semibold block">Warehouse Racking Sign</span>
                             <div class="grid grid-cols-3 gap-2">
-                                <input type="text" id="rack-code" value="A-12-04-B" placeholder="Location" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                                <select id="rack-arrow" class="theme-input border rounded px-2 py-1.5 text-xs font-bold">
-                                    <option value="↑" selected>↑ Upper (Default)</option>
+                                <input type="text" id="rack-code" value="A-12-04-B" class="theme-input border rounded px-2 py-1 text-xs font-mono">
+                                <select id="rack-arrow" class="theme-input border rounded px-2 py-1 text-xs font-bold">
+                                    <option value="↑" selected>↑ Upper (Def)</option>
                                     <option value="↓">↓ Ground</option>
                                     <option value="←">← Left</option>
                                     <option value="→">→ Right</option>
-                                    <option value="">None</option>
                                 </select>
-                                <select id="rack-theme" class="theme-input border rounded px-2 py-1.5 text-xs">
-                                    <option value="#ffeb3b" selected>Yellow (Default)</option>
+                                <select id="rack-theme" class="theme-input border rounded px-2 py-1 text-xs">
+                                    <option value="#ffeb3b" selected>Yellow (Def)</option>
                                     <option value="#ffffff">White</option>
                                     <option value="#86efac">Green</option>
-                                    <option value="#93c5fd">Blue</option>
                                 </select>
                             </div>
-                            <button onclick="printRackingSign()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg hover:border-emerald-500 transition">
-                                Print Location Sign
+                            <button onclick="printRackingSign()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg hover:border-emerald-500">
+                                Print Racking Sign
                             </button>
                         </div>
 
+                        <!-- Hold Tag -->
                         <div class="space-y-2">
-                            <span class="text-[11px] font-semibold text-red-400 block">100×150mm Quarantine / Hold Tag</span>
+                            <span class="text-[11px] font-semibold text-red-400 block">150×100mm Quarantine / Hold Tag</span>
                             <div class="grid grid-cols-3 gap-2">
-                                <input type="text" id="hold-pallet" value="FF-RM26111901" placeholder="ID" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                                <select id="hold-reason" class="theme-input border rounded px-2 py-1.5 text-xs">
-                                    <option value="DAMAGED STOCK" selected>Damaged (Default)</option>
-                                    <option value="QA QUARANTINE">QA Quarantine</option>
-                                    <option value="COUNT VARIANCE">Count Variance</option>
+                                <input type="text" id="hold-pallet" value="FF-RM26111901" class="theme-input border rounded px-2 py-1 text-xs font-mono">
+                                <select id="hold-reason" class="theme-input border rounded px-2 py-1 text-xs">
+                                    <option value="DAMAGED STOCK" selected>Damaged (Def)</option>
+                                    <option value="QA QUARANTINE">QA Hold</option>
+                                    <option value="VARIANCE">Variance</option>
                                 </select>
-                                <input type="text" id="hold-operator" placeholder="Notes / Op ID" class="theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
+                                <input type="text" id="hold-operator" placeholder="Notes / Op" class="theme-input border rounded px-2 py-1 text-xs font-mono">
                             </div>
-                            <button onclick="printHoldTag()" class="w-full bg-red-600/90 hover:bg-red-500 text-white text-xs font-semibold py-1.5 rounded-lg transition">
-                                Print 100×150mm Hold Tag
+                            <button onclick="printHoldTag()" class="w-full bg-red-600/90 hover:bg-red-500 text-white text-xs font-semibold py-1.5 rounded-lg">
+                                Print Hold Tag
                             </button>
                         </div>
                     </div>
@@ -478,24 +484,27 @@ SKU-9981</textarea>
 
             </div>
 
-            <!-- RIGHT COLUMN: 1-BY-1 STAGE WITH ZOOM CONTROLS + VERTICAL STATUS SIDEBAR (8 Cols) -->
+            <!-- Right Column: 1-by-1 Stage with Zoom Controls + Clean Vertical Queue Sidebar (8 Cols) -->
             <div class="lg:col-span-8 space-y-4">
 
                 <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
-                    <!-- Top Stage Control Bar: Counter, Zoom In/Out (with Default) & Timer -->
-                    <div class="px-4 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2.5">
+                    <!-- Top Stage Control Bar: Counter, Zoom In/Out (with Default), View Mode & Timer -->
+                    <div class="px-4 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-mono text-xs font-bold" id="deck-counter">1 / 6</span>
-                            <span class="text-xs font-semibold uppercase tracking-wider hidden sm:inline">Scan Stage</span>
+                            <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
+                                <button onclick="setBulkViewMode('carousel')" id="btn-mode-carousel" class="px-2 py-0.5 rounded font-semibold bg-emerald-600 text-white">1-by-1</button>
+                                <button onclick="setBulkViewMode('grid')" id="btn-mode-grid" class="px-2 py-0.5 rounded font-medium theme-text-muted">Grid</button>
+                            </div>
                         </div>
 
                         <!-- STAGE ZOOM IN / OUT CONTROLS (WITH DEFAULT) -->
-                        <div class="flex items-center theme-input border rounded-lg p-0.5 gap-1" title="Zoom Stage In or Out">
+                        <div class="flex items-center theme-input border rounded-lg p-0.5 gap-1" title="Zoom Barcode Stage In or Out">
                             <button onclick="adjustStageZoom(-0.15)" class="px-2 py-1 rounded hover:opacity-80 text-xs font-bold" title="Zoom Out">
                                 <i data-lucide="zoom-out" class="w-3.5 h-3.5"></i>
                             </button>
-                            <button onclick="resetStageZoom()" id="btn-zoom-reset" class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold theme-elevated" title="Reset to 100% Default Zoom">
+                            <button onclick="resetStageZoom()" id="btn-zoom-reset" class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold theme-elevated" title="Reset to 100% Default">
                                 100% (Default)
                             </button>
                             <button onclick="adjustStageZoom(0.15)" class="px-2 py-1 rounded hover:opacity-80 text-xs font-bold" title="Zoom In">
@@ -530,7 +539,7 @@ SKU-9981</textarea>
                         <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 16%"></div>
                     </div>
 
-                    <!-- SPLIT WORKSPACE: CENTER STAGE (Left) + CLEAN VERTICAL STATUS QUEUE (Right) -->
+                    <!-- SPLIT WORKSPACE: CENTER ZOOMABLE STAGE (8 Cols) + CLEAN VERTICAL STATUS LIST (4 Cols) -->
                     <div class="grid grid-cols-1 md:grid-cols-12">
                         
                         <!-- Left 8 Cols: Zoomable Barcode Stage -->
@@ -562,13 +571,13 @@ SKU-9981</textarea>
                             </div>
                         </div>
 
-                        <!-- Right 4 Cols: Clean Vertical ID Status Sidebar -->
+                        <!-- Right 4 Cols: Clean Vertical ID Status List -->
                         <div class="md:col-span-4 border-t md:border-t-0 md:border-l theme-border flex flex-col max-h-[380px]">
                             <div class="px-3.5 py-2.5 border-b theme-border theme-elevated flex items-center justify-between text-[11px] font-mono">
                                 <span class="font-bold uppercase tracking-wider">ID Queue Status</span>
                                 <span id="vertical-queue-stats" class="text-emerald-500 font-semibold">0 / 6 Done</span>
                             </div>
-                            <div id="deck-pills" class="flex-grow overflow-y-auto p-2 space-y-1 divide-y divide-transparent"></div>
+                            <div id="deck-pills" class="flex-grow overflow-y-auto p-2 space-y-1"></div>
                         </div>
 
                     </div>
@@ -593,13 +602,17 @@ SKU-9981</textarea>
                         </div>
                     </div>
 
-                    <!-- Print & Export Footer -->
+                    <!-- Multi-Format Export & Print Footer (Includes PNG, SVG, PDF, ZPL & Print) -->
                     <div class="px-4 py-2.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span class="text-[11px] theme-text-dim font-mono">100 × 150 mm Thermal Print Ready</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="exportCurrentPNG()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px] hover:border-emerald-500">PNG</button>
+                            <button onclick="exportCurrentSVG()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px] hover:border-emerald-500">SVG</button>
+                            <button onclick="exportCurrentPDF()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px] hover:border-emerald-500">PDF</button>
+                            <button onclick="exportZPL(bulkRecords[currentDeckIndex]?.id)" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px] hover:border-emerald-500">.ZPL</button>
+                        </div>
                         <div class="flex gap-2">
-                            <button onclick="exportZPL(bulkRecords[currentDeckIndex]?.id)" class="px-2.5 py-1.5 rounded-lg theme-elevated border font-mono text-[11px] hover:border-emerald-500">.ZPL</button>
                             <button onclick="printCurrentDeckLabel()" class="px-3 py-1.5 rounded-lg theme-elevated border font-medium hover:border-emerald-500">Print Current</button>
-                            <button onclick="printBatchSheet()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">Print All (100×150mm)</button>
+                            <button onclick="printBatchSheet()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">Print All</button>
                         </div>
                     </div>
                 </div>
@@ -608,7 +621,7 @@ SKU-9981</textarea>
                 <div id="bulk-grid-panel" class="hidden theme-card border rounded-xl p-5 space-y-4 shadow-lg">
                     <div class="flex justify-between items-center border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider">Complete Batch Grid</span>
-                        <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print All (100×150mm)</button>
+                        <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print All</button>
                     </div>
                     <div id="batch-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[500px] overflow-y-auto"></div>
                 </div>
@@ -617,62 +630,69 @@ SKU-9981</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 2: DEDICATED CARRIER LABEL GENERATOR (100 × 150 mm + SAME-DAY LEDGER)
+             TAB 2: DEDICATED CARRIER LABELS (150x100mm LANDSCAPE DEFAULT / PORTRAIT + RANGE USAGE CHECK)
              ========================================== -->
         <section id="view-carrier" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Left Column: Client, Carrier, Date & Quantity Builder (5 Cols) -->
+            <!-- Left Column: Distinguished Presets vs Entry Fields, Qty & Usage Check (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex items-center justify-between border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
                             <i data-lucide="truck" class="w-4 h-4 text-emerald-500"></i> Carrier Label Builder
                         </span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">100 × 150 mm</span>
-                    </div>
-
-                    <!-- Client Selection (Presets + Custom Code) -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Client Preset</label>
-                            <select id="cl-client-preset" onchange="syncCarrierPreset('client')" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none focus:border-emerald-500">
-                                <option value="FF" selected>FF — FitFlop (Default)</option>
-                                <option value="NC">NC — Client NC</option>
-                                <option value="CUSTOM">Custom Client Code...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Client Code</label>
-                            <input type="text" id="cl-client-code" value="FF" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                        <!-- Orientation Toggle: Landscape 150x100mm (Default) vs Portrait 100x150mm -->
+                        <div class="flex items-center theme-input p-0.5 rounded-lg border text-[11px]">
+                            <button onclick="setCarrierOrientation('landscape')" id="btn-orient-landscape" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white transition">
+                                Landscape 150×100 (Def)
+                            </button>
+                            <button onclick="setCarrierOrientation('portrait')" id="btn-orient-portrait" class="px-2.5 py-1 rounded font-medium theme-text-muted transition">
+                                Portrait 100×150
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Carrier Selection (Presets + Custom Code) -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Carrier Preset</label>
-                            <select id="cl-carrier-preset" onchange="syncCarrierPreset('carrier')" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none focus:border-emerald-500">
-                                <option value="RM" selected>RM — Royal Mail (Default)</option>
-                                <option value="RMX">RMX — Royal Mail Express</option>
-                                <option value="DPD">DPD — DPD UK</option>
-                                <option value="ASD">ASD — Asda Logistics</option>
-                                <option value="DHL">DHL — DHL Parcel</option>
-                                <option value="EVR">EVR — Evri</option>
-                                <option value="UPS">UPS — UPS</option>
-                                <option value="CUSTOM">Custom Carrier Code...</option>
-                            </select>
+                    <!-- CLIENT BLOCK: Clearly Distinguished Preset Dropdown vs Code Entry Field -->
+                    <div class="p-3 rounded-xl border theme-border theme-elevated/40 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">1. Client Selection</span>
+                            <button onclick="addCustomClientPreset()" class="text-[10px] text-emerald-500 hover:underline font-semibold">+ Save Entry as Preset</button>
                         </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Carrier Code</label>
-                            <input type="text" id="cl-carrier-code" value="RM" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                        <div class="grid grid-cols-12 gap-2">
+                            <div class="col-span-7">
+                                <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Preset List</label>
+                                <select id="cl-client-preset" onchange="syncCarrierPreset('client')" class="w-full theme-card border rounded-lg px-2.5 py-2 text-xs font-medium outline-none focus:border-emerald-500"></select>
+                            </div>
+                            <div class="col-span-5">
+                                <label class="block text-[9px] font-mono uppercase text-amber-500 mb-1">Code Entry</label>
+                                <input type="text" id="cl-client-code" value="FF" oninput="updateCarrierPreview()" placeholder="e.g. FF" class="w-full theme-input border-2 border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs font-mono font-extrabold uppercase outline-none focus:border-emerald-500">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Date (Default Current Date) & Serial Padding -->
-                    <div class="grid grid-cols-2 gap-3 pt-1 border-t theme-border">
+                    <!-- CARRIER BLOCK: Clearly Distinguished Preset Dropdown vs Code Entry Field -->
+                    <div class="p-3 rounded-xl border theme-border theme-elevated/40 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">2. Carrier Selection</span>
+                            <button onclick="addCustomCarrierPreset()" class="text-[10px] text-emerald-500 hover:underline font-semibold">+ Save Entry as Preset</button>
+                        </div>
+                        <div class="grid grid-cols-12 gap-2">
+                            <div class="col-span-7">
+                                <label class="block text-[9px] font-mono uppercase theme-text-dim mb-1">Preset List</label>
+                                <select id="cl-carrier-preset" onchange="syncCarrierPreset('carrier')" class="w-full theme-card border rounded-lg px-2.5 py-2 text-xs font-medium outline-none focus:border-emerald-500"></select>
+                            </div>
+                            <div class="col-span-5">
+                                <label class="block text-[9px] font-mono uppercase text-amber-500 mb-1">Code Entry</label>
+                                <input type="text" id="cl-carrier-code" value="RM" oninput="updateCarrierPreview()" placeholder="e.g. RM" class="w-full theme-input border-2 border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs font-mono font-extrabold uppercase outline-none focus:border-emerald-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date (Default Current Date) & Serial Digits -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Date (Today Default)</label>
-                            <input type="date" id="cl-date" onchange="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs font-mono outline-none focus:border-emerald-500">
+                            <input type="date" id="cl-date" onchange="autoSetNextAvailableSerial()" class="w-full theme-input border rounded-lg px-2.5 py-1.5 text-xs font-mono outline-none focus:border-emerald-500">
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Serial Digits</label>
@@ -684,21 +704,12 @@ SKU-9981</textarea>
                         </div>
                     </div>
 
-                    <!-- Same-Day Used Serial Alert Box -->
-                    <div id="cl-used-alert" class="p-3 rounded-lg border theme-elevated space-y-1.5">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="font-semibold flex items-center gap-1.5">
-                                <i data-lucide="history" class="w-3.5 h-3.5 text-amber-500"></i>
-                                <span id="cl-used-title">Same-Day Usage Check</span>
-                            </span>
-                            <button onclick="resetCarrierDayHistory()" class="text-[10px] text-red-400 hover:underline">Reset Today's Log</button>
+                    <!-- LABELS REQUIRED & START SERIAL (PLACED ABOVE SAME-DAY USAGE CHECK) -->
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t theme-border">
+                        <div>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Labels Required (Qty)</label>
+                            <input type="number" id="cl-qty" value="4" min="1" max="200" oninput="updateCarrierPreview()" class="w-full theme-input border-2 border-emerald-500/40 rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none focus:border-emerald-500">
                         </div>
-                        <p id="cl-used-summary" class="text-[11px] font-mono theme-text-muted">No labels generated yet for FF-RM on 261119.</p>
-                        <div id="cl-used-pills" class="flex flex-wrap gap-1 pt-1"></div>
-                    </div>
-
-                    <!-- Start Serial & Number of Labels Required -->
-                    <div class="grid grid-cols-2 gap-3 pt-1 border-t theme-border">
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="text-[10px] uppercase theme-text-dim">Start Serial #</label>
@@ -706,74 +717,89 @@ SKU-9981</textarea>
                             </div>
                             <input type="number" id="cl-start-serial" value="1" min="1" max="9999" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none focus:border-emerald-500">
                         </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Labels Required (Qty)</label>
-                            <input type="number" id="cl-qty" value="4" min="1" max="200" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none focus:border-emerald-500">
+                    </div>
+
+                    <!-- SAME-DAY USAGE CHECK (SUMMARIZES CONTIGUOUS RANGES + RANDOM NUMBERS SEPARATELY) -->
+                    <div id="cl-used-alert" class="p-3 rounded-lg border theme-elevated space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold flex items-center gap-1.5">
+                                <i data-lucide="history" class="w-3.5 h-3.5 text-amber-500"></i>
+                                <span>Same-Day Usage Check</span>
+                            </span>
+                            <button onclick="resetCarrierDayHistory()" class="text-[10px] text-red-400 hover:underline">Reset Today</button>
+                        </div>
+                        <div id="cl-used-summary" class="text-xs font-mono theme-text-muted leading-relaxed">
+                            No labels used yet today.
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="grid grid-cols-2 gap-2.5 pt-2">
+                    <!-- Print & Send Actions -->
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
                         <button onclick="generateAndPrintCarrierLabels()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition">
-                            <i data-lucide="printer" class="w-4 h-4"></i> Print 100×150mm Labels
+                            <i data-lucide="printer" class="w-4 h-4"></i> Print Labels
                         </button>
                         <button onclick="sendCarrierLabelsToBulkDeck()" class="theme-elevated border hover:border-emerald-500 text-xs font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
-                            <i data-lucide="layers" class="w-4 h-4 text-emerald-500"></i> Send to 1-by-1 Deck
+                            <i data-lucide="layers" class="w-4 h-4 text-emerald-500"></i> Send to 1×1 Scan
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: 100 × 150 mm Live Label Preview & Generated Sequence (7 Cols) -->
+            <!-- Right Column: Live Orientation Preview & Batch Selector (7 Cols) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     <div class="px-5 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider">100 × 150 mm Thermal Label Preview</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider">Live Label Preview</span>
+                            <span id="cl-orient-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold">150 × 100 MM LANDSCAPE</span>
+                        </div>
                         <span id="cl-range-badge" class="text-xs font-mono text-emerald-500 font-bold">FF-RM26111901 → FF-RM26111904</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-12">
-                        <!-- Left: True Proportion 100x150mm Label Mockup -->
-                        <div class="md:col-span-7 canvas-grid p-6 flex items-center justify-center">
-                            <div class="bg-white text-zinc-950 rounded-lg shadow-2xl border-2 border-zinc-300 p-5 flex flex-col justify-between" style="width: 260px; height: 390px;">
-                                <!-- Top Client & Carrier Header -->
-                                <div class="border-b-2 border-zinc-900 pb-2.5 flex justify-between items-start">
-                                    <div>
-                                        <span class="text-[10px] font-mono uppercase text-zinc-500 block">CLIENT / CARRIER</span>
-                                        <span id="cl-preview-header" class="text-2xl font-mono font-black tracking-tight">FF — RM</span>
+                        <!-- Left 8 Cols: Crisp Direct-Value Label Mockup (Landscape 150x100mm Default / Portrait 100x150mm) -->
+                        <div class="md:col-span-8 canvas-grid p-6 flex items-center justify-center overflow-auto">
+                            <div id="cl-mockup-box" class="bg-white text-zinc-950 rounded-lg shadow-2xl border-2 border-zinc-400 p-4 flex flex-col justify-between transition-all duration-200" style="width: 390px; height: 260px;">
+                                
+                                <!-- Direct Prefilled Header (Just FF, RM, 261119, #01 — No verbose labels) -->
+                                <div class="border-b-2 border-zinc-900 pb-1.5 flex justify-between items-center font-mono font-black">
+                                    <div class="flex items-center gap-2 text-2xl tracking-tight">
+                                        <span id="cl-prev-client">FF</span>
+                                        <span class="text-zinc-400">—</span>
+                                        <span id="cl-prev-carrier">RM</span>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="text-[10px] font-mono uppercase text-zinc-500 block">DATE (YYMMDD)</span>
-                                        <span id="cl-preview-date" class="text-sm font-mono font-bold">261119</span>
-                                    </div>
-                                </div>
-
-                                <!-- Middle Info -->
-                                <div class="my-auto text-center space-y-3">
-                                    <div class="bg-zinc-100 py-1.5 px-2 rounded border border-zinc-300">
-                                        <span class="text-[10px] font-mono text-zinc-500 block">DISPATCH SERIAL</span>
-                                        <span id="cl-preview-serial" class="text-xl font-mono font-extrabold">#01</span>
-                                    </div>
-                                    <div class="flex justify-center">
-                                        <canvas id="cl-preview-canvas" class="max-w-full"></canvas>
+                                    <div class="flex items-center gap-2">
+                                        <span id="cl-prev-date" class="text-base font-bold">261119</span>
+                                        <span id="cl-prev-serial" class="px-2 py-0.5 bg-zinc-900 text-white text-base rounded">#01</span>
                                     </div>
                                 </div>
 
-                                <!-- Bottom Footer -->
-                                <div class="border-t-2 border-zinc-900 pt-2 flex justify-between items-center text-[10px] font-mono font-bold">
-                                    <span id="cl-preview-fullcode">FF-RM26111901</span>
-                                    <span>100×150MM</span>
+                                <!-- Wide High-Contrast Scannable Barcode Area -->
+                                <div class="my-auto py-1 flex flex-col items-center justify-center">
+                                    <canvas id="cl-preview-canvas" class="max-w-full"></canvas>
+                                </div>
+
+                                <!-- Bottom Sign-Off Fields (Time & Signature) -->
+                                <div class="border-t-2 border-zinc-900 pt-1.5 grid grid-cols-2 gap-3 text-[11px] font-mono font-bold">
+                                    <div class="border-r border-zinc-400 pr-2 flex items-end justify-between">
+                                        <span>TIME:</span>
+                                        <span class="border-b border-zinc-800 flex-grow ml-1.5 h-3.5"></span>
+                                    </div>
+                                    <div class="flex items-end justify-between">
+                                        <span>SIGN:</span>
+                                        <span class="border-b border-zinc-800 flex-grow ml-1.5 h-3.5"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right: Vertical List of Generated Carrier Codes -->
-                        <div class="md:col-span-5 border-t md:border-t-0 md:border-l theme-border flex flex-col max-h-[438px]">
-                            <div class="px-3.5 py-2.5 border-b theme-border theme-elevated flex justify-between items-center text-[11px] font-mono">
-                                <span class="font-bold uppercase">Batch Preview</span>
+                        <!-- Right 4 Cols: Click-to-Preview Batch List -->
+                        <div class="md:col-span-4 border-t md:border-t-0 md:border-l theme-border flex flex-col max-h-[380px]">
+                            <div class="px-3 py-2.5 border-b theme-border theme-elevated flex justify-between items-center text-[11px] font-mono">
+                                <span class="font-bold uppercase">Click to Preview</span>
                                 <button onclick="copyAllCarrierCodes()" class="text-emerald-500 hover:underline font-semibold">Copy All</button>
                             </div>
-                            <div id="cl-generated-list" class="flex-grow overflow-y-auto p-2.5 space-y-1.5 font-mono text-xs"></div>
+                            <div id="cl-generated-list" class="flex-grow overflow-y-auto p-2 space-y-1 font-mono text-xs"></div>
                         </div>
                     </div>
                 </div>
@@ -782,254 +808,151 @@ SKU-9981</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 3: MANIFEST AUDIT & BLIND CYCLE COUNT
+             TAB 3: A4 LANDSCAPE DELIVERY NOTE GENERATOR (297 × 210 mm)
              ========================================== -->
-        <section id="view-audit" class="hidden space-y-6">
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                <div class="theme-card border rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase theme-text-dim block">Expected Manifest</span>
-                    <span id="audit-kpi-total" class="text-2xl font-mono font-bold">0</span>
+        <section id="view-a4note" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Controls (4 Cols) -->
+            <div class="lg:col-span-4 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
+                <div class="flex items-center justify-between border-b theme-border pb-3">
+                    <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i> A4 Delivery Note Builder
+                    </span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold">A4 LANDSCAPE</span>
                 </div>
-                <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase text-emerald-500 block">Verified (Matched)</span>
-                    <span id="audit-kpi-matched" class="text-2xl font-mono font-bold text-emerald-500">0</span>
+
+                <div>
+                    <label class="block text-[10px] uppercase theme-text-dim mb-1">Main Banner Title</label>
+                    <input type="text" id="a4-title" value="ASENDIA DELIVERY NOTE" oninput="renderA4NotePreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                 </div>
-                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase text-amber-500 block">Missing (Pending)</span>
-                    <span id="audit-kpi-missing" class="text-2xl font-mono font-bold text-amber-500">0</span>
+
+                <div>
+                    <label class="block text-[10px] uppercase theme-text-dim mb-1">Subtitle / Origin & Client</label>
+                    <input type="text" id="a4-subtitle" value="ASENDIA FROM BLECKMANN (FITFLOP)" oninput="renderA4NotePreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                 </div>
-                <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3.5">
-                    <span class="text-[10px] font-mono uppercase text-red-400 block">Rogue / Rejected</span>
-                    <span id="audit-kpi-rogue" class="text-2xl font-mono font-bold text-red-400">0</span>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Shipping Date</label>
+                        <input type="text" id="a4-shipdate" value="NOV 19TH, 2026" oninput="renderA4NotePreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Total Pallets / Bags</label>
+                        <input type="text" id="a4-qty" value="12 PALLETS" oninput="renderA4NotePreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                    </div>
                 </div>
-                <div class="col-span-2 sm:col-span-1 theme-card border rounded-xl p-3.5 flex flex-col justify-between">
-                    <span class="text-[10px] font-mono uppercase theme-text-dim">Audit Mode</span>
-                    <select id="audit-mode-select" onchange="renderAuditState()" class="theme-input border rounded px-2 py-1 text-xs font-semibold outline-none mt-1">
-                        <option value="manifest" selected>Manifest Check (Default)</option>
-                        <option value="blind">Blind Cycle Count</option>
-                    </select>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Manifest / Load Ref (Barcode)</label>
+                        <input type="text" id="a4-ref" value="ASD-BLK-261119" oninput="renderA4NotePreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono uppercase outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Destination / Hub</label>
+                        <input type="text" id="a4-dest" value="ASENDIA UK HUB" oninput="renderA4NotePreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono uppercase outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase theme-text-dim mb-1">Additional Notes / Seal # (Optional)</label>
+                    <textarea id="a4-notes" rows="2" oninput="renderA4NotePreview()" placeholder="Trailer #, Seal #, or special handling instructions..." class="w-full theme-input border rounded-lg p-2.5 text-xs font-mono outline-none focus:border-emerald-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5 pt-2">
+                    <button onclick="printA4DeliveryNote()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Print Full A4 Landscape
+                    </button>
+                    <button onclick="quickSavePrompt('a4note')" class="theme-elevated border hover:border-emerald-500 text-xs font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="save" class="w-4 h-4 text-emerald-500"></i> Save Note Template
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Live A4 Landscape Sheet Preview (8 Cols) -->
+            <div class="lg:col-span-8 theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
+                <div class="px-5 py-3 border-b theme-border flex justify-between items-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider">Full-Page A4 Landscape Preview (297 × 210 mm)</span>
+                    <span class="text-[10px] font-mono theme-text-dim">Auto-scales to fill entire A4 Landscape sheet</span>
+                </div>
+
+                <div class="canvas-grid p-6 flex items-center justify-center overflow-auto">
+                    <!-- A4 Landscape Aspect Ratio Container (297:210 -> ~1.414:1) -->
+                    <div class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-6 flex flex-col justify-between" style="width: 680px; height: 480px;">
+                        
+                        <!-- Top Title Banner -->
+                        <div class="border-b-4 border-zinc-900 pb-3 text-center">
+                            <h1 id="a4-prev-title" class="text-3xl font-black tracking-tight uppercase">ASENDIA DELIVERY NOTE</h1>
+                            <p id="a4-prev-subtitle" class="text-lg font-extrabold text-zinc-800 mt-1 uppercase">ASENDIA FROM BLECKMANN (FITFLOP)</p>
+                        </div>
+
+                        <!-- Center Details & Barcode -->
+                        <div class="my-auto grid grid-cols-12 gap-4 items-center py-2">
+                            <div class="col-span-7 space-y-2.5 font-mono text-left">
+                                <div class="p-2.5 bg-zinc-100 border-2 border-zinc-900">
+                                    <span class="text-[10px] font-bold text-zinc-500 block">SHIPPING DATE</span>
+                                    <span id="a4-prev-date" class="text-xl font-black">NOV 19TH, 2026</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="p-2 border-2 border-zinc-900">
+                                        <span class="text-[9px] font-bold text-zinc-500 block">DESTINATION</span>
+                                        <span id="a4-prev-dest" class="text-xs font-extrabold">ASENDIA UK HUB</span>
+                                    </div>
+                                    <div class="p-2 border-2 border-zinc-900">
+                                        <span class="text-[9px] font-bold text-zinc-500 block">LOAD QUANTITY</span>
+                                        <span id="a4-prev-qty" class="text-xs font-extrabold">12 PALLETS</span>
+                                    </div>
+                                </div>
+                                <p id="a4-prev-notes" class="text-xs font-bold text-zinc-700 min-h-[18px]"></p>
+                            </div>
+
+                            <div class="col-span-5 flex flex-col items-center justify-center border-2 border-zinc-900 p-3 bg-white">
+                                <canvas id="a4-prev-canvas" class="max-w-full"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Sign-Off Strip -->
+                        <div class="border-t-4 border-zinc-900 pt-3 grid grid-cols-3 gap-4 font-mono text-xs font-bold">
+                            <div>DISPATCHED BY: ________________</div>
+                            <div>DRIVER SIGN: __________________</div>
+                            <div>TIME / SEAL: __________________</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div class="lg:col-span-4 space-y-4">
-                    <div class="theme-card border rounded-xl p-5 space-y-3 shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold uppercase tracking-wider">1. Expected Manifest</span>
-                            <div class="flex gap-2 text-xs">
-                                <button onclick="autoSortNaturalSequence('audit-manifest-input', true)" class="text-emerald-500 hover:underline font-semibold flex items-center gap-1">
-                                    <i data-lucide="arrow-down-a-z" class="w-3.5 h-3.5"></i> Sort
-                                </button>
-                                <label class="text-emerald-500 hover:underline cursor-pointer font-medium">
-                                    .XLSX/.CSV
-                                    <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'audit-manifest-input', true)" class="hidden">
-                                </label>
-                                <button onclick="quickSavePrompt('audit')" class="theme-text-muted hover:text-emerald-500">Save</button>
-                            </div>
-                        </div>
-                        <textarea id="audit-manifest-input" rows="7" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none">FF-RM26111901, SKU-8821, 48, LANE-01
-FF-RM26111902, SKU-8821, 48, LANE-01
-NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
-                        <button onclick="loadAuditManifest()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg transition">Load / Reset Manifest</button>
-                    </div>
-
-                    <div class="theme-card border rounded-xl p-4 space-y-3 shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold uppercase tracking-wider">Validation Guardrails</span>
-                            <button onclick="document.getElementById('guard-prefix').value=''; document.getElementById('guard-len').value='0';" class="text-[11px] theme-text-muted hover:underline">Reset (Default)</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[10px] theme-text-dim block mb-1">Required Prefix</label>
-                                <input type="text" id="guard-prefix" placeholder="Any (Default)" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            </div>
-                            <div>
-                                <label class="text-[10px] theme-text-dim block mb-1">Exact Length (0 = Default)</label>
-                                <input type="number" id="guard-len" value="0" min="0" class="w-full theme-input border rounded px-2.5 py-1.5 text-xs font-mono">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="theme-card border rounded-xl p-4 space-y-2 shadow-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold uppercase tracking-wider">Shift Handover Report</span>
-                            <button onclick="copyShiftHandover()" class="text-xs text-emerald-500 font-semibold hover:underline">Copy Summary</button>
-                        </div>
-                        <button onclick="exportAuditReportCSV()" class="w-full theme-elevated border text-xs font-medium py-1.5 rounded-lg mt-1">Export Audit Report (.CSV)</button>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-8 theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <input type="text" id="audit-scan-gun" placeholder="Scan physical label with gun (or type & press Enter)..." onkeydown="if(event.key==='Enter') processAuditScan()" class="flex-grow theme-input border-2 border-emerald-500/60 rounded-lg px-3.5 py-2.5 text-sm font-mono font-bold outline-none focus:border-emerald-500">
-                        <input type="number" id="audit-blind-qty" placeholder="Count Qty" class="hidden w-28 theme-input border rounded-lg px-3 py-2.5 text-sm font-mono">
-                        <button onclick="processAuditScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-5 py-2.5 rounded-lg shrink-0">Verify Scan</button>
-                    </div>
-
-                    <div id="audit-alert-banner" class="hidden p-3 rounded-lg font-mono text-xs font-semibold flex justify-between items-center">
-                        <span id="audit-alert-text"></span>
-                        <span id="audit-alert-time" class="text-[10px] opacity-75"></span>
-                    </div>
-
-                    <div id="audit-rogue-box" class="hidden bg-red-950/30 border border-red-500/40 rounded-lg p-3 space-y-1.5">
-                        <span class="text-[11px] font-bold uppercase text-red-400 block">Unexpected Rogue / Rejected Scans:</span>
-                        <div id="audit-rogue-list" class="flex flex-wrap gap-1.5"></div>
-                    </div>
-
-                    <div class="flex items-center justify-between border-b theme-border pb-2 text-xs">
-                        <div class="flex gap-1">
-                            <button onclick="setAuditFilter('all')" id="af-all" class="px-2.5 py-1 rounded bg-emerald-600 text-white font-medium">All</button>
-                            <button onclick="setAuditFilter('missing')" id="af-missing" class="px-2.5 py-1 rounded theme-elevated theme-text-muted">Missing Only</button>
-                            <button onclick="setAuditFilter('verified')" id="af-verified" class="px-2.5 py-1 rounded theme-elevated theme-text-muted">Verified Only</button>
-                        </div>
-                        <span class="text-[11px] font-mono theme-text-dim">Green = Matched • Amber = Missing</span>
-                    </div>
-
-                    <div class="overflow-x-auto border theme-border rounded-lg theme-input max-h-[400px]">
-                        <table class="w-full text-left border-collapse text-xs font-mono">
-                            <thead class="sticky top-0 theme-elevated border-b theme-border">
-                                <tr>
-                                    <th class="p-3">Status</th>
-                                    <th class="p-3">ID</th>
-                                    <th class="p-3">Details</th>
-                                    <th class="p-3" id="th-qty-col">Expected Qty</th>
-                                    <th class="p-3">Time</th>
-                                    <th class="p-3 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="audit-tbody" class="divide-y theme-border"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- ==========================================
-             TAB 4: SINGLE STUDIO, ZPL & TERMINAL MACROS
+             TAB 4: WEB PORTAL EXECUTOR (OPEN ANY WEBSITE LINK)
              ========================================== -->
-        <section id="view-single" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div class="lg:col-span-5 space-y-4">
-                <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
-                    <div class="flex justify-between items-center border-b theme-border pb-2.5">
-                        <span class="text-xs font-semibold uppercase tracking-wider">Single Barcode Parameters</span>
-                        <button onclick="resetSingleStudioDefaults()" class="text-xs text-emerald-500 hover:underline">Reset to Defaults</button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
-                            <select id="bc-type" onchange="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none">
-                                <option value="code128" selected>Code 128 (Default)</option>
-                                <option value="gs1-128">GS1-128 / SSCC-18</option>
-                                <option value="itf14">ITF-14</option>
-                                <option value="code39">Code 39</option>
-                                <option value="qrcode">QR Code (2D)</option>
-                                <option value="datamatrix">Data Matrix (2D)</option>
-                                <option value="pdf417">PDF417 (Stacked)</option>
-                                <option value="ean13">EAN-13</option>
-                                <option value="upca">UPC-A</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Control Suffix</label>
-                            <select id="bc-suffix" onchange="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none">
-                                <option value="none" selected>None (Default)</option>
-                                <option value="enter">Auto-Enter (\r)</option>
-                                <option value="tab">Auto-Tab (\t)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Payload Data</label>
-                        <input type="text" id="bc-data" value="FF-RM26111901" oninput="renderSingleBarcode()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono outline-none focus:border-emerald-500">
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] uppercase theme-text-dim mb-1">Custom Label Text Override</label>
-                        <input type="text" id="bc-alttext" oninput="renderSingleBarcode()" placeholder="Blank = Encoded Data (Default)" class="w-full theme-input border rounded-lg px-3 py-1.5 text-xs font-mono outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
-                        <div>
-                            <span class="text-[10px] theme-text-dim block mb-1">Scale: <b id="lbl-scale">3x (Default)</b></span>
-                            <input type="range" id="bc-scale" min="1" max="6" value="3" oninput="document.getElementById('lbl-scale').innerText=this.value+(this.value=='3'?'x (Default)':'x'); renderSingleBarcode();" class="w-full">
-                        </div>
-                        <div>
-                            <span class="text-[10px] theme-text-dim block mb-1">Height: <b id="lbl-height">15mm (Default)</b></span>
-                            <input type="range" id="bc-height" min="5" max="40" value="15" oninput="document.getElementById('lbl-height').innerText=this.value+(this.value=='15'?'mm (Default)':'mm'); renderSingleBarcode();" class="w-full">
-                        </div>
-                        <div>
-                            <span class="text-[10px] theme-text-dim block mb-1">Quiet Zone: <b id="lbl-pad">10px (Default)</b></span>
-                            <input type="range" id="bc-pad" min="0" max="30" value="10" oninput="document.getElementById('lbl-pad').innerText=this.value+(this.value=='10'?'px (Default)':'px'); renderSingleBarcode();" class="w-full">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-3 pt-2 border-t theme-border">
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Text Pos</label>
-                            <select id="bc-textpos" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
-                                <option value="below" selected>Below (Default)</option>
-                                <option value="above">Above Bars</option>
-                                <option value="none">Hidden</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Text Size</label>
-                            <select id="bc-textsize" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
-                                <option value="8">8pt (Small)</option>
-                                <option value="10" selected>10pt (Default)</option>
-                                <option value="13">13pt (Large)</option>
-                                <option value="16">16pt (XL)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Rotation</label>
-                            <select id="bc-rotate" onchange="renderSingleBarcode()" class="w-full theme-input border rounded px-2 py-1.5 text-xs">
-                                <option value="N" selected>0° (Default)</option>
-                                <option value="R">90° CW</option>
-                                <option value="I">180° Invert</option>
-                                <option value="L">270° CCW</option>
-                            </select>
-                        </div>
-                    </div>
+        <section id="view-webportal" class="hidden space-y-4">
+            <div class="theme-card border rounded-xl p-4 shadow-sm space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="globe" class="w-4 h-4 text-emerald-500"></i> Embedded Web Portal & Link Launcher
+                    </span>
+                    <div class="flex flex-wrap items-center gap-1.5" id="web-bookmarks-bar"></div>
                 </div>
 
-                <div class="theme-card border rounded-xl p-4 space-y-2.5 shadow-sm">
-                    <span class="text-xs font-semibold uppercase tracking-wider block">WMS Terminal Macro Presets</span>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="loadMacroPreset('PART-01\\t48\\r', 'SKU + Tab + Qty 48 + Enter')" class="theme-elevated border text-left p-2.5 rounded-lg text-xs hover:border-emerald-500 transition">
-                            <span class="font-mono font-bold text-emerald-500 block">SKU + Tab + Qty</span>
-                            <span class="text-[10px] theme-text-dim">Auto-fills JDA form</span>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="url" id="web-url-input" value="https://www.royalmail.com/track-your-item" placeholder="Enter website URL (e.g. https://...)" onkeydown="if(event.key==='Enter') loadWebPortalUrl()" class="flex-grow theme-input border rounded-lg px-3.5 py-2 text-xs font-mono outline-none focus:border-emerald-500">
+                    <div class="flex gap-1.5 shrink-0">
+                        <button onclick="loadWebPortalUrl()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow flex items-center gap-1.5">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i> Load Inside App
                         </button>
-                        <button onclick="loadMacroPreset('CONFIRMED\\r', 'CONFIRM + Enter')" class="theme-elevated border text-left p-2.5 rounded-lg text-xs hover:border-emerald-500 transition">
-                            <span class="font-mono font-bold text-emerald-500 block">Confirm + Enter</span>
-                            <span class="text-[10px] theme-text-dim">Instant screen accept</span>
+                        <button onclick="saveWebBookmark()" class="theme-elevated border hover:border-emerald-500 text-xs font-medium px-3 py-2 rounded-lg" title="Save Bookmark">
+                            + Bookmark
+                        </button>
+                        <button onclick="openWebInNewTab()" class="theme-elevated border hover:border-emerald-500 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1" title="Open directly in new browser tab if site blocks iframes">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-500"></i> New Tab
                         </button>
                     </div>
                 </div>
+                <p class="text-[11px] theme-text-dim">Note: If an external portal (such as a carrier login page) restricts embedded frames for security, click <b>New Tab</b> to execute it directly.</p>
             </div>
 
-            <div class="lg:col-span-7 theme-card border rounded-xl overflow-hidden shadow-sm flex flex-col">
-                <div class="px-5 py-3.5 border-b theme-border flex justify-between items-center">
-                    <span class="text-xs font-semibold uppercase tracking-wider">Live Vector & Raster Stage</span>
-                    <span id="badge-dims" class="text-[10px] font-mono px-2 py-0.5 rounded theme-elevated border">0 × 0 px</span>
-                </div>
-                <div class="canvas-grid min-h-[340px] p-8 flex items-center justify-center relative">
-                    <div class="rounded-xl shadow-2xl p-6 bg-white">
-                        <canvas id="barcode-canvas" class="max-w-full"></canvas>
-                    </div>
-                    <div id="render-error" class="hidden absolute bottom-4 left-4 right-4 bg-red-950 border border-red-800 text-red-200 px-4 py-2 rounded-lg text-xs font-mono">
-                        <span id="render-error-text"></span>
-                    </div>
-                </div>
-                <div class="p-4 border-t theme-border grid grid-cols-2 sm:grid-cols-5 gap-2">
-                    <button onclick="exportPNG()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 rounded-lg shadow">Download PNG</button>
-                    <button onclick="exportSVG()" class="theme-elevated border text-xs font-medium py-2.5 rounded-lg">Vector SVG</button>
-                    <button onclick="exportPDF()" class="theme-elevated border text-xs font-medium py-2.5 rounded-lg">Export PDF</button>
-                    <button onclick="exportZPL(document.getElementById('bc-data').value)" class="theme-elevated border text-xs font-mono py-2.5 rounded-lg">.ZPL Code</button>
-                    <button onclick="printSingleLabel()" class="col-span-2 sm:col-span-1 bg-zinc-100 text-zinc-950 text-xs font-semibold py-2.5 rounded-lg shadow">Print 100×150</button>
-                </div>
+            <div class="theme-card border rounded-xl overflow-hidden shadow-lg bg-white" style="height: 620px;">
+                <iframe id="web-portal-frame" src="https://example.com" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
             </div>
         </section>
 
@@ -1206,7 +1129,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
     <!-- Footer -->
     <footer class="border-t theme-border py-4 px-6 text-center text-[11px] font-mono theme-text-dim flex flex-wrap items-center justify-between max-w-[1440px] w-full mx-auto">
         <span>BARCODE GENERATOR // SHASH</span>
-        <span>Offline-Ready PWA • 100 × 150 mm Thermal Ready</span>
+        <span>Offline-Ready PWA • 150×100mm & A4 Landscape Ready</span>
     </footer>
 
     <!-- Offscreen Canvas -->
@@ -1223,9 +1146,9 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         lucide.createIcons();
 
         // ==========================================
-        // 0. GENERIC NATURAL ALPHANUMERIC SORTER (NO CARRIER LABELS)
+        // 0. GENERIC NATURAL ALPHANUMERIC SORTER
         // ==========================================
-        function autoSortNaturalSequence(textareaId, isAudit = false) {
+        function autoSortNaturalSequence(textareaId) {
             const textarea = document.getElementById(textareaId);
             const rawLines = textarea.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
             if (rawLines.length === 0) return;
@@ -1240,18 +1163,14 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             });
 
             textarea.value = rawLines.join('\n');
-            if (isAudit) {
-                loadAuditManifest();
-            } else {
-                scannedSet.clear();
-                loadBulkDeck(false);
-            }
+            scannedSet.clear();
+            loadBulkDeck(false);
             playTone('success');
-            showToast(`Sorted ${rawLines.length} items naturally (${dir === 'asc' ? '01→99' : '99→01'})`);
+            showToast(`Sorted ${rawLines.length} items (${dir === 'asc' ? '01→99' : '99→01'})`);
         }
 
         // ==========================================
-        // 1. STAGE ZOOM IN / OUT CONTROLS (WITH DEFAULT)
+        // 1. STAGE ZOOM CONTROLS (WITH DEFAULT)
         // ==========================================
         let currentStageZoom = 1.0;
 
@@ -1274,17 +1193,93 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         }
 
         // ==========================================
-        // 2. DEDICATED CARRIER LABEL BUILDER & SAME-DAY USAGE TRACKER
+        // 2. CARRIER LABELS (150x100MM LANDSCAPE DEFAULT + RANGE SUMMARIZER + PREVIEW)
         // ==========================================
+        const DEFAULT_CLIENTS = [
+            { code: 'FF', name: 'FitFlop (Default)' },
+            { code: 'NC', name: "Nobody's Child" },
+            { code: 'OD', name: 'Oodie' }
+        ];
+
+        const DEFAULT_CARRIERS = [
+            { code: 'RM', name: 'Royal Mail (Default)' },
+            { code: 'RMX', name: 'Royal Mail Express' },
+            { code: 'ASD', name: 'Asendia' },
+            { code: 'DPD', name: 'DPD UK' },
+            { code: 'DHL', name: 'DHL' },
+            { code: 'PF', name: 'Parcelforce' },
+            { code: 'EVR', name: 'Evri' },
+            { code: 'AMZ', name: 'Amazon' }
+        ];
+
+        let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV1') || JSON.stringify(DEFAULT_CLIENTS));
+        let savedCarriers = JSON.parse(localStorage.getItem('wmsCustomCarriersV1') || JSON.stringify(DEFAULT_CARRIERS));
         let carrierUsageLedger = JSON.parse(localStorage.getItem('wmsCarrierDailyUsageV1') || '{}');
+        let carrierOrientation = 'landscape';
         let currentCarrierBatch = [];
+        let previewCarrierIndex = 0;
+
+        function renderClientCarrierPresets() {
+            const cSel = document.getElementById('cl-client-preset');
+            const rSel = document.getElementById('cl-carrier-preset');
+            cSel.innerHTML = savedClients.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
+            rSel.innerHTML = savedCarriers.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
+        }
+
+        function addCustomClientPreset() {
+            const code = (document.getElementById('cl-client-code').value.trim() || '').toUpperCase();
+            if (!code) return alert("Enter a client code in the Code Entry box first.");
+            const name = prompt(`Enter display name for Client "${code}":`, code);
+            if (!name) return;
+            if (!savedClients.some(c => c.code === code)) {
+                savedClients.push({ code, name: name.trim() });
+                localStorage.setItem('wmsCustomClientsV1', JSON.stringify(savedClients));
+                renderClientCarrierPresets();
+            }
+            document.getElementById('cl-client-preset').value = code;
+            showToast(`Added Client preset: ${code} — ${name}`);
+        }
+
+        function addCustomCarrierPreset() {
+            const code = (document.getElementById('cl-carrier-code').value.trim() || '').toUpperCase();
+            if (!code) return alert("Enter a carrier code in the Code Entry box first.");
+            const name = prompt(`Enter display name for Carrier "${code}":`, code);
+            if (!name) return;
+            if (!savedCarriers.some(c => c.code === code)) {
+                savedCarriers.push({ code, name: name.trim() });
+                localStorage.setItem('wmsCustomCarriersV1', JSON.stringify(savedCarriers));
+                renderClientCarrierPresets();
+            }
+            document.getElementById('cl-carrier-preset').value = code;
+            showToast(`Added Carrier preset: ${code} — ${name}`);
+        }
+
+        function setCarrierOrientation(orient) {
+            carrierOrientation = orient;
+            const lBtn = document.getElementById('btn-orient-landscape');
+            const pBtn = document.getElementById('btn-orient-portrait');
+            const box = document.getElementById('cl-mockup-box');
+            const badge = document.getElementById('cl-orient-badge');
+
+            if (orient === 'landscape') {
+                lBtn.className = "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white transition";
+                pBtn.className = "px-2.5 py-1 rounded font-medium theme-text-muted transition";
+                box.style.width = "390px";
+                box.style.height = "260px";
+                badge.innerText = "150 × 100 MM LANDSCAPE";
+            } else {
+                pBtn.className = "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white transition";
+                lBtn.className = "px-2.5 py-1 rounded font-medium theme-text-muted transition";
+                box.style.width = "260px";
+                box.style.height = "390px";
+                badge.innerText = "100 × 150 MM PORTRAIT";
+            }
+            renderSelectedCarrierMockup();
+        }
 
         function getTodayIsoDate() {
             const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
 
         function formatIsoToYYMMDD(isoStr) {
@@ -1294,19 +1289,42 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
 
         function syncCarrierPreset(kind) {
             if (kind === 'client') {
-                const val = document.getElementById('cl-client-preset').value;
-                if (val !== 'CUSTOM') document.getElementById('cl-client-code').value = val;
-                else document.getElementById('cl-client-code').focus();
+                document.getElementById('cl-client-code').value = document.getElementById('cl-client-preset').value;
             } else {
-                const val = document.getElementById('cl-carrier-preset').value;
-                if (val !== 'CUSTOM') document.getElementById('cl-carrier-code').value = val;
-                else document.getElementById('cl-carrier-code').focus();
+                document.getElementById('cl-carrier-code').value = document.getElementById('cl-carrier-preset').value;
             }
             autoSetNextAvailableSerial();
         }
 
         function getLedgerKey(client, carrier, yymmdd) {
             return `${client}-${carrier}-${yymmdd}`;
+        }
+
+        function formatUsedSerialRanges(sortedNums, digits) {
+            if (!sortedNums || sortedNums.length === 0) return '';
+            const pad = (n) => `#${String(n).padStart(digits, '0')}`;
+            const runs = [];
+            let start = sortedNums[0];
+            let prev = sortedNums[0];
+
+            for (let i = 1; i < sortedNums.length; i++) {
+                if (sortedNums[i] === prev + 1) {
+                    prev = sortedNums[i];
+                } else {
+                    runs.push({ start, end: prev });
+                    start = sortedNums[i];
+                    prev = sortedNums[i];
+                }
+            }
+            runs.push({ start, end: prev });
+
+            const rangeBlocks = runs.filter(r => r.end > r.start).map(r => `${pad(r.start)} to ${pad(r.end)}`);
+            const randomSingles = runs.filter(r => r.end === r.start).map(r => pad(r.start));
+
+            const parts = [];
+            if (rangeBlocks.length > 0) parts.push(`Range used: <b class="text-amber-500">${rangeBlocks.join(', ')}</b>`);
+            if (randomSingles.length > 0) parts.push(`Randomly used: <b class="text-amber-500">${randomSingles.join(', ')}</b>`);
+            return parts.join(' &nbsp;|&nbsp; ');
         }
 
         function autoSetNextAvailableSerial() {
@@ -1316,12 +1334,8 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             const key = getLedgerKey(client, carrier, yymmdd);
             const usedList = carrierUsageLedger[key] || [];
 
-            if (usedList.length > 0) {
-                const maxUsed = Math.max(...usedList);
-                document.getElementById('cl-start-serial').value = maxUsed + 1;
-            } else {
-                document.getElementById('cl-start-serial').value = 1;
-            }
+            document.getElementById('cl-start-serial').value = usedList.length > 0 ? Math.max(...usedList) + 1 : 1;
+            previewCarrierIndex = 0;
             updateCarrierPreview();
         }
 
@@ -1334,25 +1348,18 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             const startSerial = Math.max(1, parseInt(document.getElementById('cl-start-serial').value) || 1);
             const qty = Math.min(200, Math.max(1, parseInt(document.getElementById('cl-qty').value) || 1));
 
-            // Check Same-Day Usage History
             const key = getLedgerKey(client, carrier, yymmdd);
-            const usedSerials = (carrierUsageLedger[key] || []).sort((a, b) => a - b);
+            const usedSerials = [...new Set(carrierUsageLedger[key] || [])].sort((a, b) => a - b);
             const usedSummary = document.getElementById('cl-used-summary');
-            const usedPills = document.getElementById('cl-used-pills');
 
             if (usedSerials.length > 0) {
+                const rangeText = formatUsedSerialRanges(usedSerials, digits);
                 const nextFree = Math.max(...usedSerials) + 1;
-                usedSummary.innerHTML = `<span class="text-amber-500 font-bold">Already used ${usedSerials.length} label(s)</span> for ${client}-${carrier} on ${yymmdd}. Next free serial: <b class="text-emerald-500">#${String(nextFree).padStart(digits, '0')}</b>`;
-                usedPills.innerHTML = usedSerials.map(s => {
-                    const code = `${client}-${carrier}${yymmdd}${String(s).padStart(digits, '0')}`;
-                    return `<span class="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[10px] font-mono">${escapeHtml(code)}</span>`;
-                }).join('');
+                usedSummary.innerHTML = `${rangeText}<br><span class="text-[11px]">Next unused serial: <b class="text-emerald-500">#${String(nextFree).padStart(digits, '0')}</b></span>`;
             } else {
                 usedSummary.innerText = `No labels used yet for ${client}-${carrier} on ${yymmdd}.`;
-                usedPills.innerHTML = '';
             }
 
-            // Build Current Batch
             currentCarrierBatch = [];
             for (let i = 0; i < qty; i++) {
                 const serialNum = startSerial + i;
@@ -1362,36 +1369,54 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 currentCarrierBatch.push({ client, carrier, yymmdd, serialNum, serialPadded, fullCode, isAlreadyUsed });
             }
 
-            // Update 100x150mm Live Card Preview (First item in batch)
+            if (previewCarrierIndex >= currentCarrierBatch.length) previewCarrierIndex = 0;
+
             const first = currentCarrierBatch[0];
             const last = currentCarrierBatch[currentCarrierBatch.length - 1];
             document.getElementById('cl-range-badge').innerText = qty > 1 ? `${first.fullCode} → ${last.fullCode}` : first.fullCode;
-            document.getElementById('cl-preview-header').innerText = `${first.client} — ${first.carrier}`;
-            document.getElementById('cl-preview-date').innerText = first.yymmdd;
-            document.getElementById('cl-preview-serial').innerText = `#${first.serialPadded}`;
-            document.getElementById('cl-preview-fullcode').innerText = first.fullCode;
+
+            renderSelectedCarrierMockup();
+
+            const listEl = document.getElementById('cl-generated-list');
+            listEl.innerHTML = currentCarrierBatch.map((item, idx) => `
+                <button onclick="selectCarrierPreviewItem(${idx})" class="w-full px-2.5 py-1.5 rounded border text-left flex items-center justify-between gap-2 transition ${idx === previewCarrierIndex ? 'border-emerald-500 bg-emerald-500/15 font-bold' : 'theme-input'} ${item.isAlreadyUsed ? 'border-amber-500/60' : ''}">
+                    <span>${idx + 1}. ${escapeHtml(item.fullCode)}</span>
+                    <div class="flex items-center gap-1">
+                        ${item.isAlreadyUsed ? '<span class="text-[9px] px-1 rounded bg-amber-500/20 text-amber-500">USED</span>' : ''}
+                        <i data-lucide="eye" class="w-3 h-3 opacity-60"></i>
+                    </div>
+                </button>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function selectCarrierPreviewItem(idx) {
+            previewCarrierIndex = idx;
+            updateCarrierPreview();
+        }
+
+        function renderSelectedCarrierMockup() {
+            if (currentCarrierBatch.length === 0) return;
+            const item = currentCarrierBatch[previewCarrierIndex] || currentCarrierBatch[0];
+            document.getElementById('cl-prev-client').innerText = item.client;
+            document.getElementById('cl-prev-carrier').innerText = item.carrier;
+            document.getElementById('cl-prev-date').innerText = item.yymmdd;
+            document.getElementById('cl-prev-serial').innerText = `#${item.serialPadded}`;
 
             try {
                 bwipjs.toCanvas(document.getElementById('cl-preview-canvas'), {
                     bcid: 'code128',
-                    text: first.fullCode,
-                    scale: 3,
-                    height: 18,
+                    text: item.fullCode,
+                    scale: carrierOrientation === 'landscape' ? 3 : 2,
+                    height: carrierOrientation === 'landscape' ? 16 : 20,
                     includetext: true,
                     textxalign: 'center',
-                    textsize: 11,
+                    textsize: 12,
+                    paddingwidth: 6,
+                    paddingheight: 4,
                     backgroundcolor: 'ffffff'
                 });
             } catch (e) {}
-
-            // Render Right-Side Batch List with Duplicate Warning Badges
-            const listEl = document.getElementById('cl-generated-list');
-            listEl.innerHTML = currentCarrierBatch.map((item, idx) => `
-                <div class="px-2.5 py-1.5 rounded border theme-input flex items-center justify-between gap-2 ${item.isAlreadyUsed ? 'border-amber-500/60 bg-amber-500/10' : ''}">
-                    <span class="font-bold">${idx + 1}. ${escapeHtml(item.fullCode)}</span>
-                    ${item.isAlreadyUsed ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-500 font-semibold">USED TODAY</span>' : '<span class="text-[10px] text-emerald-500">NEW</span>'}
-                </div>
-            `).join('');
         }
 
         function recordCarrierBatchAsUsed() {
@@ -1417,13 +1442,12 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger));
                 document.getElementById('cl-start-serial').value = 1;
                 updateCarrierPreview();
-                showToast("Cleared today's serial history for this carrier");
+                showToast("Cleared today's serial history");
             }
         }
 
         function copyAllCarrierCodes() {
-            const text = currentCarrierBatch.map(i => i.fullCode).join('\n');
-            navigator.clipboard.writeText(text);
+            navigator.clipboard.writeText(currentCarrierBatch.map(i => i.fullCode).join('\n'));
             showToast(`Copied ${currentCarrierBatch.length} carrier codes!`);
         }
 
@@ -1434,14 +1458,17 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             scannedSet.clear();
             switchTab('bulk');
             loadBulkDeck(false);
-            showToast(`Loaded ${currentCarrierBatch.length} carrier labels into 1-by-1 Scan Stage`);
+            showToast(`Loaded ${currentCarrierBatch.length} carrier labels into 1×1 Scan Stage`);
         }
 
-        // True 100mm x 150mm Thermal Print Engine for Carrier Labels
+        // Print 150x100mm Landscape (Default) or 100x150mm Portrait Thermal Labels
         function generateAndPrintCarrierLabels() {
             if (currentCarrierBatch.length === 0) return;
             recordCarrierBatchAsUsed();
 
+            const isLand = carrierOrientation === 'landscape';
+            const pageW = isLand ? '150mm' : '100mm';
+            const pageH = isLand ? '100mm' : '150mm';
             const offCanvas = document.getElementById('offscreen-canvas');
             const rendered = [];
 
@@ -1451,12 +1478,12 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                         bcid: 'code128',
                         text: item.fullCode,
                         scale: 4,
-                        height: 24,
+                        height: isLand ? 22 : 26,
                         includetext: true,
                         textxalign: 'center',
                         textsize: 13,
                         paddingwidth: 8,
-                        paddingheight: 8,
+                        paddingheight: 6,
                         backgroundcolor: 'ffffff'
                     });
                     rendered.push({ ...item, dataUrl: offCanvas.toDataURL('image/png') });
@@ -1468,18 +1495,11 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 <div class="thermal-page">
                     <div class="label-box">
                         <div class="top-row">
-                            <div>
-                                <div class="sub-lbl">CLIENT / CARRIER</div>
-                                <div class="main-id">${escapeHtml(r.client)} — ${escapeHtml(r.carrier)}</div>
+                            <div class="cc-pair">${escapeHtml(r.client)} <span style="color:#666;">—</span> ${escapeHtml(r.carrier)}</div>
+                            <div class="date-serial">
+                                <span class="date-val">${escapeHtml(r.yymmdd)}</span>
+                                <span class="serial-pill">#${escapeHtml(r.serialPadded)}</span>
                             </div>
-                            <div style="text-align:right;">
-                                <div class="sub-lbl">DATE (YYMMDD)</div>
-                                <div class="date-id">${escapeHtml(r.yymmdd)}</div>
-                            </div>
-                        </div>
-
-                        <div class="serial-banner">
-                            DISPATCH SERIAL #${escapeHtml(r.serialPadded)}
                         </div>
 
                         <div class="barcode-area">
@@ -1487,8 +1507,14 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                         </div>
 
                         <div class="bottom-row">
-                            <span>${escapeHtml(r.fullCode)}</span>
-                            <span>100 × 150 MM</span>
+                            <div class="sign-cell" style="border-right: 2px solid #000; padding-right: 4mm;">
+                                <span>TIME:</span>
+                                <div class="write-line"></div>
+                            </div>
+                            <div class="sign-cell" style="padding-left: 4mm;">
+                                <span>SIGN:</span>
+                                <div class="write-line"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1498,23 +1524,22 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Print Carrier Labels (${rendered.length}) - 100x150mm</title>
+                    <title>Print Carrier Labels (${rendered.length})</title>
                     <style>
-                        @page { size: 100mm 150mm; margin: 0; }
+                        @page { size: ${pageW} ${pageH}; margin: 0; }
                         body { margin: 0; padding: 0; background: #fff; color: #000; font-family: 'JetBrains Mono', monospace; }
                         .thermal-page {
-                            width: 100mm;
-                            height: 150mm;
-                            padding: 5mm;
+                            width: ${pageW};
+                            height: ${pageH};
+                            padding: 4mm;
                             box-sizing: border-box;
                             page-break-after: always;
                             display: flex;
-                            flex-direction: column;
                         }
                         .label-box {
                             border: 2.5px solid #000;
                             flex-grow: 1;
-                            padding: 5mm;
+                            padding: 4mm 5mm;
                             display: flex;
                             flex-direction: column;
                             justify-content: space-between;
@@ -1522,35 +1547,26 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                         .top-row {
                             display: flex;
                             justify-content: space-between;
-                            align-items: flex-start;
+                            align-items: center;
                             border-bottom: 2px solid #000;
-                            padding-bottom: 4mm;
+                            padding-bottom: 2.5mm;
                         }
-                        .sub-lbl { font-size: 9pt; color: #444; font-weight: bold; }
-                        .main-id { font-size: 26pt; font-weight: 900; line-height: 1.1; }
-                        .date-id { font-size: 16pt; font-weight: 800; }
-                        .serial-banner {
-                            background: #000;
-                            color: #fff;
-                            text-align: center;
-                            font-size: 16pt;
-                            font-weight: bold;
-                            padding: 3mm;
-                            letter-spacing: 1px;
-                        }
-                        .barcode-area {
-                            text-align: center;
-                            margin: auto 0;
-                        }
+                        .cc-pair { font-size: 26pt; font-weight: 900; line-height: 1; }
+                        .date-serial { display: flex; align-items: center; gap: 3mm; }
+                        .date-val { font-size: 16pt; font-weight: 800; }
+                        .serial-pill { background: #000; color: #fff; font-size: 16pt; font-weight: 900; padding: 1mm 3mm; }
+                        .barcode-area { text-align: center; margin: auto 0; }
                         .barcode-area img { max-width: 100%; height: auto; }
                         .bottom-row {
                             border-top: 2px solid #000;
-                            padding-top: 3mm;
-                            display: flex;
-                            justify-content: space-between;
-                            font-size: 10pt;
-                            font-weight: bold;
+                            padding-top: 2.5mm;
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            font-size: 11pt;
+                            font-weight: 800;
                         }
+                        .sign-cell { display: flex; align-items: flex-end; }
+                        .write-line { border-bottom: 1.5px solid #000; flex-grow: 1; margin-left: 2mm; height: 4mm; }
                     </style>
                 </head>
                 <body>
@@ -1563,327 +1579,223 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         }
 
         // ==========================================
-        // 3. WORKSPACE FOLDER, LOCAL DISK & CLOUD FILE MANAGER
+        // 3. A4 LANDSCAPE DELIVERY NOTE GENERATOR (297 × 210 mm)
         // ==========================================
-        const DEFAULT_WORKSPACE = {
-            folders: ['Default Shift', 'Inbound Pallets', 'Outbound Lanes', 'QA & Holds'],
-            activeFolder: 'Default Shift',
-            files: [
-                {
-                    id: 'task-1',
-                    folder: 'Default Shift',
-                    name: 'Sample Mixed IDs',
-                    type: 'bulk',
-                    updated: 'Today',
-                    content: "FF-RM03\nFF-RM01\nFF-RM02\nLOC-A10\nLOC-A02\nSKU-9981"
-                },
-                {
-                    id: 'task-2',
-                    folder: 'Default Shift',
-                    name: 'Dispatch Audit Manifest',
-                    type: 'audit',
-                    updated: 'Today',
-                    content: "FF-RM26111901, SKU-8821, 48, LANE-01\nFF-RM26111902, SKU-8821, 48, LANE-01\nNC-DPD26111901, SKU-4410, 24, LANE-04"
-                }
-            ]
-        };
+        function renderA4NotePreview() {
+            const title = document.getElementById('a4-title').value || 'DELIVERY NOTE';
+            const sub = document.getElementById('a4-subtitle').value || '';
+            const date = document.getElementById('a4-shipdate').value || '';
+            const qty = document.getElementById('a4-qty').value || '';
+            const dest = document.getElementById('a4-dest').value || '';
+            const notes = document.getElementById('a4-notes').value || '';
+            const ref = document.getElementById('a4-ref').value.trim() || 'REF-001';
 
-        let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || JSON.stringify(DEFAULT_WORKSPACE));
-
-        function saveWorkspaceState() {
-            localStorage.setItem('wmsWorkspaceFilesV1', JSON.stringify(workspace));
-            document.getElementById('nav-file-count').innerText = workspace.files.length;
-        }
-
-        function toggleFileManager() {
-            const drawer = document.getElementById('file-manager-drawer');
-            const backdrop = document.getElementById('file-manager-backdrop');
-            const isOpen = !drawer.classList.contains('-translate-x-full');
-            if (isOpen) {
-                drawer.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-            } else {
-                renderFolderDropdown();
-                renderFileManager();
-                drawer.classList.remove('-translate-x-full');
-                backdrop.classList.remove('hidden');
-            }
-        }
-
-        function renderFolderDropdown() {
-            const sel = document.getElementById('fm-folder-select');
-            sel.innerHTML = workspace.folders.map(f => `<option value="${escapeHtml(f)}" ${f === workspace.activeFolder ? 'selected' : ''}>📁 ${escapeHtml(f)}</option>`).join('');
-        }
-
-        function createNewFolder() {
-            const name = prompt("Enter new folder name:");
-            if (!name || !name.trim()) return;
-            const clean = name.trim();
-            if (!workspace.folders.includes(clean)) workspace.folders.push(clean);
-            workspace.activeFolder = clean;
-            saveWorkspaceState();
-            renderFolderDropdown();
-            renderFileManager();
-            showToast(`Created folder: ${clean}`);
-        }
-
-        function deleteCurrentFolder() {
-            const folder = document.getElementById('fm-folder-select').value;
-            if (workspace.folders.length <= 1) return alert("Cannot delete the last folder.");
-            if (!confirm(`Delete folder "${folder}" and all tasks inside it?`)) return;
-            workspace.folders = workspace.folders.filter(f => f !== folder);
-            workspace.files = workspace.files.filter(file => file.folder !== folder);
-            workspace.activeFolder = workspace.folders[0];
-            saveWorkspaceState();
-            renderFolderDropdown();
-            renderFileManager();
-        }
-
-        function getActiveTaskPayload(type) {
-            if (type === 'bulk') return document.getElementById('batch-input').value;
-            if (type === 'audit') return document.getElementById('audit-manifest-input').value;
-            if (type === 'lpn') return JSON.stringify({ master: document.getElementById('lpn-master').value, children: lpnChildren }, null, 2);
-            return '';
-        }
-
-        function saveCurrentTaskToFile(overrideType = null, overrideName = null) {
-            const folder = document.getElementById('fm-folder-select').value || workspace.folders[0];
-            const type = overrideType || document.getElementById('fm-task-type').value;
-            const nameInput = document.getElementById('fm-task-name');
-            const name = overrideName || nameInput.value.trim() || `Task-${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
-            const content = getActiveTaskPayload(type);
-
-            workspace.files.unshift({
-                id: 'task-' + Date.now(), folder, name, type,
-                updated: new Date().toLocaleString('en-GB', { hour12: false }), content
-            });
-
-            if (nameInput) nameInput.value = '';
-            document.getElementById('active-task-label').innerText = name;
-            saveWorkspaceState();
-            renderFileManager();
-            playTone('success');
-            showToast(`Saved "${name}" in ${folder}`);
-        }
-
-        async function saveActiveTaskToLocalDisk(fileObj = null) {
-            const type = fileObj ? fileObj.type : document.getElementById('fm-task-type').value;
-            const rawName = fileObj ? fileObj.name : (document.getElementById('fm-task-name').value.trim() || `wms-${type}-${Date.now()}`);
-            const content = fileObj ? fileObj.content : getActiveTaskPayload(type);
-            const ext = type === 'lpn' ? '.json' : '.csv';
-            const filename = rawName.endsWith(ext) ? rawName : `${rawName.replace(/[^a-zA-Z0-9_-]/g, '_')}${ext}`;
+            document.getElementById('a4-prev-title').innerText = title;
+            document.getElementById('a4-prev-subtitle').innerText = sub;
+            document.getElementById('a4-prev-date').innerText = date;
+            document.getElementById('a4-prev-qty').innerText = qty;
+            document.getElementById('a4-prev-dest').innerText = dest;
+            document.getElementById('a4-prev-notes').innerText = notes ? `NOTES: ${notes}` : '';
 
             try {
-                if ('showSaveFilePicker' in window) {
-                    const handle = await window.showSaveFilePicker({
-                        suggestedName: filename,
-                        types: [{ description: 'WMS Task File', accept: { 'text/plain': [ext, '.txt'] } }]
-                    });
-                    const writable = await handle.createWritable();
-                    await writable.write(content);
-                    await writable.close();
-                    playTone('success');
-                    showToast(`Saved ${filename} to Local Disk!`);
-                    return;
-                }
-            } catch (err) {
-                if (err.name === 'AbortError') return;
-            }
-
-            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = URL.createObjectURL(blob);
-            link.click();
-            playTone('success');
-            showToast(`Downloaded ${filename} to Local Disk`);
+                bwipjs.toCanvas(document.getElementById('a4-prev-canvas'), {
+                    bcid: 'code128',
+                    text: ref,
+                    scale: 3,
+                    height: 16,
+                    includetext: true,
+                    textxalign: 'center',
+                    textsize: 11,
+                    backgroundcolor: 'ffffff'
+                });
+            } catch (e) {}
         }
 
-        function saveExistingTaskToDisk(id) {
-            const file = workspace.files.find(f => f.id === id);
-            if (file) saveActiveTaskToLocalDisk(file);
-        }
+        function printA4DeliveryNote() {
+            renderA4NotePreview();
+            const title = document.getElementById('a4-title').value || 'DELIVERY NOTE';
+            const sub = document.getElementById('a4-subtitle').value || '';
+            const date = document.getElementById('a4-shipdate').value || '';
+            const qty = document.getElementById('a4-qty').value || '';
+            const dest = document.getElementById('a4-dest').value || '';
+            const notes = document.getElementById('a4-notes').value || '';
+            const refDataUrl = document.getElementById('a4-prev-canvas').toDataURL('image/png');
 
-        function openLocalFileIntoFolder(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const ext = file.name.split('.').pop().toLowerCase();
-            const folder = document.getElementById('fm-folder-select').value || workspace.folders[0];
-            const cleanName = file.name.replace(/\.[^/.]+$/, "");
-
-            if (ext === 'xlsx' || ext === 'xls') {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                    const csvText = XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]).trim();
-                    workspace.files.unshift({
-                        id: 'task-' + Date.now(), folder, name: cleanName, type: 'bulk',
-                        updated: new Date().toLocaleString('en-GB', { hour12: false }), content: csvText
-                    });
-                    saveWorkspaceState(); renderFileManager(); playTone('success');
-                    showToast(`Imported ${file.name} into ${folder}`);
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const text = e.target.result.trim();
-                    workspace.files.unshift({
-                        id: 'task-' + Date.now(), folder, name: cleanName, type: ext === 'json' ? 'lpn' : 'bulk',
-                        updated: new Date().toLocaleString('en-GB', { hour12: false }), content: text
-                    });
-                    saveWorkspaceState(); renderFileManager(); playTone('success');
-                    showToast(`Imported ${file.name} into ${folder}`);
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        async function pushWorkspaceToCloud() {
-            const url = document.getElementById('cloud-sync-url').value.trim();
-            const key = document.getElementById('cloud-sync-key').value.trim();
-            if (!url) return alert("Enter a Cloud Endpoint URL first.");
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (key) { headers['Authorization'] = `Bearer ${key}`; headers['apikey'] = key; }
-                const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(workspace) });
-                if (res.ok) { playTone('success'); showToast("Workspace synced to Cloud!"); }
-                else alert(`Cloud responded with status ${res.status}`);
-            } catch (e) { alert("Could not reach Cloud URL."); }
-        }
-
-        async function pullWorkspaceFromCloud() {
-            const url = document.getElementById('cloud-sync-url').value.trim();
-            const key = document.getElementById('cloud-sync-key').value.trim();
-            if (!url) return alert("Enter a Cloud Endpoint URL first.");
-            try {
-                const headers = { 'Accept': 'application/json' };
-                if (key) { headers['Authorization'] = `Bearer ${key}`; headers['apikey'] = key; }
-                const res = await fetch(url, { method: 'GET', headers });
-                const data = await res.json();
-                const payload = data.record || data;
-                if (payload && payload.folders && payload.files) {
-                    workspace = payload;
-                    saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
-                    playTone('success'); showToast("Pulled latest workspace from Cloud!");
-                } else { alert("Cloud response did not contain a valid workspace."); }
-            } catch (e) { alert("Failed to pull from Cloud URL."); }
-        }
-
-        async function shareToCloudDriveApp() {
-            const blob = new Blob([JSON.stringify(workspace, null, 2)], { type: 'application/json' });
-            const file = new File([blob], `barcode-workspace-${Date.now()}.json`, { type: 'application/json' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({ title: 'Barcode Generator Workspace', text: 'WMS Task Backup', files: [file] });
-                    showToast("Shared to Cloud Drive App!");
-                    return;
-                } catch (e) {}
-            }
-            saveActiveTaskToLocalDisk({ name: `barcode-workspace-${Date.now()}`, type: 'lpn', content: JSON.stringify(workspace, null, 2) });
-        }
-
-        function quickSavePrompt(type) {
-            const name = prompt(`Save current ${type.toUpperCase()} list as a Task File. Enter task name:`);
-            if (!name || !name.trim()) return;
-            saveCurrentTaskToFile(type, name.trim());
-        }
-
-        function loadTaskFile(id) {
-            const file = workspace.files.find(f => f.id === id);
-            if (!file) return;
-            document.getElementById('active-task-label').innerText = file.name;
-
-            if (file.type === 'bulk') {
-                document.getElementById('batch-input').value = file.content;
-                scannedSet.clear();
-                switchTab('bulk');
-                loadBulkDeck(false);
-            } else if (file.type === 'audit') {
-                document.getElementById('audit-manifest-input').value = file.content;
-                switchTab('audit');
-                loadAuditManifest();
-            } else if (file.type === 'lpn') {
-                try {
-                    const data = JSON.parse(file.content);
-                    document.getElementById('lpn-master').value = data.master || 'PLT-MASTER-001';
-                    lpnChildren = Array.isArray(data.children) ? data.children : [];
-                    switchTab('tools');
-                    renderLpnQr();
-                } catch (e) {}
-            }
-            toggleFileManager();
-            playTone('success');
-            showToast(`Loaded task: ${file.name}`);
-        }
-
-        function deleteTaskFile(id) {
-            workspace.files = workspace.files.filter(f => f.id !== id);
-            saveWorkspaceState();
-            renderFileManager();
-        }
-
-        function renderFileManager() {
-            const folder = document.getElementById('fm-folder-select').value;
-            workspace.activeFolder = folder;
-            const list = document.getElementById('fm-file-list');
-            const folderFiles = workspace.files.filter(f => f.folder === folder);
-
-            if (folderFiles.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-xs theme-text-dim font-mono">No task files in "${escapeHtml(folder)}" yet.</div>`;
-                return;
-            }
-
-            const badgeMap = {
-                bulk: '<span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[10px] font-mono">BULK</span>',
-                audit: '<span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 text-[10px] font-mono">AUDIT</span>',
-                lpn: '<span class="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-mono">LPN</span>'
-            };
-
-            list.innerHTML = folderFiles.map(f => `
-                <div class="p-3 rounded-lg border theme-input hover:border-emerald-500/60 transition flex items-center justify-between gap-2">
-                    <div class="min-w-0 flex-grow cursor-pointer" onclick="loadTaskFile('${f.id}')">
-                        <div class="flex items-center gap-2">
-                            ${badgeMap[f.type] || ''}
-                            <span class="text-xs font-semibold truncate">${escapeHtml(f.name)}</span>
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${escapeHtml(title)} - A4 Landscape</title>
+                    <style>
+                        @page { size: A4 landscape; margin: 10mm; }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            font-family: 'Inter', Arial, sans-serif;
+                            background: #fff;
+                            color: #000;
+                        }
+                        .a4-sheet {
+                            width: 277mm;
+                            height: 190mm;
+                            border: 5px solid #000;
+                            padding: 10mm 12mm;
+                            box-sizing: border-box;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+                        }
+                        .header-block {
+                            border-bottom: 4px solid #000;
+                            padding-bottom: 6mm;
+                            text-align: center;
+                        }
+                        .main-title { font-size: 42pt; font-weight: 900; margin: 0; line-height: 1.05; letter-spacing: -0.5px; }
+                        .sub-title { font-size: 22pt; font-weight: 800; margin: 3mm 0 0 0; color: #111; }
+                        .mid-grid {
+                            display: grid;
+                            grid-template-columns: 1.4fr 1fr;
+                            gap: 10mm;
+                            align-items: center;
+                            margin: auto 0;
+                        }
+                        .info-box {
+                            border: 3px solid #000;
+                            padding: 5mm 6mm;
+                            margin-bottom: 5mm;
+                            background: #f4f4f5;
+                        }
+                        .info-lbl { font-size: 11pt; font-weight: 800; color: #444; font-family: monospace; }
+                        .info-val { font-size: 26pt; font-weight: 900; font-family: monospace; margin-top: 1mm; }
+                        .sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+                        .small-box { border: 3px solid #000; padding: 4mm 5mm; }
+                        .small-val { font-size: 16pt; font-weight: 900; font-family: monospace; margin-top: 1mm; }
+                        .bc-box {
+                            border: 3px solid #000;
+                            padding: 8mm;
+                            text-align: center;
+                        }
+                        .bc-box img { max-width: 100%; height: auto; }
+                        .notes-line { font-size: 14pt; font-weight: 700; margin-top: 4mm; font-family: monospace; }
+                        .footer-sign {
+                            border-top: 4px solid #000;
+                            padding-top: 6mm;
+                            display: grid;
+                            grid-template-columns: 1fr 1fr 1fr;
+                            gap: 8mm;
+                            font-size: 13pt;
+                            font-weight: 800;
+                            font-family: monospace;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="a4-sheet">
+                        <div class="header-block">
+                            <h1 class="main-title">${escapeHtml(title)}</h1>
+                            <p class="sub-title">${escapeHtml(sub)}</p>
                         </div>
-                        <span class="text-[10px] font-mono theme-text-dim block mt-1">${escapeHtml(f.updated)}</span>
+
+                        <div class="mid-grid">
+                            <div>
+                                <div class="info-box">
+                                    <div class="info-lbl">SHIPPING DATE</div>
+                                    <div class="info-val">${escapeHtml(date)}</div>
+                                </div>
+                                <div class="sub-grid">
+                                    <div class="small-box">
+                                        <div class="info-lbl">DESTINATION</div>
+                                        <div class="small-val">${escapeHtml(dest)}</div>
+                                    </div>
+                                    <div class="small-box">
+                                        <div class="info-lbl">LOAD QUANTITY</div>
+                                        <div class="small-val">${escapeHtml(qty)}</div>
+                                    </div>
+                                </div>
+                                ${notes ? `<div class="notes-line">NOTES: ${escapeHtml(notes)}</div>` : ''}
+                            </div>
+
+                            <div class="bc-box">
+                                <img src="${refDataUrl}" />
+                            </div>
+                        </div>
+
+                        <div class="footer-sign">
+                            <div>DISPATCHED BY: _______________</div>
+                            <div>DRIVER SIGN: _________________</div>
+                            <div>TIME / SEAL: _________________</div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="loadTaskFile('${f.id}')" class="px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold">Open</button>
-                        <button onclick="saveExistingTaskToDisk('${f.id}')" title="Save to Local Disk" class="p-1.5 rounded theme-elevated border text-emerald-500 hover:opacity-80">
-                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <button onclick="deleteTaskFile('${f.id}')" title="Delete Task" class="p-1.5 rounded theme-elevated text-red-400 hover:opacity-80">×</button>
-                    </div>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        // ==========================================
+        // 4. WEB PORTAL EXECUTOR
+        // ==========================================
+        let webBookmarks = JSON.parse(localStorage.getItem('wmsWebBookmarksV1') || JSON.stringify([
+            { name: 'Royal Mail Track', url: 'https://www.royalmail.com/track-your-item' },
+            { name: 'DPD UK', url: 'https://www.dpd.co.uk/' },
+            { name: 'Asendia', url: 'https://www.asendia.co.uk/' }
+        ]));
+
+        function renderWebBookmarks() {
+            const bar = document.getElementById('web-bookmarks-bar');
+            bar.innerHTML = webBookmarks.map((b, idx) => `
+                <div class="inline-flex items-center rounded border theme-elevated text-[11px] font-mono overflow-hidden">
+                    <button onclick="selectWebBookmark('${escapeHtml(b.url)}')" class="px-2 py-1 hover:text-emerald-500 font-semibold">${escapeHtml(b.name)}</button>
+                    <button onclick="deleteWebBookmark(${idx})" class="px-1.5 py-1 text-red-400 hover:bg-red-950/30">×</button>
                 </div>
             `).join('');
-            lucide.createIcons();
         }
 
-        function exportWorkspaceJSON() {
-            saveActiveTaskToLocalDisk({ name: `barcode-workspace-${Date.now()}`, type: 'lpn', content: JSON.stringify(workspace, null, 2) });
+        function selectWebBookmark(url) {
+            document.getElementById('web-url-input').value = url;
+            loadWebPortalUrl();
         }
 
-        function importWorkspaceJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    if (parsed.folders && parsed.files) {
-                        workspace = parsed;
-                        saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
-                        showToast("Workspace restored!");
-                    }
-                } catch (err) { alert("Invalid workspace JSON file."); }
-            };
-            reader.readAsText(file);
+        function saveWebBookmark() {
+            let url = document.getElementById('web-url-input').value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            const name = prompt("Enter bookmark label:", new URL(url).hostname);
+            if (!name) return;
+            webBookmarks.push({ name: name.trim(), url });
+            localStorage.setItem('wmsWebBookmarksV1', JSON.stringify(webBookmarks));
+            renderWebBookmarks();
+            showToast("Bookmark saved!");
+        }
+
+        function deleteWebBookmark(idx) {
+            webBookmarks.splice(idx, 1);
+            localStorage.setItem('wmsWebBookmarksV1', JSON.stringify(webBookmarks));
+            renderWebBookmarks();
+        }
+
+        function loadWebPortalUrl() {
+            let url = document.getElementById('web-url-input').value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+                document.getElementById('web-url-input').value = url;
+            }
+            document.getElementById('web-portal-frame').src = url;
+            showToast(`Loading ${url}`);
+        }
+
+        function openWebInNewTab() {
+            let url = document.getElementById('web-url-input').value.trim();
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            window.open(url, '_blank');
         }
 
         // ==========================================
-        // 4. BULK DECK (GENERIC ITEMS + VERTICAL SIDEBAR QUEUE)
+        // 5. BULK DECK, VERTICAL QUEUE & MERGED EXPORTS
         // ==========================================
         let bulkRecords = [];
         let scannedSet = new Set();
@@ -1924,6 +1836,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             const suffix = document.getElementById('batch-suffix').value;
             const scale = parseInt(document.getElementById('batch-scale').value) || 4;
             const height = parseInt(document.getElementById('batch-height').value) || 18;
+            const rotate = document.getElementById('batch-rotate')?.value || 'N';
 
             if (bulkRecords.length === 0) {
                 counter.innerText = "0 / 0";
@@ -1965,6 +1878,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                     parse: true,
                     scale: scale,
                     height: height,
+                    rotate: rotate,
                     includetext: true,
                     textxalign: 'center',
                     textsize: 12,
@@ -1978,7 +1892,6 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             renderVerticalQueue();
         }
 
-        // Clean, Uncluttered Vertical Sidebar List for ID Status
         function renderVerticalQueue() {
             const container = document.getElementById('deck-pills');
             const stats = document.getElementById('vertical-queue-stats');
@@ -2020,7 +1933,6 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 container.appendChild(row);
             });
 
-            // Auto-scroll active item into view smoothly inside the vertical list
             const activeRow = document.getElementById(`vqueue-row-${currentDeckIndex}`);
             if (activeRow) activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
@@ -2099,26 +2011,334 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         function generateSequenceList() {
             const prefix = document.getElementById('seq-prefix').value;
             const startStr = document.getElementById('seq-start').value.trim();
-            const suffix = document.getElementById('seq-suffix').value.trim();
             const count = Math.min(500, Math.max(1, parseInt(document.getElementById('seq-count').value) || 10));
-            const step = BigInt(Math.max(1, parseInt(document.getElementById('seq-step').value) || 1));
-
             const startNum = BigInt(startStr.replace(/\D/g, '') || '1');
             const padLen = startStr.length;
             const lines = [];
             for (let i = 0n; i < BigInt(count); i++) {
-                lines.push(`${prefix}${(startNum + (i * step)).toString().padStart(padLen, '0')}${suffix}`);
+                lines.push(`${prefix}${(startNum + i).toString().padStart(padLen, '0')}`);
             }
             document.getElementById('batch-input').value = lines.join('\n');
             scannedSet.clear();
             loadBulkDeck(false);
             playTone('success');
-            showToast(`Generated ${count} sequential items`);
+        }
+
+        function insertMacroToBulk(macroStr) {
+            const box = document.getElementById('batch-input');
+            box.value = (box.value.trim() ? box.value.trim() + '\n' : '') + macroStr;
+            loadBulkDeck(true);
+            showToast(`Added macro: ${macroStr}`);
+        }
+
+        function exportCurrentPNG() {
+            const canvas = document.getElementById('deck-canvas');
+            const id = bulkRecords[currentDeckIndex]?.id || 'barcode';
+            const link = document.createElement('a');
+            link.download = `${id}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function exportCurrentSVG() {
+            const id = bulkRecords[currentDeckIndex]?.id || 'barcode';
+            const sym = document.getElementById('batch-type').value;
+            try {
+                const svg = bwipjs.toSVG({ bcid: sym, text: id, scale: 3, height: 18, includetext: true, textxalign: 'center' });
+                const link = document.createElement('a');
+                link.download = `${id}.svg`;
+                link.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+                link.click();
+            } catch (e) {}
+        }
+
+        function exportCurrentPDF() {
+            const { jsPDF } = window.jspdf;
+            const id = bulkRecords[currentDeckIndex]?.id || 'barcode';
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [150, 100] });
+            pdf.addImage(document.getElementById('deck-canvas').toDataURL('image/png'), 'PNG', 20, 25, 110, 50);
+            pdf.save(`${id}.pdf`);
         }
 
         // ==========================================
-        // 5. INSTANT AUTO-NEXT & GLOBAL SCAN LISTENER
+        // 6. FILE MANAGER, GLOBAL LISTENER & GENERAL HELPERS
         // ==========================================
+        const DEFAULT_WORKSPACE = {
+            folders: ['Default Shift', 'Carrier Runs', 'A4 Delivery Notes'],
+            activeFolder: 'Default Shift',
+            files: [
+                {
+                    id: 'task-1',
+                    folder: 'Default Shift',
+                    name: 'Sample Mixed IDs',
+                    type: 'bulk',
+                    updated: 'Today',
+                    content: "FF-RM03\nFF-RM01\nFF-RM02\nLOC-A10\nLOC-A02\nSKU-9981"
+                },
+                {
+                    id: 'task-2',
+                    folder: 'A4 Delivery Notes',
+                    name: 'Asendia Bleckmann Note',
+                    type: 'a4note',
+                    updated: 'Today',
+                    content: JSON.stringify({
+                        title: 'ASENDIA DELIVERY NOTE',
+                        subtitle: 'ASENDIA FROM BLECKMANN (FITFLOP)',
+                        shipdate: 'NOV 19TH, 2026',
+                        qty: '12 PALLETS',
+                        ref: 'ASD-BLK-261119',
+                        dest: 'ASENDIA UK HUB',
+                        notes: ''
+                    })
+                }
+            ]
+        };
+
+        let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || JSON.stringify(DEFAULT_WORKSPACE));
+
+        function saveWorkspaceState() {
+            localStorage.setItem('wmsWorkspaceFilesV1', JSON.stringify(workspace));
+            document.getElementById('nav-file-count').innerText = workspace.files.length;
+        }
+
+        function toggleFileManager() {
+            const drawer = document.getElementById('file-manager-drawer');
+            const backdrop = document.getElementById('file-manager-backdrop');
+            const isOpen = !drawer.classList.contains('-translate-x-full');
+            if (isOpen) {
+                drawer.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            } else {
+                renderFolderDropdown();
+                renderFileManager();
+                drawer.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+        }
+
+        function renderFolderDropdown() {
+            const sel = document.getElementById('fm-folder-select');
+            sel.innerHTML = workspace.folders.map(f => `<option value="${escapeHtml(f)}" ${f === workspace.activeFolder ? 'selected' : ''}>📁 ${escapeHtml(f)}</option>`).join('');
+        }
+
+        function createNewFolder() {
+            const name = prompt("Enter new folder name:");
+            if (!name || !name.trim()) return;
+            const clean = name.trim();
+            if (!workspace.folders.includes(clean)) workspace.folders.push(clean);
+            workspace.activeFolder = clean;
+            saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
+        }
+
+        function deleteCurrentFolder() {
+            const folder = document.getElementById('fm-folder-select').value;
+            if (workspace.folders.length <= 1) return alert("Cannot delete the last folder.");
+            if (!confirm(`Delete folder "${folder}"?`)) return;
+            workspace.folders = workspace.folders.filter(f => f !== folder);
+            workspace.files = workspace.files.filter(file => file.folder !== folder);
+            workspace.activeFolder = workspace.folders[0];
+            saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
+        }
+
+        function getActiveTaskPayload(type) {
+            if (type === 'bulk') return document.getElementById('batch-input').value;
+            if (type === 'a4note') return JSON.stringify({
+                title: document.getElementById('a4-title').value,
+                subtitle: document.getElementById('a4-subtitle').value,
+                shipdate: document.getElementById('a4-shipdate').value,
+                qty: document.getElementById('a4-qty').value,
+                ref: document.getElementById('a4-ref').value,
+                dest: document.getElementById('a4-dest').value,
+                notes: document.getElementById('a4-notes').value
+            }, null, 2);
+            if (type === 'lpn') return JSON.stringify({ master: document.getElementById('lpn-master').value, children: lpnChildren }, null, 2);
+            return '';
+        }
+
+        function saveCurrentTaskToFile(overrideType = null, overrideName = null) {
+            const folder = document.getElementById('fm-folder-select').value || workspace.folders[0];
+            const type = overrideType || document.getElementById('fm-task-type').value;
+            const nameInput = document.getElementById('fm-task-name');
+            const name = overrideName || nameInput.value.trim() || `Task-${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
+            workspace.files.unshift({
+                id: 'task-' + Date.now(), folder, name, type,
+                updated: new Date().toLocaleString('en-GB', { hour12: false }),
+                content: getActiveTaskPayload(type)
+            });
+            if (nameInput) nameInput.value = '';
+            document.getElementById('active-task-label').innerText = name;
+            saveWorkspaceState(); renderFileManager(); playTone('success');
+            showToast(`Saved "${name}"`);
+        }
+
+        async function saveActiveTaskToLocalDisk(fileObj = null) {
+            const type = fileObj ? fileObj.type : document.getElementById('fm-task-type').value;
+            const rawName = fileObj ? fileObj.name : (document.getElementById('fm-task-name').value.trim() || `wms-${type}-${Date.now()}`);
+            const content = fileObj ? fileObj.content : getActiveTaskPayload(type);
+            const ext = type === 'bulk' ? '.csv' : '.json';
+            const filename = rawName.endsWith(ext) ? rawName : `${rawName.replace(/[^a-zA-Z0-9_-]/g, '_')}${ext}`;
+
+            try {
+                if ('showSaveFilePicker' in window) {
+                    const handle = await window.showSaveFilePicker({ suggestedName: filename, types: [{ description: 'WMS File', accept: { 'text/plain': [ext, '.txt'] } }] });
+                    const writable = await handle.createWritable();
+                    await writable.write(content); await writable.close();
+                    playTone('success'); showToast(`Saved ${filename} to Local Disk!`); return;
+                }
+            } catch (err) { if (err.name === 'AbortError') return; }
+
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
+            link.click();
+        }
+
+        function saveExistingTaskToDisk(id) {
+            const file = workspace.files.find(f => f.id === id);
+            if (file) saveActiveTaskToLocalDisk(file);
+        }
+
+        function openLocalFileIntoFolder(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            const folder = document.getElementById('fm-folder-select').value || workspace.folders[0];
+            const cleanName = file.name.replace(/\.[^/.]+$/, "");
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                workspace.files.unshift({
+                    id: 'task-' + Date.now(), folder, name: cleanName, type: ext === 'json' ? 'lpn' : 'bulk',
+                    updated: new Date().toLocaleString('en-GB', { hour12: false }), content: e.target.result.trim()
+                });
+                saveWorkspaceState(); renderFileManager(); playTone('success');
+            };
+            reader.readAsText(file);
+        }
+
+        async function pushWorkspaceToCloud() {
+            const url = document.getElementById('cloud-sync-url').value.trim(), key = document.getElementById('cloud-sync-key').value.trim();
+            if (!url) return alert("Enter a Cloud Endpoint URL first.");
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (key) { headers['Authorization'] = `Bearer ${key}`; headers['apikey'] = key; }
+                const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(workspace) });
+                if (res.ok) { playTone('success'); showToast("Synced to Cloud!"); }
+            } catch (e) { alert("Could not reach Cloud URL."); }
+        }
+
+        async function pullWorkspaceFromCloud() {
+            const url = document.getElementById('cloud-sync-url').value.trim(), key = document.getElementById('cloud-sync-key').value.trim();
+            if (!url) return alert("Enter a Cloud Endpoint URL first.");
+            try {
+                const headers = { 'Accept': 'application/json' };
+                if (key) { headers['Authorization'] = `Bearer ${key}`; headers['apikey'] = key; }
+                const res = await fetch(url, { method: 'GET', headers });
+                const data = await res.json(), payload = data.record || data;
+                if (payload && payload.folders && payload.files) {
+                    workspace = payload; saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
+                    playTone('success'); showToast("Pulled from Cloud!");
+                }
+            } catch (e) { alert("Failed to pull from Cloud."); }
+        }
+
+        async function shareToCloudDriveApp() {
+            const blob = new Blob([JSON.stringify(workspace, null, 2)], { type: 'application/json' });
+            const file = new File([blob], `barcode-workspace-${Date.now()}.json`, { type: 'application/json' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ title: 'Barcode Generator Workspace', files: [file] }); return; } catch (e) {}
+            }
+            exportWorkspaceJSON();
+        }
+
+        function quickSavePrompt(type) {
+            const name = prompt(`Save current ${type.toUpperCase()} as a Task File. Enter name:`);
+            if (name && name.trim()) saveCurrentTaskToFile(type, name.trim());
+        }
+
+        function loadTaskFile(id) {
+            const file = workspace.files.find(f => f.id === id);
+            if (!file) return;
+            document.getElementById('active-task-label').innerText = file.name;
+
+            if (file.type === 'bulk') {
+                document.getElementById('batch-input').value = file.content;
+                scannedSet.clear(); switchTab('bulk'); loadBulkDeck(false);
+            } else if (file.type === 'a4note') {
+                try {
+                    const d = JSON.parse(file.content);
+                    document.getElementById('a4-title').value = d.title || '';
+                    document.getElementById('a4-subtitle').value = d.subtitle || '';
+                    document.getElementById('a4-shipdate').value = d.shipdate || '';
+                    document.getElementById('a4-qty').value = d.qty || '';
+                    document.getElementById('a4-ref').value = d.ref || '';
+                    document.getElementById('a4-dest').value = d.dest || '';
+                    document.getElementById('a4-notes').value = d.notes || '';
+                    switchTab('a4note'); renderA4NotePreview();
+                } catch (e) {}
+            } else if (file.type === 'lpn') {
+                try {
+                    const data = JSON.parse(file.content);
+                    document.getElementById('lpn-master').value = data.master || 'PLT-MASTER-001';
+                    lpnChildren = Array.isArray(data.children) ? data.children : [];
+                    switchTab('tools'); renderLpnQr();
+                } catch (e) {}
+            }
+            toggleFileManager(); playTone('success');
+        }
+
+        function deleteTaskFile(id) {
+            workspace.files = workspace.files.filter(f => f.id !== id);
+            saveWorkspaceState(); renderFileManager();
+        }
+
+        function renderFileManager() {
+            const folder = document.getElementById('fm-folder-select').value;
+            workspace.activeFolder = folder;
+            const list = document.getElementById('fm-file-list');
+            const folderFiles = workspace.files.filter(f => f.folder === folder);
+            if (folderFiles.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-xs theme-text-dim font-mono">No task files in "${escapeHtml(folder)}".</div>`;
+                return;
+            }
+            const badgeMap = {
+                bulk: '<span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500 text-[10px] font-mono">BULK</span>',
+                a4note: '<span class="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 text-[10px] font-mono">A4 NOTE</span>',
+                lpn: '<span class="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 text-[10px] font-mono">LPN</span>'
+            };
+            list.innerHTML = folderFiles.map(f => `
+                <div class="p-3 rounded-lg border theme-input hover:border-emerald-500/60 transition flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-grow cursor-pointer" onclick="loadTaskFile('${f.id}')">
+                        <div class="flex items-center gap-2">${badgeMap[f.type] || ''}<span class="text-xs font-semibold truncate">${escapeHtml(f.name)}</span></div>
+                        <span class="text-[10px] font-mono theme-text-dim block mt-1">${escapeHtml(f.updated)}</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="loadTaskFile('${f.id}')" class="px-2 py-1 rounded bg-emerald-600 text-white text-xs font-semibold">Open</button>
+                        <button onclick="saveExistingTaskToDisk('${f.id}')" class="p-1.5 rounded theme-elevated border text-emerald-500"><i data-lucide="download" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="deleteTaskFile('${f.id}')" class="p-1.5 rounded theme-elevated text-red-400">×</button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function exportWorkspaceJSON() {
+            saveActiveTaskToLocalDisk({ name: `barcode-workspace-${Date.now()}`, type: 'lpn', content: JSON.stringify(workspace, null, 2) });
+        }
+
+        function importWorkspaceJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.folders && parsed.files) { workspace = parsed; saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); showToast("Restored!"); }
+                } catch (err) { alert("Invalid JSON file."); }
+            };
+            reader.readAsText(file);
+        }
+
+        // Instant Auto-Next & Global Gun Listener
         let gunBuffer = '';
         let lastKeyTime = 0;
 
@@ -2150,7 +2370,13 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                     e.preventDefault();
                     const code = gunBuffer.trim();
                     gunBuffer = '';
-                    routeGlobalGunScan(code);
+                    if (!document.getElementById('view-bulk').classList.contains('hidden')) {
+                        document.getElementById('deck-scan-input').value = code;
+                        handleDeckScanVerify();
+                    } else if (!document.getElementById('view-tools').classList.contains('hidden')) {
+                        document.getElementById('lpn-child-input').value = code;
+                        addLpnChild();
+                    }
                     return;
                 } else if (e.key.length === 1) {
                     gunBuffer += e.key;
@@ -2172,247 +2398,39 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             }
         });
 
-        function routeGlobalGunScan(code) {
-            if (!document.getElementById('view-audit').classList.contains('hidden')) {
-                document.getElementById('audit-scan-gun').value = code;
-                processAuditScan();
-            } else if (!document.getElementById('view-bulk').classList.contains('hidden')) {
-                document.getElementById('deck-scan-input').value = code;
-                handleDeckScanVerify();
-            } else if (!document.getElementById('view-tools').classList.contains('hidden')) {
-                document.getElementById('lpn-child-input').value = code;
-                addLpnChild();
-            }
-        }
-
-        // ==========================================
-        // 6. AUDIT, BLIND CYCLE COUNT & FILTERS
-        // ==========================================
-        let auditManifest = new Map();
-        let auditRogues = [];
-        let auditFilter = 'all';
-
-        function setAuditFilter(f) {
-            auditFilter = f;
-            ['all', 'missing', 'verified'].forEach(k => {
-                document.getElementById(`af-${k}`).className = k === f
-                    ? "px-2.5 py-1 rounded bg-emerald-600 text-white font-medium"
-                    : "px-2.5 py-1 rounded theme-elevated theme-text-muted";
-            });
-            renderAuditState();
-        }
-
-        function loadAuditManifest() {
-            const raw = document.getElementById('audit-manifest-input').value;
-            auditManifest.clear();
-            auditRogues = [];
-            raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean).forEach(line => {
-                const rec = parseCsvLine(line);
-                if (rec.id) {
-                    auditManifest.set(rec.id.toUpperCase(), {
-                        id: rec.id, col2: rec.col2 || '-', expectedQty: parseInt(rec.col3) || 1,
-                        countedQty: null, col4: rec.col4 || '-', verified: false, time: null
-                    });
-                }
-            });
-            document.getElementById('audit-alert-banner').classList.add('hidden');
-            renderAuditState();
-        }
-
-        function processAuditScan() {
-            const gunInput = document.getElementById('audit-scan-gun');
-            const rawScan = gunInput.value.trim();
-            if (!rawScan) return;
-            gunInput.value = '';
-
-            const reqPrefix = document.getElementById('guard-prefix').value.trim().toUpperCase();
-            const reqLen = parseInt(document.getElementById('guard-len').value) || 0;
-            const now = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            const banner = document.getElementById('audit-alert-banner');
-            const bannerText = document.getElementById('audit-alert-text');
-            banner.classList.remove('hidden');
-
-            if ((reqPrefix && !rawScan.toUpperCase().startsWith(reqPrefix)) || (reqLen > 0 && rawScan.length !== reqLen)) {
-                playTone('error');
-                auditRogues.unshift({ id: `${rawScan} (Rule Reject)`, time: now });
-                banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-red-500/20 border border-red-500 text-red-400 flex justify-between";
-                bannerText.innerText = `✕ GUARDRAIL REJECT: "${rawScan}" failed rule!`;
-                renderAuditState();
-                return;
-            }
-
-            if (auditManifest.size === 0) loadAuditManifest();
-            const key = rawScan.toUpperCase();
-            const isBlind = document.getElementById('audit-mode-select').value === 'blind';
-            const blindQtyVal = parseInt(document.getElementById('audit-blind-qty').value) || 1;
-
-            if (auditManifest.has(key)) {
-                const item = auditManifest.get(key);
-                item.verified = true;
-                item.time = now;
-                item.countedQty = isBlind ? blindQtyVal : item.expectedQty;
-                playTone('success');
-                banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-emerald-500/20 border border-emerald-500 text-emerald-400 flex justify-between";
-                bannerText.innerText = `✓ VERIFIED MATCH: ${item.id}`;
-                logItem(item.id, 'Audit Verified', true);
-            } else {
-                playTone('error');
-                auditRogues.unshift({ id: rawScan, time: now });
-                banner.className = "p-3 rounded-lg font-mono text-xs font-bold bg-red-500/20 border border-red-500 text-red-400 flex justify-between";
-                bannerText.innerText = `✕ ROGUE ALERT: "${rawScan}" NOT ON MANIFEST!`;
-                logItem(rawScan, 'Audit ROGUE', true);
-            }
-            renderAuditState();
-        }
-
-        function renderAuditState() {
-            const isBlind = document.getElementById('audit-mode-select').value === 'blind';
-            document.getElementById('audit-blind-qty').classList.toggle('hidden', !isBlind);
-            document.getElementById('th-qty-col').innerText = isBlind ? "Blind Count / Variance" : "Expected Qty";
-
-            let total = auditManifest.size, matched = 0;
-            auditManifest.forEach(v => { if (v.verified) matched++; });
-            document.getElementById('audit-kpi-total').innerText = total;
-            document.getElementById('audit-kpi-matched').innerText = matched;
-            document.getElementById('audit-kpi-missing').innerText = total - matched;
-            document.getElementById('audit-kpi-rogue').innerText = auditRogues.length;
-            document.getElementById('nav-audit-badge').innerText = `${matched}/${total}`;
-
-            const rogueBox = document.getElementById('audit-rogue-box');
-            if (auditRogues.length > 0) {
-                rogueBox.classList.remove('hidden');
-                document.getElementById('audit-rogue-list').innerHTML = auditRogues.map(r => `<span class="px-2 py-0.5 rounded bg-red-950 border border-red-600 text-red-200 font-mono text-[11px]">✕ ${escapeHtml(r.id)}</span>`).join('');
-            } else {
-                rogueBox.classList.add('hidden');
-            }
-
-            const tbody = document.getElementById('audit-tbody');
-            tbody.innerHTML = '';
-            auditManifest.forEach((item, key) => {
-                if (auditFilter === 'missing' && item.verified) return;
-                if (auditFilter === 'verified' && !item.verified) return;
-
-                const tr = document.createElement('tr');
-                tr.className = item.verified ? "bg-emerald-500/10" : "";
-                let qtyDisplay = item.expectedQty;
-                if (isBlind) {
-                    if (!item.verified) qtyDisplay = `<span class="theme-text-dim">Hidden</span>`;
-                    else {
-                        const diff = (item.countedQty || 0) - item.expectedQty;
-                        qtyDisplay = `${item.countedQty} / Exp:${item.expectedQty} (${diff === 0 ? 'OK' : (diff > 0 ? '+'+diff : diff)})`;
-                    }
-                }
-                const statusBadge = item.verified
-                    ? `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 font-bold text-[10px]">✓ VERIFIED</span>`
-                    : `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40 font-semibold text-[10px]">⏳ MISSING</span>`;
-
-                tr.innerHTML = `
-                    <td class="p-3">${statusBadge}</td>
-                    <td class="p-3 font-bold">${escapeHtml(item.id)}</td>
-                    <td class="p-3 theme-text-muted">${escapeHtml(item.col2)} | ${escapeHtml(item.col4)}</td>
-                    <td class="p-3">${qtyDisplay}</td>
-                    <td class="p-3 theme-text-dim">${item.time || '--:--:--'}</td>
-                    <td class="p-3 text-right"><button onclick="toggleManualAudit('${escapeHtml(key)}')" class="underline text-[11px] hover:text-emerald-500">${item.verified ? 'Undo' : 'Verify'}</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function toggleManualAudit(key) {
-            const item = auditManifest.get(key);
-            if (!item) return;
-            item.verified = !item.verified;
-            item.countedQty = item.expectedQty;
-            item.time = item.verified ? new Date().toLocaleTimeString('en-GB', { hour12: false }) : null;
-            if (item.verified) playTone('success');
-            renderAuditState();
-        }
-
-        // ==========================================
-        // 7. FEEDBACK BOARD, AUDIO, THEME & PRINT HELPERS
-        // ==========================================
+        // Feedback Board, Audio, Theme & Standard Helpers
         const DEFAULT_FEEDBACK = [
-            {
-                id: 'fb-1',
-                name: 'Warehouse Ops Team',
-                category: 'Feature Request',
-                rating: 5,
-                comment: 'The dedicated Carrier Labels tab (FF-RM26111901) with 100x150mm formatting and same-day serial tracking is super clean!',
-                time: 'Pinned',
-                likes: 4
-            }
+            { id: 'fb-1', name: 'Operations Team', category: 'Feature Request', rating: 5, comment: 'Landscape 150x100mm Carrier Labels and the full-page A4 Delivery Note print cleanly every time.', time: 'Pinned', likes: 5 }
         ];
         let feedbackList = JSON.parse(localStorage.getItem('wmsFeedbackBoardV1') || JSON.stringify(DEFAULT_FEEDBACK));
         let currentFbRating = 5;
 
-        function scrollToFeedback() {
-            document.getElementById('feedback-section').scrollIntoView({ behavior: 'smooth' });
-            setTimeout(() => document.getElementById('fb-comment').focus(), 400);
-        }
-
+        function scrollToFeedback() { document.getElementById('feedback-section').scrollIntoView({ behavior: 'smooth' }); }
         function setFeedbackRating(stars) {
             currentFbRating = stars;
             document.querySelectorAll('#fb-star-bar .fb-star').forEach((btn, idx) => {
-                btn.className = (idx + 1 === stars)
-                    ? "fb-star px-2.5 py-1 rounded border bg-emerald-600 text-white border-emerald-500 text-xs font-mono font-bold transition"
-                    : "fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono opacity-75 hover:opacity-100 transition";
+                btn.className = (idx + 1 === stars) ? "fb-star px-2.5 py-1 rounded border bg-emerald-600 text-white border-emerald-500 text-xs font-mono font-bold transition" : "fb-star px-2.5 py-1 rounded border theme-card text-xs font-mono opacity-75 hover:opacity-100 transition";
             });
         }
-
         function submitFeedbackComment() {
             const comment = document.getElementById('fb-comment').value.trim();
-            if (!comment) return alert("Please enter a comment or suggestion before posting.");
-            feedbackList.unshift({
-                id: 'fb-' + Date.now(),
-                name: document.getElementById('fb-name').value.trim() || 'Anonymous Operator',
-                category: document.getElementById('fb-category').value,
-                rating: currentFbRating,
-                comment,
-                time: new Date().toLocaleString('en-GB', { hour12: false }),
-                likes: 1
-            });
+            if (!comment) return alert("Please enter a comment.");
+            feedbackList.unshift({ id: 'fb-' + Date.now(), name: document.getElementById('fb-name').value.trim() || 'Operator', category: document.getElementById('fb-category').value, rating: currentFbRating, comment, time: new Date().toLocaleString('en-GB', { hour12: false }), likes: 1 });
             localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
             document.getElementById('fb-comment').value = '';
-            playTone('success');
-            renderFeedbackBoard();
-            showToast("Thank you! Your feedback has been posted.");
+            playTone('success'); renderFeedbackBoard(); showToast("Feedback posted!");
         }
-
         function submitFeedbackToGitHub() {
-            const name = document.getElementById('fb-name').value.trim() || 'User';
-            const cat = document.getElementById('fb-category').value;
-            const comment = document.getElementById('fb-comment').value.trim() || 'Describe your suggestion here...';
-            const title = encodeURIComponent(`[${cat}] Feedback from ${name}`);
-            const body = encodeURIComponent(`**Submitted by:** ${name}\n**Category:** ${cat}\n**Rating:** ${currentFbRating}/5 ★\n\n**Suggestion / Details:**\n${comment}`);
-            window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=${title}&body=${body}`, '_blank');
+            const name = document.getElementById('fb-name').value.trim() || 'User', cat = document.getElementById('fb-category').value, comment = document.getElementById('fb-comment').value.trim() || '';
+            window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=${encodeURIComponent(`[${cat}] ${name}`)}&body=${encodeURIComponent(comment)}`, '_blank');
         }
-
-        function likeFeedback(id) {
-            const item = feedbackList.find(f => f.id === id);
-            if (item) { item.likes = (item.likes || 0) + 1; localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); renderFeedbackBoard(); }
-        }
-
-        function deleteFeedbackItem(id) {
-            feedbackList = feedbackList.filter(f => f.id !== id);
-            localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
-            renderFeedbackBoard();
-        }
-
-        function clearFeedbackBoard() {
-            if (confirm("Reset feedback board to default?")) {
-                feedbackList = [...DEFAULT_FEEDBACK];
-                localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList));
-                renderFeedbackBoard();
-            }
-        }
-
+        function likeFeedback(id) { const i = feedbackList.find(f => f.id === id); if (i) { i.likes++; localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); renderFeedbackBoard(); } }
+        function deleteFeedbackItem(id) { feedbackList = feedbackList.filter(f => f.id !== id); localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); renderFeedbackBoard(); }
+        function clearFeedbackBoard() { if (confirm("Reset feedback board?")) { feedbackList = [...DEFAULT_FEEDBACK]; localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); renderFeedbackBoard(); } }
         function exportFeedbackCSV() {
-            if (!feedbackList.length) return;
-            let csv = "data:text/csv;charset=utf-8,Author,Category,Rating,Comment,Timestamp,Upvotes\n";
-            feedbackList.forEach(f => { csv += `"${f.name.replace(/"/g, '""')}","${f.category}","${f.rating}","${f.comment.replace(/"/g, '""')}","${f.time}","${f.likes || 0}"\n`; });
-            const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `shash-barcode-feedback-${Date.now()}.csv`; link.click();
+            let csv = "data:text/csv;charset=utf-8,Author,Category,Rating,Comment,Time\n" + feedbackList.map(f => `"${f.name}","${f.category}","${f.rating}","${f.comment}","${f.time}"`).join('\n');
+            const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `feedback.csv`; link.click();
         }
-
         function renderFeedbackBoard() {
             const list = document.getElementById('fb-comments-list');
             document.getElementById('fb-count-label').innerText = `Suggestions & Comments (${feedbackList.length})`;
@@ -2426,7 +2444,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                         </div>
                         <div class="flex items-center gap-2 text-[10px] font-mono theme-text-dim">
                             <span>${escapeHtml(f.time)}</span>
-                            <button onclick="likeFeedback('${f.id}')" class="px-2 py-0.5 rounded theme-elevated border hover:border-emerald-500 text-emerald-500 font-semibold">▲ ${f.likes || 0}</button>
+                            <button onclick="likeFeedback('${f.id}')" class="px-2 py-0.5 rounded theme-elevated border text-emerald-500 font-semibold">▲ ${f.likes || 0}</button>
                             <button onclick="deleteFeedbackItem('${f.id}')" class="hover:text-red-400 px-1">×</button>
                         </div>
                     </div>
@@ -2445,20 +2463,14 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 const now = audioCtx.currentTime;
                 if (type === 'success') {
                     const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-                    osc.frequency.setValueAtTime(2200, now);
-                    gain.gain.setValueAtTime(0.16, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(now); osc.stop(now + 0.08);
-                    if (navigator.vibrate) navigator.vibrate(35);
+                    osc.frequency.setValueAtTime(2200, now); gain.gain.setValueAtTime(0.16, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.08);
                 } else {
                     [0, 0.15].forEach(offset => {
                         const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-                        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(175, now + offset);
-                        gain.gain.setValueAtTime(0.24, now + offset); gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.12);
-                        osc.connect(gain); gain.connect(audioCtx.destination);
-                        osc.start(now + offset); osc.stop(now + offset + 0.12);
+                        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(175, now + offset); gain.gain.setValueAtTime(0.24, now + offset); gain.gain.exponentialRampToValueAtTime(0.01, now + offset + 0.12);
+                        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now + offset); osc.stop(now + offset + 0.12);
                     });
-                    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 }
             } catch (e) {}
         }
@@ -2468,7 +2480,6 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled));
             updateAudioUI();
             if (audioEnabled) playTone('success');
-            showToast(audioEnabled ? "Audio Beeps ON" : "Audio Muted");
         }
 
         function updateAudioUI() {
@@ -2490,7 +2501,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         }
 
         function switchTab(tab) {
-            ['bulk', 'carrier', 'audit', 'single', 'tools'].forEach(t => {
+            ['bulk', 'carrier', 'a4note', 'webportal', 'tools'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all";
             });
@@ -2499,8 +2510,8 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
 
             if (tab === 'bulk') loadBulkDeck(true);
             if (tab === 'carrier') updateCarrierPreview();
-            if (tab === 'audit' && auditManifest.size === 0) loadAuditManifest();
-            if (tab === 'single') renderSingleBarcode();
+            if (tab === 'a4note') renderA4NotePreview();
+            if (tab === 'webportal') renderWebBookmarks();
             if (tab === 'tools') { renderLpnQr(); renderHistoryTable(); }
         }
 
@@ -2508,15 +2519,11 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             bulkViewMode = mode;
             document.getElementById('bulk-carousel-panel').classList.toggle('hidden', mode !== 'carousel');
             document.getElementById('bulk-grid-panel').classList.toggle('hidden', mode !== 'grid');
-            document.getElementById('btn-mode-carousel').className = mode === 'carousel' ? "text-[11px] font-semibold py-1 rounded bg-emerald-600 text-white transition" : "text-[11px] font-medium py-1 rounded theme-text-muted transition";
-            document.getElementById('btn-mode-grid').className = mode === 'grid' ? "text-[11px] font-semibold py-1 rounded bg-emerald-600 text-white transition" : "text-[11px] font-medium py-1 rounded theme-text-muted transition";
             if (mode === 'grid') generateBatchGrid();
         }
 
         function generateBatchGrid() {
-            const sym = document.getElementById('batch-type').value;
-            const grid = document.getElementById('batch-grid');
-            const offCanvas = document.getElementById('offscreen-canvas');
+            const sym = document.getElementById('batch-type').value, grid = document.getElementById('batch-grid'), offCanvas = document.getElementById('offscreen-canvas');
             grid.innerHTML = '';
             bulkRecords.forEach((rec, idx) => {
                 try {
@@ -2531,10 +2538,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         }
 
         function printRackingSign() {
-            const loc = document.getElementById('rack-code').value.trim() || 'A-01-01';
-            const arrow = document.getElementById('rack-arrow').value;
-            const bg = document.getElementById('rack-theme').value;
-            const offCanvas = document.getElementById('offscreen-canvas');
+            const loc = document.getElementById('rack-code').value.trim() || 'A-01-01', arrow = document.getElementById('rack-arrow').value, bg = document.getElementById('rack-theme').value, offCanvas = document.getElementById('offscreen-canvas');
             bwipjs.toCanvas(offCanvas, { bcid: 'code128', text: loc, scale: 4, height: 20, includetext: false, backgroundcolor: 'ffffff' });
             const win = window.open('', '_blank');
             win.document.write(`<html><body style="margin:0;padding:20px;font-family:sans-serif;text-align:center;"><div style="border:6px solid #000;padding:25px;max-width:500px;margin:auto;background:${bg};color:#000;"><div style="font-size:64px;font-weight:900;line-height:1;">${arrow} ${escapeHtml(loc)}</div><div style="background:#fff;padding:15px;margin-top:15px;border:3px solid #000;"><img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;"/></div></div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
@@ -2542,79 +2546,17 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
         }
 
         function printHoldTag() {
-            const pallet = document.getElementById('hold-pallet').value.trim() || 'HOLD-001';
-            const reason = document.getElementById('hold-reason').value;
-            const operator = document.getElementById('hold-operator').value.trim() || 'Shift Control';
-            const now = new Date().toLocaleString('en-GB');
-            const offCanvas = document.getElementById('offscreen-canvas');
+            const pallet = document.getElementById('hold-pallet').value.trim() || 'HOLD-001', reason = document.getElementById('hold-reason').value, operator = document.getElementById('hold-operator').value.trim() || 'Shift Control', now = new Date().toLocaleString('en-GB'), offCanvas = document.getElementById('offscreen-canvas');
             bwipjs.toCanvas(offCanvas, { bcid: 'code128', text: pallet, scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
             const win = window.open('', '_blank');
-            win.document.write(`<html><head><style>@page{size:100mm 150mm;margin:0;}</style></head><body style="margin:0;padding:5mm;font-family:monospace;text-align:center;"><div style="border:4px solid #000;padding:15px;height:135mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;"><div style="background:#000;color:#fff;font-size:20px;font-weight:bold;padding:10px;">⚠ ${escapeHtml(reason)}</div><div style="font-size:13px;text-align:left;line-height:1.7;"><div><b>ID:</b> ${escapeHtml(pallet)}</div><div><b>BY:</b> ${escapeHtml(operator)}</div><div><b>TIME:</b> ${now}</div><div><b>STATUS:</b> DO NOT SHIP / HOLD</div></div><img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;margin:auto;"/></div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
+            win.document.write(`<html><head><style>@page{size:150mm 100mm;margin:0;}</style></head><body style="margin:0;padding:4mm;font-family:monospace;text-align:center;"><div style="border:4px solid #000;padding:12px;height:90mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;"><div style="background:#000;color:#fff;font-size:18px;font-weight:bold;padding:6px;">⚠ ${escapeHtml(reason)}</div><div style="font-size:12px;display:flex;justify-content:space-between;"><span><b>ID:</b> ${escapeHtml(pallet)}</span><span><b>BY:</b> ${escapeHtml(operator)}</span><span>${now}</span></div><img src="${offCanvas.toDataURL('image/png')}" style="max-width:100%;margin:auto;"/></div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
             win.document.close();
         }
 
         function exportZPL(code) {
             const val = code || 'FF-RM26111901';
             const zpl = `^XA\n~SD15\n^FO50,50^ADN,36,20^FD${val}^FS\n^FO50,100^BY3^BCN,120,Y,N,N^FD${val}^FS\n^XZ`;
-            const link = document.createElement('a');
-            link.download = `${val}.zpl`;
-            link.href = URL.createObjectURL(new Blob([zpl], { type: 'text/plain' }));
-            link.click();
-            showToast(`Exported .ZPL for ${val}`);
-        }
-
-        function resetSingleStudioDefaults() {
-            document.getElementById('bc-type').value = 'code128';
-            document.getElementById('bc-suffix').value = 'none';
-            document.getElementById('bc-data').value = 'FF-RM26111901';
-            document.getElementById('bc-alttext').value = '';
-            document.getElementById('bc-scale').value = 3;
-            document.getElementById('lbl-scale').innerText = '3x (Default)';
-            document.getElementById('bc-height').value = 15;
-            document.getElementById('lbl-height').innerText = '15mm (Default)';
-            document.getElementById('bc-pad').value = 10;
-            document.getElementById('lbl-pad').innerText = '10px (Default)';
-            document.getElementById('bc-textpos').value = 'below';
-            document.getElementById('bc-textsize').value = '10';
-            document.getElementById('bc-rotate').value = 'N';
-            renderSingleBarcode();
-        }
-
-        function getSingleBwipOpts() {
-            const bcid = document.getElementById('bc-type').value;
-            const raw = document.getElementById('bc-data').value.trim();
-            const suffix = document.getElementById('bc-suffix').value;
-            const alt = document.getElementById('bc-alttext').value.trim();
-            const scale = parseInt(document.getElementById('bc-scale').value) || 3;
-            const height = parseInt(document.getElementById('bc-height').value) || 15;
-            const pad = parseInt(document.getElementById('bc-pad').value) || 10;
-            const textpos = document.getElementById('bc-textpos').value;
-            const textsize = parseInt(document.getElementById('bc-textsize').value) || 10;
-            const rotate = document.getElementById('bc-rotate').value;
-            const is2D = ['qrcode', 'datamatrix'].includes(bcid);
-
-            const opts = { bcid, text: formatPayloadWithSuffix(raw, suffix), alttext: alt || raw, parse: true, scale, height, rotate, paddingwidth: pad, paddingheight: pad, backgroundcolor: 'ffffff' };
-            if (!is2D && textpos !== 'none') { opts.includetext = true; opts.textxalign = 'center'; opts.textyalign = textpos; opts.textsize = textsize; }
-            return opts;
-        }
-
-        function renderSingleBarcode() {
-            const canvas = document.getElementById('barcode-canvas'), err = document.getElementById('render-error');
-            try {
-                bwipjs.toCanvas(canvas, getSingleBwipOpts());
-                err.classList.add('hidden');
-                document.getElementById('badge-dims').innerText = `${canvas.width} × ${canvas.height} px`;
-            } catch (e) {
-                err.classList.remove('hidden');
-                document.getElementById('render-error-text').innerText = e.message || String(e);
-            }
-        }
-
-        function loadMacroPreset(rawCode, label) {
-            document.getElementById('bc-type').value = 'code128';
-            document.getElementById('bc-data').value = rawCode;
-            document.getElementById('bc-alttext').value = label;
-            renderSingleBarcode();
+            const link = document.createElement('a'); link.download = `${val}.zpl`; link.href = URL.createObjectURL(new Blob([zpl], { type: 'text/plain' })); link.click();
         }
 
         let lpnChildren = ['CTN-00192', 'CTN-00193'];
@@ -2623,15 +2565,12 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             if (!val) return;
             lpnChildren.push(val); inp.value = ''; playTone('success'); renderLpnQr();
         }
-
         function renderLpnQr() {
-            const master = document.getElementById('lpn-master').value.trim() || 'PLT-MASTER';
-            const delim = document.getElementById('lpn-delim')?.value || ',';
+            const master = document.getElementById('lpn-master').value.trim() || 'PLT-MASTER', delim = document.getElementById('lpn-delim')?.value || ',';
             document.getElementById('lpn-child-count').innerText = `Child Cartons (${lpnChildren.length})`;
             document.getElementById('lpn-child-list').innerHTML = lpnChildren.map((c, i) => `<span class="px-2 py-0.5 rounded theme-elevated border text-[11px] font-mono flex items-center gap-1">${escapeHtml(c)} <button onclick="lpnChildren.splice(${i},1); renderLpnQr();" class="text-red-400">×</button></span>`).join('');
             try { bwipjs.toCanvas(document.getElementById('lpn-qr-canvas'), { bcid: 'qrcode', text: `MASTER:${master}|QTY:${lpnChildren.length}|ITEMS:${lpnChildren.join(delim)}`, scale: 3, backgroundcolor: 'ffffff' }); } catch (e) {}
         }
-
         function printConsolidatedSheet() {
             const master = document.getElementById('lpn-master').value.trim(), qrDataUrl = document.getElementById('lpn-qr-canvas').toDataURL('image/png');
             const win = window.open('', '_blank');
@@ -2639,7 +2578,7 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             win.document.close();
         }
 
-        function importSpreadsheet(event, targetTextareaId, isAudit = false) {
+        function importSpreadsheet(event, targetTextareaId) {
             const file = event.target.files[0];
             if (!file) return;
             const ext = file.name.split('.').pop().toLowerCase();
@@ -2648,22 +2587,18 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 reader.onload = (e) => {
                     const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                     document.getElementById(targetTextareaId).value = XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]).trim();
-                    if (isAudit) loadAuditManifest(); else loadBulkDeck(false);
+                    loadBulkDeck(false);
                 };
                 reader.readAsArrayBuffer(file);
             } else {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById(targetTextareaId).value = e.target.result.trim();
-                    if (isAudit) loadAuditManifest(); else loadBulkDeck(false);
-                };
+                reader.onload = (e) => { document.getElementById(targetTextareaId).value = e.target.result.trim(); loadBulkDeck(false); };
                 reader.readAsText(file);
             }
         }
 
         function printCurrentDeckLabel() { if (bulkRecords.length) printRoutingBatch([bulkRecords[currentDeckIndex]]); }
         function printBatchSheet() { if (bulkRecords.length) printRoutingBatch(bulkRecords); }
-        function printSingleLabel() { printRoutingBatch([{ id: document.getElementById('bc-data').value, col2: '', col3: '', col4: '' }]); }
 
         function printRoutingBatch(records) {
             const sym = document.getElementById('batch-type').value, offCanvas = document.getElementById('offscreen-canvas'), rendered = [];
@@ -2675,40 +2610,16 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             });
             const win = window.open('', '_blank');
             const html = rendered.map(r => `
-                <div style="width:100mm;height:150mm;padding:6mm;box-sizing:border-box;page-break-after:always;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:monospace;">
-                    <div style="border:2px solid #000;padding:15px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;text-align:center;">
-                        ${(r.col2 || r.col4) ? `<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:8px;font-weight:bold;font-size:13pt;"><span>${escapeHtml(r.col2)}</span><span>${escapeHtml(r.col3)}</span><span>${escapeHtml(r.col4)}</span></div>` : '<div></div>'}
+                <div style="width:150mm;height:100mm;padding:5mm;box-sizing:border-box;page-break-after:always;display:flex;justify-content:center;align-items:center;font-family:monospace;">
+                    <div style="border:2px solid #000;padding:12px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;text-align:center;">
+                        ${(r.col2 || r.col4) ? `<div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:6px;font-weight:bold;font-size:12pt;"><span>${escapeHtml(r.col2)}</span><span>${escapeHtml(r.col3)}</span><span>${escapeHtml(r.col4)}</span></div>` : '<div></div>'}
                         <img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/>
-                        <div style="border-top:2px solid #000;padding-top:6px;font-size:10pt;font-weight:bold;">${escapeHtml(r.id)}</div>
+                        <div style="border-top:2px solid #000;padding-top:4px;font-size:10pt;font-weight:bold;">${escapeHtml(r.id)}</div>
                     </div>
                 </div>
             `).join('');
-            win.document.write(`<html><head><style>@page{size:100mm 150mm;margin:0;}body{margin:0;}</style></head><body>${html}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
+            win.document.write(`<html><head><style>@page{size:150mm 100mm;margin:0;}body{margin:0;}</style></head><body>${html}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
             win.document.close();
-        }
-
-        function exportPNG() {
-            const link = document.createElement('a');
-            link.download = `${document.getElementById('bc-data').value || 'barcode'}.png`;
-            link.href = document.getElementById('barcode-canvas').toDataURL('image/png');
-            link.click();
-        }
-
-        function exportSVG() {
-            try {
-                const svg = bwipjs.toSVG(getSingleBwipOpts());
-                const link = document.createElement('a');
-                link.download = `barcode.svg`;
-                link.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-                link.click();
-            } catch (e) {}
-        }
-
-        function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ unit: 'mm', format: [100, 150] });
-            pdf.addImage(document.getElementById('barcode-canvas').toDataURL('image/png'), 'PNG', 10, 45, 80, 40);
-            pdf.save(`label-100x150-${Date.now()}.pdf`);
         }
 
         async function scanUploadedFile(event) {
@@ -2718,9 +2629,8 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
                 const text = await Html5Qrcode.scanFile(file, false);
                 document.getElementById('file-scan-box').classList.remove('hidden');
                 document.getElementById('file-scan-text').innerText = text;
-                playTone('success');
-                logItem(text, 'Image Upload', true);
-            } catch (e) { playTone('error'); alert("No barcode detected in image."); }
+                playTone('success'); logItem(text, 'Image Upload', true);
+            } catch (e) { playTone('error'); alert("No barcode detected."); }
         }
 
         function logItem(data, method, allowDup = false) {
@@ -2734,38 +2644,14 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
 
         function renderHistoryTable() {
             document.getElementById('history-tbody').innerHTML = scanHistory.map((item, idx) => `
-                <tr>
-                    <td class="p-2.5 theme-text-dim">${scanHistory.length - idx}</td>
-                    <td class="p-2.5 font-bold">${escapeHtml(item.data)}</td>
-                    <td class="p-2.5 theme-text-muted">${escapeHtml(item.method)}</td>
-                    <td class="p-2.5 theme-text-dim">${item.timestamp}</td>
-                </tr>
+                <tr><td class="p-2.5 theme-text-dim">${scanHistory.length - idx}</td><td class="p-2.5 font-bold">${escapeHtml(item.data)}</td><td class="p-2.5 theme-text-muted">${escapeHtml(item.method)}</td><td class="p-2.5 theme-text-dim">${item.timestamp}</td></tr>
             `).join('');
-        }
-
-        function copyShiftHandover() {
-            let matched = 0;
-            auditManifest.forEach(v => { if (v.verified) matched++; });
-            const summary = [
-                `=== BARCODE GENERATOR // SHASH ===`,
-                `Time: ${new Date().toLocaleString('en-GB')}`,
-                `Expected: ${auditManifest.size} | Verified: ${matched} | Missing: ${auditManifest.size - matched} | Rogue: ${auditRogues.length}`
-            ].join('\n');
-            navigator.clipboard.writeText(summary);
-            showToast("Shift Handover Summary copied!");
         }
 
         function exportHistoryCSV() {
             if (!scanHistory.length) return;
             let csv = "data:text/csv;charset=utf-8,Index,ID,Source,Time\n" + scanHistory.map((i, idx) => `${scanHistory.length-idx},"${i.data}","${i.method}","${i.timestamp}"`).join('\n');
             const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `scan-log.csv`; link.click();
-        }
-
-        function exportAuditReportCSV() {
-            if (!auditManifest.size) return;
-            let csv = "data:text/csv;charset=utf-8,ID,Status,Col2,Expected_Qty,Counted_Qty,Col4,Time\n";
-            auditManifest.forEach(i => { csv += `"${i.id}","${i.verified?'VERIFIED':'MISSING'}","${i.col2}","${i.expectedQty}","${i.countedQty||''}","${i.col4}","${i.time||''}"\n`; });
-            const link = document.createElement('a'); link.href = encodeURI(csv); link.download = `audit-report.csv`; link.click();
         }
 
         function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
@@ -2787,13 +2673,15 @@ NC-DPD26111901, SKU-4410, 24, LANE-04</textarea>
             setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
             updateAudioUI();
             saveWorkspaceState();
+            renderClientCarrierPresets();
             renderFeedbackBoard();
             document.getElementById('cl-date').value = getTodayIsoDate();
             autoSetNextAvailableSerial();
+            renderA4NotePreview();
+            renderWebBookmarks();
             document.getElementById('cloud-sync-url').value = localStorage.getItem('wmsCloudUrl') || '';
             document.getElementById('cloud-sync-key').value = localStorage.getItem('wmsCloudKey') || '';
             loadBulkDeck(false);
-            loadAuditManifest();
             document.getElementById('nav-scan-count').innerText = scanHistory.length;
         };
 

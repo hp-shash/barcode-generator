@@ -69,16 +69,8 @@
             --grid-dot: #d3cbb7;
             --stage-bg: #efe8d4;
         }
-        html {
-            font-size: 16px;
-            transition: font-size 0.15s ease;
-        }
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            overflow-x: hidden;
-            transition: background-color 0.15s ease, color 0.15s ease;
-        }
+        html { font-size: 16px; transition: font-size 0.15s ease; }
+        body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hidden; transition: background-color 0.15s ease, color 0.15s ease; }
         .theme-card { background-color: var(--bg-card); border-color: var(--border-color); }
         .theme-input { background-color: var(--bg-input); border-color: var(--border-color); color: var(--text-main); }
         .theme-elevated { background-color: var(--bg-elevated); border-color: var(--border-color); color: var(--text-main); }
@@ -89,6 +81,11 @@
             background-color: var(--stage-bg);
             background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
             background-size: 16px 16px;
+        }
+        .checker-bg {
+            background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%);
+            background-size: 12px 12px;
+            background-position: 0 0, 0 6px, 6px -6px, -6px 0;
         }
         .resizable-box { resize: both; overflow: auto; min-width: 110px; min-height: 40px; }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -121,7 +118,7 @@
             </div>
         </div>
 
-        <!-- Center: Streamlined 3-Tab Navigation (Consolidate & Log Removed) -->
+        <!-- Center: 3-Tab Navigation (Renamed Notes) -->
         <nav class="flex flex-wrap items-center gap-1 theme-input p-1 rounded-lg border">
             <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all">
                 <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk & Labels
@@ -130,33 +127,29 @@
                 <i data-lucide="truck" class="w-3.5 h-3.5"></i> Carrier Labels
             </button>
             <button onclick="switchTab('a4note')" id="tab-a4note" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all">
-                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> A4 Delivery Note
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Notes
             </button>
         </nav>
 
-        <!-- Right: Calculator, Responsive Reflow Zoom %, Arcade Toggle, Sound Pack & Theme -->
+        <!-- Right: Calculator, Responsive Zoom %, Arcade Toggle, Sound Pack & Theme -->
         <div class="flex flex-wrap items-center gap-1.5">
-            <!-- Draggable Calculator Trigger -->
-            <button onclick="toggleCalculator()" title="Open Draggable Shift Calculator" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+            <button onclick="toggleCalculator()" title="Draggable Shift Calculator" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span class="hidden lg:inline text-[11px]">Calc</span>
             </button>
 
-            <!-- Responsive Reflow Page Zoom -->
-            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Reflow Page Zoom (Rearranges layout to fit)">
+            <div class="flex items-center theme-input border rounded-lg p-0.5 gap-0.5" title="Reflow Page Zoom (100% Default)">
                 <button onclick="adjustPageZoom(-10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">-</button>
                 <input type="number" id="page-zoom-input" value="100" min="60" max="150" onchange="setManualPageZoom(this.value)" class="w-11 bg-transparent text-center text-[11px] font-mono font-bold outline-none">
                 <span class="text-[10px] font-mono theme-text-dim pr-0.5">%</span>
                 <button onclick="adjustPageZoom(10)" class="px-1.5 py-1 rounded hover:opacity-80 text-xs font-bold">+</button>
             </div>
 
-            <!-- 3-Game Arcade Drawer Toggle -->
             <button onclick="toggleArcadeDrawer()" title="Play Snake, Super Mario, or Chrome Dino" class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                 <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-emerald-500"></i>
                 <span class="hidden xl:inline text-[11px] font-mono" id="nav-arcade-score">Arcade: 0</span>
             </button>
 
-            <!-- Sound Pack Selector + Mute Toggle -->
             <div class="flex items-center theme-input border rounded-lg p-0.5">
                 <button onclick="toggleAudio()" title="Mute / Unmute" class="p-1 rounded hover:opacity-80">
                     <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5 text-emerald-500"></i>
@@ -169,7 +162,6 @@
                 </select>
             </div>
 
-            <!-- 3-Button Theme Bar -->
             <div class="flex items-center theme-input p-0.5 rounded-lg border">
                 <button onclick="setTheme('dark')" id="theme-dark" title="Dark Mode (Default)" class="px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition">
                     <i data-lucide="moon" class="w-3.5 h-3.5"></i>
@@ -186,7 +178,6 @@
 
     <!-- DRAGGABLE FLOATING CALCULATOR -->
     <div id="calc-popover" style="top: 72px; right: 24px;" class="hidden fixed z-50 w-72 theme-card border-2 border-emerald-500/40 rounded-xl shadow-2xl overflow-hidden backdrop-blur-md">
-        <!-- Drag Handle Header -->
         <div id="calc-drag-header" class="px-3.5 py-2.5 theme-elevated border-b theme-border flex items-center justify-between cursor-move select-none">
             <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                 <i data-lucide="grip-horizontal" class="w-4 h-4 text-emerald-500"></i> Shift Calculator
@@ -206,22 +197,18 @@
                 <button onclick="calcInput('(')" class="p-2.5 rounded theme-elevated border">(</button>
                 <button onclick="calcInput(')')" class="p-2.5 rounded theme-elevated border">)</button>
                 <button onclick="calcInput('/')" class="p-2.5 rounded theme-elevated border text-emerald-500">÷</button>
-
                 <button onclick="calcInput('7')" class="p-2.5 rounded theme-input border">7</button>
                 <button onclick="calcInput('8')" class="p-2.5 rounded theme-input border">8</button>
                 <button onclick="calcInput('9')" class="p-2.5 rounded theme-input border">9</button>
                 <button onclick="calcInput('*')" class="p-2.5 rounded theme-elevated border text-emerald-500">×</button>
-
                 <button onclick="calcInput('4')" class="p-2.5 rounded theme-input border">4</button>
                 <button onclick="calcInput('5')" class="p-2.5 rounded theme-input border">5</button>
                 <button onclick="calcInput('6')" class="p-2.5 rounded theme-input border">6</button>
                 <button onclick="calcInput('-')" class="p-2.5 rounded theme-elevated border text-emerald-500">−</button>
-
                 <button onclick="calcInput('1')" class="p-2.5 rounded theme-input border">1</button>
                 <button onclick="calcInput('2')" class="p-2.5 rounded theme-input border">2</button>
                 <button onclick="calcInput('3')" class="p-2.5 rounded theme-input border">3</button>
                 <button onclick="calcInput('+')" class="p-2.5 rounded theme-elevated border text-emerald-500">+</button>
-
                 <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded theme-input border">0</button>
                 <button onclick="calcInput('.')" class="p-2.5 rounded theme-input border">.</button>
                 <button onclick="calcEval()" class="p-2.5 rounded bg-emerald-600 text-white">=</button>
@@ -229,33 +216,32 @@
         </div>
     </div>
 
-    <!-- INTERACTIVE 3-GAME ARCADE BAR (SNAKE, SUPER MARIO, CHROME DINO) -->
-    <div id="arcade-strip" class="hidden border-b theme-border theme-elevated px-4 py-3">
-        <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
-            
-            <!-- Game Selector & Controls Info -->
+    <!-- BLENDED ARCADE HOST (Docks in Top Bar OR Inside Scanning Mode) -->
+    <div id="arcade-top-host" class="hidden border-b theme-border px-4 py-2.5">
+        <div id="arcade-module" class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="space-y-1.5">
                 <div class="flex flex-wrap items-center gap-2">
-                    <select id="arcade-game-select" onchange="initSelectedGame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none">
-                        <option value="dino" selected>1. Chrome Dino Runner (Def)</option>
-                        <option value="mario">2. Super Mario Platformer</option>
+                    <select id="arcade-game-select" onchange="prepareSelectedGame()" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none">
+                        <option value="dino" selected>1. Chrome Dino (Def)</option>
+                        <option value="mario">2. Super Mario</option>
                         <option value="snake">3. Classic Snake</option>
                     </select>
-                    <button onclick="initSelectedGame()" class="px-2.5 py-1.5 rounded-lg theme-input border text-xs font-semibold hover:border-emerald-500">Restart</button>
-                    <span id="arcade-mode-badge" class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px] font-bold">MANUAL PLAY (Arrows / Space / Click)</span>
+                    <button onclick="startArcadeGame()" id="btn-arcade-start" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow flex items-center gap-1">
+                        <i data-lucide="play" class="w-3.5 h-3.5"></i> Start Game
+                    </button>
+                    <span id="arcade-mode-badge" class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px] font-bold">PRESS START</span>
                 </div>
                 <p id="arcade-controls-hint" class="text-[11px] theme-text-muted font-mono">
-                    Controls: Press <b>Space / Up Arrow</b> or <b>Click Canvas</b> to jump! Enable <b>Scanning Mode</b> to auto-pilot on every scan.
+                    Arrows / WASD / Space or Click Canvas. Speed & obstacles escalate as you score!
                 </p>
             </div>
 
-            <!-- Interactive Game Canvas & Score -->
             <div class="flex items-center gap-3">
-                <canvas id="arcade-canvas" width="480" height="110" onclick="handleArcadeCanvasClick()" class="rounded-lg border-2 border-zinc-700 bg-zinc-950 cursor-pointer shadow-inner"></canvas>
+                <canvas id="arcade-canvas" width="480" height="114" onclick="handleArcadeCanvasClick()" class="rounded-lg border theme-border bg-transparent cursor-pointer"></canvas>
                 <div class="text-right font-mono text-xs shrink-0 space-y-1">
                     <div class="font-bold text-emerald-500 text-sm" id="arcade-score-lbl">SCORE: 0000</div>
                     <div class="text-[11px] theme-text-dim" id="arcade-hi-lbl">BEST: 0000</div>
-                    <div class="text-[10px] text-amber-400" id="arcade-status-lbl">PLAYING</div>
+                    <div class="text-[10px] text-amber-500 font-bold" id="arcade-lvl-lbl">LVL 1 • IDLE</div>
                 </div>
             </div>
         </div>
@@ -288,7 +274,7 @@
                     <input type="text" id="fm-task-name" placeholder="Task name..." class="flex-grow theme-input border rounded-lg px-2.5 py-1.5 text-xs outline-none">
                     <select id="fm-task-type" class="theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                         <option value="bulk" selected>Bulk List</option>
-                        <option value="a4note">A4 Delivery Note</option>
+                        <option value="a4note">Notes Sheet</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-1.5 pt-1">
@@ -320,11 +306,11 @@
     <main class="flex-grow max-w-[1440px] w-full mx-auto p-4 sm:p-6 space-y-8">
 
         <!-- ==========================================
-             TAB 1: BULK & LABELS (WITH FULL-SCREEN SCANNING MODE, COPY QUEUE & BARCODE CUSTOMIZATION)
+             TAB 1: BULK & LABELS (SIZE & APPEARANCE CONTROLS + GAP/DUPLICATE DETECTOR + N-UP A4 PRINT)
              ========================================== -->
         <section id="view-bulk" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-            <!-- Left Input Feeder (Hidden automatically when Scanning Mode is active) (4 Cols) -->
+            <!-- Left Input Feeder (Hidden in Scanning Mode) (4 Cols) -->
             <div id="bulk-feeder-column" class="lg:col-span-4 space-y-4">
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
@@ -332,11 +318,11 @@
                             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i> Bulk & Label Feeder
                         </span>
                         <div class="flex items-center gap-2 text-xs">
-                            <label class="text-emerald-500 hover:underline cursor-pointer font-medium" title="Import Excel or CSV">
+                            <label class="text-emerald-500 hover:underline cursor-pointer font-medium">
                                 .XLSX/.CSV
                                 <input type="file" accept=".xlsx,.xls,.csv,.txt" onchange="importSpreadsheet(event, 'batch-input')" class="hidden">
                             </label>
-                            <label class="text-blue-400 hover:underline cursor-pointer font-medium" title="Decode barcode from image file">
+                            <label class="text-blue-400 hover:underline cursor-pointer font-medium">
                                 Img Decode
                                 <input type="file" accept="image/*" onchange="decodeImageIntoBulk(event)" class="hidden">
                             </label>
@@ -371,14 +357,14 @@
                             <span>Schema: <code id="bulk-schema-hint" class="font-mono text-emerald-500">ID, SKU, QTY, LANE</code></span>
                             <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">6 items</span>
                         </div>
-                        <textarea id="batch-input" rows="6" oninput="loadBulkDeck(false)" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM03, SKU-101, 24, LANE-1
-FF-RM01, SKU-101, 24, LANE-1
-FF-RM02, SKU-102, 12, LANE-2
-FF-DPD02, SKU-505, 40, DOCK-A
+                        <textarea id="batch-input" rows="5" oninput="loadBulkDeck(false)" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM01, SKU-101, 24, LANE-1
+FF-RM03, SKU-101, 24, LANE-1
+FF-RM03, SKU-102, 12, LANE-2
 FF-DPD01, SKU-505, 40, DOCK-A
-LOC-A02, BIN-01, 5, ZONE-B</textarea>
+FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
 
+                    <!-- Symbology & Suffix -->
                     <div class="grid grid-cols-2 gap-2.5">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
@@ -400,40 +386,82 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Auto-Sequence Generator -->
-                <details class="theme-card border rounded-xl p-4 shadow-sm group">
-                    <summary class="text-xs font-semibold uppercase tracking-wider cursor-pointer list-none flex items-center justify-between">
-                        <span>Auto-Sequence Generator</span>
-                        <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition"></i>
-                    </summary>
-                    <div class="pt-3 space-y-3 border-t theme-border mt-3">
-                        <div class="grid grid-cols-3 gap-2">
-                            <input type="text" id="seq-prefix" value="ITEM-" placeholder="Prefix" class="theme-input border rounded px-2 py-1.5 text-xs font-mono">
-                            <input type="text" id="seq-start" value="001" placeholder="Start #" class="theme-input border rounded px-2 py-1.5 text-xs font-mono">
-                            <input type="number" id="seq-count" value="10" min="1" max="500" placeholder="Qty" class="theme-input border rounded px-2 py-1.5 text-xs font-mono">
+                    <!-- BARCODE SIZE (WIDTH, HEIGHT, FONT SIZE) & APPEARANCE (COLOR, HRI, TRANSPARENT, QUIET ZONE, BG) -->
+                    <div class="p-3 rounded-xl border theme-border theme-elevated/40 space-y-3">
+                        <div class="flex justify-between items-center border-b theme-border pb-1.5">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">Size & Appearance</span>
+                            <button onclick="resetBulkAppearance()" class="text-[10px] theme-text-muted hover:underline">Reset Defaults</button>
                         </div>
-                        <button onclick="generateSequenceList()" class="w-full bg-emerald-600 text-white text-xs font-semibold py-2 rounded-lg">Generate Sequence</button>
+
+                        <!-- Size Sliders: Bar Width, Bar Height, Font Size -->
+                        <div class="grid grid-cols-3 gap-2 text-[10px] font-mono">
+                            <div>
+                                <span class="block theme-text-dim mb-0.5">Width: <b id="lbl-bc-w">3x</b></span>
+                                <input type="range" id="bc-opt-width" min="1" max="6" value="3" oninput="document.getElementById('lbl-bc-w').innerText=this.value+'x'; renderCurrentDeckSlide();" class="w-full">
+                            </div>
+                            <div>
+                                <span class="block theme-text-dim mb-0.5">Height: <b id="lbl-bc-h">18mm</b></span>
+                                <input type="range" id="bc-opt-height" min="8" max="40" value="18" oninput="document.getElementById('lbl-bc-h').innerText=this.value+'mm'; renderCurrentDeckSlide();" class="w-full">
+                            </div>
+                            <div>
+                                <span class="block theme-text-dim mb-0.5">Font: <b id="lbl-bc-fs">12pt</b></span>
+                                <input type="range" id="bc-opt-fontsize" min="8" max="20" value="12" oninput="document.getElementById('lbl-bc-fs').innerText=this.value+'pt'; renderCurrentDeckSlide();" class="w-full">
+                            </div>
+                        </div>
+
+                        <!-- Quiet Zone Slider -->
+                        <div class="text-[10px] font-mono">
+                            <div class="flex justify-between theme-text-dim mb-0.5">
+                                <span>Quiet Zone Padding</span>
+                                <b id="lbl-bc-qz">10px (Default)</b>
+                            </div>
+                            <input type="range" id="bc-opt-quiet" min="0" max="30" value="10" oninput="document.getElementById('lbl-bc-qz').innerText=this.value+'px'; renderCurrentDeckSlide();" class="w-full">
+                        </div>
+
+                        <!-- Colors, HRI ON/OFF & Transparent ON/OFF -->
+                        <div class="grid grid-cols-2 gap-2 pt-1 text-xs">
+                            <label class="flex items-center justify-between theme-input border rounded px-2 py-1.5">
+                                <span class="text-[11px]">Bar Color</span>
+                                <input type="color" id="bc-opt-fg" value="#000000" onchange="renderCurrentDeckSlide()" class="w-5 h-5 bg-transparent border-0 cursor-pointer">
+                            </label>
+                            <label class="flex items-center justify-between theme-input border rounded px-2 py-1.5">
+                                <span class="text-[11px]">Background</span>
+                                <input type="color" id="bc-opt-bg" value="#ffffff" onchange="renderCurrentDeckSlide()" class="w-5 h-5 bg-transparent border-0 cursor-pointer">
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="flex items-center gap-1.5 theme-input border rounded px-2.5 py-1.5 cursor-pointer">
+                                <input type="checkbox" id="bc-opt-hri" checked onchange="renderCurrentDeckSlide()" class="accent-emerald-500">
+                                <span class="text-[11px] font-medium">HRI Text ON</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 theme-input border rounded px-2.5 py-1.5 cursor-pointer">
+                                <input type="checkbox" id="bc-opt-trans" onchange="renderCurrentDeckSlide()" class="accent-emerald-500">
+                                <span class="text-[11px] font-medium">Transparent BG</span>
+                            </label>
+                        </div>
                     </div>
-                </details>
+                </div>
             </div>
 
-            <!-- Right Column: Queue Status (Left) + Barcode Stage (Right) — Expands to 12 Cols in Scanning Mode -->
+            <!-- Right Column: Queue Status (Left) + Barcode Stage (Right) -->
             <div id="bulk-stage-column" class="lg:col-span-8 space-y-4">
+
+                <!-- Embedded Arcade Dock (Appears here automatically in Scanning Mode) -->
+                <div id="scanning-arcade-dock" class="hidden theme-card border border-emerald-500/40 rounded-xl p-3 shadow-sm"></div>
 
                 <div id="bulk-carousel-panel" class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     
-                    <!-- Top Stage Control Bar -->
+                    <!-- Top Stage Control Bar (Split Buttons Removed — Drag Handle Only) -->
                     <div class="px-4 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <!-- DEDICATED SCANNING MODE TOGGLE (Hides Feeder, Maximizes Queue + Barcode & Auto-Plays Game) -->
                             <button onclick="toggleScanningMode()" id="btn-scan-mode" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs">
                                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
                                 <span id="lbl-scan-mode">Enter Scanning Mode</span>
                             </button>
 
-                            <span class="px-2.5 py-1 rounded-md theme-elevated border font-mono text-xs font-bold" id="deck-counter">1 / 6</span>
+                            <span class="px-2.5 py-1 rounded-md theme-elevated border font-mono text-xs font-bold" id="deck-counter">1 / 5</span>
 
                             <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
                                 <button onclick="setBulkViewMode('carousel')" class="px-2 py-0.5 rounded font-semibold bg-emerald-600 text-white">1-by-1</button>
@@ -441,15 +469,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </div>
                         </div>
 
-                        <!-- Split Proportion Presets & Timer -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div class="hidden sm:flex items-center gap-1 text-[10px] font-mono theme-input p-0.5 rounded-lg border">
-                                <span class="px-1 theme-text-dim">Split:</span>
-                                <button onclick="setBulkSplitRatio(35)" class="px-1.5 py-0.5 rounded hover:bg-emerald-600 hover:text-white">35/65</button>
-                                <button onclick="setBulkSplitRatio(45)" class="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-bold">45/55</button>
-                                <button onclick="setBulkSplitRatio(60)" class="px-1.5 py-0.5 rounded hover:bg-emerald-600 hover:text-white">60/40</button>
-                            </div>
-
+                        <div class="flex items-center gap-2">
                             <div class="flex items-center theme-input border rounded-lg px-2 py-1 gap-1">
                                 <i data-lucide="timer" class="w-3.5 h-3.5 text-emerald-500"></i>
                                 <input type="number" id="custom-timer-sec" value="2.5" min="0.5" max="60" step="0.5" onchange="restartAutoPlayIfActive()" class="w-10 bg-transparent text-xs font-mono font-bold text-center outline-none">
@@ -461,72 +481,44 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
                     <!-- Progress Bar -->
                     <div class="w-full theme-input h-1.5 overflow-hidden">
-                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 16%"></div>
+                        <div id="deck-progress" class="bg-emerald-500 h-full transition-all duration-200" style="width: 20%"></div>
                     </div>
 
-                    <!-- RESIZABLE SPLIT: LEFT = SEARCHABLE & COPYABLE QUEUE | RIGHT = CUSTOMIZABLE BARCODE STAGE -->
+                    <!-- DRAG-RESIZABLE SPLIT: LEFT = SMART QUEUE (GAP & DUPLICATE DETECTOR) | RIGHT = BARCODE STAGE -->
                     <div id="bulk-split-wrapper" class="flex flex-col md:flex-row min-h-[420px] relative">
                         
-                        <!-- LEFT PANEL: QUEUE STATUS WITH SEARCH & COPY COLUMN/ALL -->
-                        <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[480px] shrink-0">
-                            <div class="px-3 py-2 border-b theme-border theme-elevated flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-mono">
-                                <span class="font-bold uppercase">Queue (<span id="vertical-queue-stats" class="text-emerald-500">0/6</span>)</span>
-                                <div class="flex items-center gap-1.5">
-                                    <button onclick="copyAllQueueIds()" class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-semibold hover:bg-emerald-500" title="Copy entire queue list">Copy All</button>
+                        <!-- LEFT PANEL: SMART QUEUE -->
+                        <div id="bulk-left-queue" style="width: 45%;" class="w-full md:w-[45%] border-b md:border-b-0 md:border-r theme-border flex flex-col max-h-[500px] shrink-0">
+                            <div class="px-3 py-2 border-b theme-border theme-elevated flex flex-wrap items-center justify-between gap-1 text-[11px] font-mono">
+                                <span class="font-bold uppercase">Queue (<span id="vertical-queue-stats" class="text-emerald-500">0/5</span>)</span>
+                                <div class="flex items-center gap-1">
+                                    <span id="queue-health-badge" class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 font-bold"></span>
+                                    <button onclick="copyAllQueueIds()" class="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-semibold">Copy All</button>
                                 </div>
                             </div>
-                            <!-- Compact Queue Search Box -->
                             <div class="p-2 border-b theme-border theme-input">
-                                <div class="relative">
-                                    <i data-lucide="search" class="w-3.5 h-3.5 theme-text-dim absolute left-2.5 top-2"></i>
-                                    <input type="text" id="queue-search-input" oninput="renderGroupedQueueColumns()" placeholder="Search ID in queue..." class="w-full theme-card border rounded pl-8 pr-2 py-1 text-xs font-mono outline-none focus:border-emerald-500">
-                                </div>
+                                <input type="text" id="queue-search-input" oninput="renderGroupedQueueColumns()" placeholder="Search ID in queue..." class="w-full theme-card border rounded px-2.5 py-1 text-xs font-mono outline-none focus:border-emerald-500">
                             </div>
-                            <!-- Grouped Columns Container -->
                             <div id="deck-pills" class="flex-grow overflow-auto p-2.5 flex gap-2 items-start"></div>
                         </div>
 
                         <!-- DRAGGABLE RESIZE HANDLE -->
-                        <div id="bulk-resizer" class="hidden md:flex w-2 cursor-col-resize items-center justify-center theme-elevated hover:bg-emerald-600/40 transition select-none" title="Drag left/right to resize">
-                            <div class="w-0.5 h-8 bg-zinc-500 rounded"></div>
+                        <div id="bulk-resizer" class="hidden md:flex w-2.5 cursor-col-resize items-center justify-center theme-elevated hover:bg-emerald-600/40 transition select-none" title="Drag left/right to resize">
+                            <div class="w-0.5 h-10 bg-zinc-500 rounded"></div>
                         </div>
 
-                        <!-- RIGHT PANEL: BARCODE DISPLAY STAGE + CUSTOMIZATION SLIDERS -->
-                        <div id="deck-stage-box" class="flex-grow canvas-grid p-5 flex flex-col items-center justify-between relative overflow-auto">
-                            
-                            <!-- Inline Barcode Size / Height / Scale Customizer Bar -->
-                            <div class="w-full flex flex-wrap items-center justify-center gap-3 theme-card border rounded-lg px-3 py-1.5 text-[11px] font-mono mb-3 z-10">
-                                <label class="flex items-center gap-1.5">
-                                    <span class="theme-text-dim">Scale:</span>
-                                    <input type="range" id="stage-bar-scale" min="2" max="6" value="4" oninput="document.getElementById('val-bar-scale').innerText=this.value+'x'; renderCurrentDeckSlide();" class="w-16">
-                                    <span id="val-bar-scale" class="font-bold text-emerald-500">4x</span>
-                                </label>
-                                <label class="flex items-center gap-1.5">
-                                    <span class="theme-text-dim">Height:</span>
-                                    <input type="range" id="stage-bar-height" min="10" max="35" value="18" oninput="document.getElementById('val-bar-height').innerText=this.value+'mm'; renderCurrentDeckSlide();" class="w-16">
-                                    <span id="val-bar-height" class="font-bold text-emerald-500">18mm</span>
-                                </label>
-                                <label class="flex items-center gap-1.5">
-                                    <span class="theme-text-dim">Zoom:</span>
-                                    <input type="range" id="bulk-size-slider" min="60" max="150" value="100" oninput="updateBulkBarcodeSize(this.value)" class="w-16">
-                                    <span id="lbl-bulk-size" class="font-bold text-emerald-500">100%</span>
-                                </label>
+                        <!-- RIGHT PANEL: BARCODE DISPLAY STAGE -->
+                        <div id="deck-stage-box" class="flex-grow canvas-grid p-5 flex flex-col items-center justify-center relative overflow-auto">
+                            <div id="bulk-card-wrapper" class="bg-white text-zinc-950 p-5 rounded-xl shadow-2xl flex flex-col items-center justify-center max-w-full border-2 border-zinc-200 transition-colors">
+                                <div id="deck-routing-header" class="w-full border-b-2 border-zinc-900 pb-2 mb-3 flex flex-wrap justify-between items-center gap-2 text-xs font-mono font-bold"></div>
+                                <canvas id="deck-canvas" class="max-w-full"></canvas>
                             </div>
 
-                            <!-- Barcode Card -->
-                            <div id="bulk-barcode-scaler" class="my-auto transition-transform duration-150 origin-center">
-                                <div class="bg-white text-zinc-950 p-5 rounded-xl shadow-2xl flex flex-col items-center justify-center max-w-full border-2 border-zinc-200">
-                                    <div id="deck-routing-header" class="w-full border-b-2 border-zinc-900 pb-2 mb-3 flex flex-wrap justify-between items-center gap-2 text-xs font-mono font-bold"></div>
-                                    <canvas id="deck-canvas" class="max-w-full"></canvas>
-                                </div>
-                            </div>
-
-                            <!-- Current ID & Status Pill -->
-                            <div class="mt-3 flex items-center gap-2 z-10">
+                            <div class="mt-4 flex items-center gap-2 z-10">
                                 <span id="deck-scanned-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase theme-elevated border flex items-center gap-1.5">
                                     <span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready
                                 </span>
-                                <span id="deck-current-text" class="text-base font-mono font-bold tracking-wider select-all">FF-RM03</span>
+                                <span id="deck-current-text" class="text-base font-mono font-bold tracking-wider select-all">FF-RM01</span>
                                 <button onclick="copyTextValue(document.getElementById('deck-current-text').innerText)" class="p-1 rounded theme-elevated border hover:opacity-80">
                                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 </button>
@@ -535,20 +527,20 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
                     </div>
 
-                    <!-- ACCESSIBLE PREV / MARK SCANNED & NEXT CONTROLS BAR -->
+                    <!-- PREV / MARK SCANNED & NEXT CONTROLS -->
                     <div class="px-4 py-3 border-t theme-border theme-elevated grid grid-cols-3 gap-2.5">
-                        <button onclick="stepDeck(-1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                        <button onclick="stepDeck(-1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
                             <i data-lucide="arrow-left" class="w-4 h-4"></i> Previous
                         </button>
-                        <button onclick="markAndNextDeck()" class="py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                        <button onclick="markAndNextDeck()" class="py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg flex items-center justify-center gap-2">
                             <i data-lucide="check-circle-2" class="w-4 h-4"></i> Mark Scanned & Next
                         </button>
-                        <button onclick="stepDeck(1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                        <button onclick="stepDeck(1)" class="py-2.5 px-4 rounded-lg theme-input border hover:border-emerald-500 text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
                             Next <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     </div>
 
-                    <!-- Export & Print Footer -->
+                    <!-- Export & Multi-Label N-Up A4 Print Footer -->
                     <div class="px-4 py-2.5 border-t theme-border flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div class="flex gap-1.5">
                             <button onclick="exportCurrentPNG()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px]">PNG</button>
@@ -556,9 +548,12 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             <button onclick="exportCurrentPDF()" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px]">PDF</button>
                             <button onclick="exportZPL(bulkRecords[currentDeckIndex]?.id)" class="px-2 py-1 rounded theme-elevated border font-mono text-[11px]">.ZPL</button>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="printCurrentDeckLabel()" class="px-3 py-1.5 rounded-lg theme-elevated border font-medium">Print Current</button>
-                            <button onclick="printBatchSheet()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold shadow">Print All</button>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="printNUpA4Sheet()" class="px-3 py-1.5 rounded-lg theme-elevated border border-emerald-500/50 text-emerald-500 font-semibold flex items-center gap-1" title="Print 8 labels per A4 page">
+                                <i data-lucide="grid" class="w-3.5 h-3.5"></i> Print N-Up A4 Sheet
+                            </button>
+                            <button onclick="printCurrentDeckLabel()" class="px-3 py-1.5 rounded-lg theme-elevated border font-medium">Print Single</button>
+                            <button onclick="printBatchSheet()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold shadow">Print Thermal All</button>
                         </div>
                     </div>
                 </div>
@@ -570,7 +565,10 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             <button onclick="setBulkViewMode('carousel')" class="px-2.5 py-1 rounded font-medium theme-text-muted hover:text-emerald-500">← Back to 1-by-1</button>
                             <button onclick="setBulkViewMode('grid')" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Grid View</button>
                         </div>
-                        <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print All</button>
+                        <div class="flex gap-2">
+                            <button onclick="printNUpA4Sheet()" class="theme-elevated border text-xs font-semibold px-3 py-1.5 rounded-lg">N-Up A4 Sheet</button>
+                            <button onclick="printBatchSheet()" class="bg-emerald-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg">Print Thermal</button>
+                        </div>
                     </div>
                     <div id="batch-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto"></div>
                 </div>
@@ -578,31 +576,45 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             </div>
         </section>
         <!-- ==========================================
-             TAB 2: CARRIER LABELS (1-BY-1 & GRID VIEW + TRUE PORTRAIT REARRANGEMENT)
+             TAB 2: CARRIER LABELS (1-CLICK DEFAULT SHIFT BATCH + COPIES PER LABEL)
              ========================================== -->
         <section id="view-carrier" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
             <!-- Left Column (5 Cols) -->
             <div class="lg:col-span-5 space-y-4">
+                
+                <!-- 1-CLICK DEFAULT SHIFT BATCH CARD -->
+                <div class="theme-card border-2 border-emerald-500/50 rounded-xl p-4 space-y-2.5 shadow-sm bg-emerald-500/5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-4 h-4"></i> 1-Click Default Shift Batch
+                        </span>
+                        <span class="text-[10px] font-mono theme-text-dim">Auto-Serial + Copies</span>
+                    </div>
+                    <p class="text-[11px] font-mono theme-text-muted">
+                        Generates & prints: <b>FF-DPD (5)</b>, <b>FF-RMX (5)</b>, <b>FF-ASD (5)</b>, <b>FF-RM (25)</b> — using your selected Copies per Label below.
+                    </p>
+                    <button onclick="runOneClickDefaultShiftBatch()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2.5 px-4 rounded-lg shadow flex items-center justify-center gap-2 transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Print Full Shift Batch (40 Labels × Copies)
+                    </button>
+                </div>
+
+                <!-- Custom Carrier Builder Card -->
                 <div class="theme-card border rounded-xl p-5 space-y-4 shadow-sm">
                     <div class="flex items-center justify-between border-b theme-border pb-3">
                         <span class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="truck" class="w-4 h-4 text-emerald-500"></i> Carrier Label Builder
+                            <i data-lucide="truck" class="w-4 h-4 text-emerald-500"></i> Custom Carrier Batch
                         </span>
                         <div class="flex items-center theme-input p-0.5 rounded-lg border text-[11px]">
-                            <button onclick="setCarrierOrientation('landscape')" id="btn-orient-landscape" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white transition">
-                                Landscape 150×100 (Def)
-                            </button>
-                            <button onclick="setCarrierOrientation('portrait')" id="btn-orient-portrait" class="px-2.5 py-1 rounded font-medium theme-text-muted transition">
-                                Portrait 100×150
-                            </button>
+                            <button onclick="setCarrierOrientation('landscape')" id="btn-orient-landscape" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">150×100 (Def)</button>
+                            <button onclick="setCarrierOrientation('portrait')" id="btn-orient-portrait" class="px-2.5 py-1 rounded font-medium theme-text-muted">100×150</button>
                         </div>
                     </div>
 
                     <!-- Client Selection -->
                     <div class="p-3 rounded-xl border theme-border theme-elevated/40 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">1. Client Selection</span>
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">1. Client</span>
                             <button onclick="promptNewClientPreset()" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-semibold">+ Add Client</button>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
@@ -618,7 +630,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                     <!-- Carrier Selection -->
                     <div class="p-3 rounded-xl border theme-border theme-elevated/40 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">2. Carrier Selection</span>
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">2. Carrier</span>
                             <button onclick="promptNewCarrierPreset()" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-500 font-semibold">+ Add Carrier</button>
                         </div>
                         <div class="grid grid-cols-12 gap-2">
@@ -631,14 +643,14 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         </div>
                     </div>
 
-                    <!-- Date, Date Format & Serial Digits -->
-                    <div class="grid grid-cols-3 gap-2.5 pt-1">
+                    <!-- Date, Date Style & Serial Digits -->
+                    <div class="grid grid-cols-3 gap-2 pt-1">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Date (Today Def)</label>
                             <input type="date" id="cl-date" onchange="autoSetNextAvailableSerial()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs font-mono outline-none">
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Label Date Style</label>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Label Date</label>
                             <select id="cl-date-style" onchange="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2 py-2 text-xs outline-none">
                                 <option value="DD/MM/YYYY" selected>19/11/2026 (Def)</option>
                                 <option value="DD MMM, YYYY">19 NOV, 2026</option>
@@ -646,27 +658,30 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Serial Digits</label>
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Digits</label>
                             <select id="cl-digits" onchange="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2 py-2 text-xs outline-none">
                                 <option value="2" selected>2 (01 Def)</option>
                                 <option value="3">3 (001)</option>
-                                <option value="4">4 (0001)</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Start Serial # on Left, Labels Required (Qty) on Right -->
-                    <div class="grid grid-cols-2 gap-3 pt-2 border-t theme-border">
+                    <!-- Start Serial #, Unique Labels (Qty), and Copies Per Label (Default 2) -->
+                    <div class="grid grid-cols-3 gap-2.5 pt-2 border-t theme-border">
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label class="text-[10px] uppercase theme-text-dim">Start Serial #</label>
-                                <button onclick="autoSetNextAvailableSerial()" class="text-[10px] text-emerald-500 hover:underline font-semibold">Auto-Next</button>
+                                <label class="text-[10px] uppercase theme-text-dim">Start #</label>
+                                <button onclick="autoSetNextAvailableSerial()" class="text-[9px] text-emerald-500 hover:underline font-bold">Auto</button>
                             </div>
-                            <input type="number" id="cl-start-serial" value="1" min="1" max="9999" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none">
+                            <input type="number" id="cl-start-serial" value="1" min="1" max="9999" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-sm font-mono font-bold outline-none">
                         </div>
                         <div>
-                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Labels Required (Qty)</label>
-                            <input type="number" id="cl-qty" value="4" min="1" max="200" oninput="updateCarrierPreview()" class="w-full theme-input border-2 border-emerald-500/40 rounded-lg px-3 py-2 text-sm font-mono font-bold outline-none">
+                            <label class="block text-[10px] uppercase theme-text-dim mb-1">Unique Qty</label>
+                            <input type="number" id="cl-qty" value="4" min="1" max="200" oninput="updateCarrierPreview()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-sm font-mono font-bold outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-emerald-500 font-bold mb-1">Copies (2 Def)</label>
+                            <input type="number" id="cl-copies" value="2" min="1" max="20" oninput="updateCarrierPreview()" class="w-full theme-input border-2 border-emerald-500/50 rounded-lg px-2.5 py-2 text-sm font-mono font-bold outline-none">
                         </div>
                     </div>
 
@@ -681,7 +696,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
                     <div class="grid grid-cols-2 gap-2.5 pt-1">
                         <button onclick="generateAndPrintCarrierLabels()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-3 rounded-lg shadow flex items-center justify-center gap-1.5">
-                            <i data-lucide="printer" class="w-4 h-4"></i> Print Labels
+                            <i data-lucide="printer" class="w-4 h-4"></i> Print Batch
                         </button>
                         <button onclick="sendCarrierLabelsToBulkDeck()" class="theme-elevated border hover:border-emerald-500 text-xs font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5">
                             <i data-lucide="layers" class="w-4 h-4 text-emerald-500"></i> Send to Bulk Tab
@@ -690,7 +705,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 </div>
             </div>
 
-            <!-- Right Column: 1-by-1 & Grid View Toggle + True Portrait Rearranged Mockup (7 Cols) -->
+            <!-- Right Column: 1-by-1 & Grid View + Duplicated Copies Sequence Preview (7 Cols) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col">
                     <div class="px-5 py-3 border-b theme-border flex flex-wrap items-center justify-between gap-2">
@@ -701,7 +716,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </div>
                             <span id="cl-orient-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold">150 × 100 MM LANDSCAPE</span>
                         </div>
-                        <span id="cl-range-badge" class="text-xs font-mono text-emerald-500 font-bold">FF-RM26111901 → FF-RM26111904</span>
+                        <span id="cl-range-badge" class="text-xs font-mono text-emerald-500 font-bold">8 Total Labels</span>
                     </div>
 
                     <div id="cl-single-view" class="grid grid-cols-1 md:grid-cols-12">
@@ -711,7 +726,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
                         <div class="md:col-span-4 border-t md:border-t-0 md:border-l theme-border flex flex-col max-h-[420px]">
                             <div class="px-3 py-2.5 border-b theme-border theme-elevated flex justify-between items-center text-[11px] font-mono">
-                                <span class="font-bold uppercase">Select Label</span>
+                                <span class="font-bold uppercase">Print Sequence</span>
                                 <button onclick="copyAllCarrierCodes()" class="text-emerald-500 hover:underline font-semibold">Copy All</button>
                             </div>
                             <div id="cl-generated-list" class="flex-grow overflow-y-auto p-2 space-y-1 font-mono text-xs"></div>
@@ -725,26 +740,28 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
         </section>
 
         <!-- ==========================================
-             TAB 3: A4 DELIVERY NOTE STUDIO (AUTO-FIT + ADD/REMOVE ANY SECTION + WORD/EXCEL ONLY)
+             TAB 3: NOTES (ALL SECTIONS OPTIONAL + ASENDIA BLECKMANN FITFLOP + CURRENT DATE)
              ========================================== -->
         <section id="view-a4note" class="hidden space-y-4">
             
             <div class="theme-card border rounded-xl p-3 shadow-sm space-y-2.5">
                 <div class="flex flex-wrap items-center justify-between gap-3 border-b theme-border pb-2.5">
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <div class="flex theme-input p-0.5 rounded-lg border text-xs">
                             <button onclick="setOfficeMode('word')" id="btn-office-word" class="px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5">
                                 <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Word Doc
                             </button>
                             <button onclick="setOfficeMode('excel')" id="btn-office-excel" class="px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5">
-                                <i data-lucide="table" class="w-3.5 h-3.5"></i> Excel Table
+                                <i data-lucide="table" class="w-3.5 h-3.5"></i> Excel Sheet
                             </button>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-2 text-xs pl-2 border-l theme-border">
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-header" checked onchange="toggleA4Section('a4-header-section', this.checked)" class="accent-emerald-500"> Header</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-barcode" checked onchange="toggleA4Section('a4-barcode-card', this.checked)" class="accent-emerald-500"> Barcode</label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" id="chk-a4-sign" checked onchange="toggleA4Section('a4-footer-section', this.checked)" class="accent-emerald-500"> Sign Strip</label>
+                        <!-- EVERY SECTION OPTIONAL TOGGLE CHECKBOXES -->
+                        <div class="flex flex-wrap items-center gap-2.5 text-xs pl-2 border-l theme-border">
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked onchange="toggleA4Section('a4-header-section', this.checked)" class="accent-emerald-500"> Title Header</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked onchange="toggleA4Section('a4-fields-grid', this.checked)" class="accent-emerald-500"> Info Fields</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked onchange="toggleA4Section('a4-barcode-card', this.checked)" class="accent-emerald-500"> Barcode</label>
+                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked onchange="toggleA4Section('a4-footer-section', this.checked)" class="accent-emerald-500"> Sign Strip</label>
                         </div>
                     </div>
 
@@ -755,11 +772,12 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                         </div>
                         <button onclick="addA4CustomField()" class="px-2.5 py-1.5 rounded-lg theme-elevated border hover:border-emerald-500 text-xs font-semibold">+ Add Section</button>
                         <button onclick="printA4DeliveryNote()" class="px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold shadow flex items-center gap-1.5">
-                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print A4 Page
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print A4 Note
                         </button>
                     </div>
                 </div>
 
+                <!-- Word / Excel Formatting Ribbon -->
                 <div class="flex flex-wrap items-center gap-1.5 text-xs">
                     <select onchange="execDocCmd('fontName', this.value)" class="theme-input border rounded px-2 py-1 text-xs outline-none">
                         <option value="Inter, Arial, sans-serif" selected>Inter / Arial (Def)</option>
@@ -788,46 +806,51 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
                     <div class="ml-auto flex items-center gap-1.5">
                         <span class="text-[10px] font-mono theme-text-dim">Barcode Ref:</span>
-                        <input type="text" id="a4-ref" value="ASD-BLK-261119" oninput="renderA4Barcode()" class="w-36 theme-input border rounded px-2 py-1 text-xs font-mono font-bold uppercase outline-none">
+                        <input type="text" id="a4-ref" value="ASD-BLK-FITFLOP" oninput="renderA4Barcode()" class="w-36 theme-input border rounded px-2 py-1 text-xs font-mono font-bold uppercase outline-none">
                     </div>
                 </div>
             </div>
 
+            <!-- Auto-Resizing A4 Paper Stage -->
             <div class="canvas-grid border theme-border rounded-xl p-6 flex items-center justify-center overflow-auto">
                 <div id="a4-paper-sheet" oninput="autoFitA4Content()" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-8 flex flex-col justify-between overflow-hidden transition-all duration-200" style="width: 842px; height: 595px;">
                     
                     <div id="a4-inner-scaler" class="w-full h-full flex flex-col justify-between origin-top-left">
+                        <!-- Optional Header Section -->
                         <div id="a4-header-section" class="border-b-4 border-zinc-900 pb-3 text-center">
                             <div contenteditable="true" class="text-4xl font-black tracking-tight uppercase outline-none">ASENDIA DELIVERY NOTE</div>
                             <div contenteditable="true" class="text-xl font-extrabold text-zinc-800 mt-1 uppercase outline-none">ASENDIA FROM BLECKMANN (FITFLOP)</div>
                         </div>
 
+                        <!-- Word Modular Sections -->
                         <div id="a4-word-body" class="my-auto py-3 flex flex-wrap gap-3 items-stretch justify-between">
                             <div id="a4-fields-grid" class="flex-grow flex flex-wrap gap-3 items-start">
                                 <div class="resizable-box border-2 border-zinc-900 bg-zinc-100 p-3 relative group" style="width: 100%;">
                                     <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button>
                                     <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">SHIPPING DATE</div>
-                                    <div contenteditable="true" class="text-2xl font-mono font-black uppercase outline-none mt-0.5">NOV 19TH, 2026</div>
+                                    <div contenteditable="true" id="a4-auto-date" class="text-2xl font-mono font-black uppercase outline-none mt-0.5">NOV 19TH, 2026</div>
                                 </div>
 
                                 <div class="resizable-box border-2 border-zinc-900 p-3 relative group" style="width: 48%;">
                                     <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button>
-                                    <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">DESTINATION / HUB</div>
-                                    <div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">ASENDIA UK HUB</div>
+                                    <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">ORIGIN / CLIENT</div>
+                                    <div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">BLECKMANN (FITFLOP)</div>
                                 </div>
 
                                 <div class="resizable-box border-2 border-zinc-900 p-3 relative group" style="width: 48%;">
                                     <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button>
-                                    <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">TOTAL PALLETS / BAGS</div>
-                                    <div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">12 PALLETS</div>
+                                    <div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">CARRIER / DESTINATION</div>
+                                    <div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">ASENDIA</div>
                                 </div>
                             </div>
 
+                            <!-- Optional Barcode Card -->
                             <div id="a4-barcode-card" class="resizable-box border-2 border-zinc-900 p-4 flex flex-col items-center justify-center bg-white shrink-0" style="width: 230px;">
                                 <canvas id="a4-prev-canvas" class="max-w-full"></canvas>
                             </div>
                         </div>
 
+                        <!-- Excel Grid Mode -->
                         <div id="a4-excel-body" class="hidden my-auto py-3 overflow-x-auto">
                             <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
                                 <thead>
@@ -849,6 +872,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                             </table>
                         </div>
 
+                        <!-- Optional Sign-Off Footer -->
                         <div id="a4-footer-section" class="border-t-4 border-zinc-900 pt-3 grid grid-cols-3 gap-4 font-mono text-xs font-bold">
                             <div contenteditable="true" class="outline-none">DISPATCHED BY: ______________</div>
                             <div contenteditable="true" class="outline-none">DRIVER SIGN: ________________</div>
@@ -899,244 +923,244 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
     <script>
         lucide.createIcons();
 
-        // ==========================================
-        // 0. RESPONSIVE REFLOW PAGE ZOOM
-        // ==========================================
+        // 0. RESPONSIVE REFLOW ZOOM
         function setManualPageZoom(val) {
             const pct = Math.min(150, Math.max(60, parseInt(val) || 100));
             document.getElementById('page-zoom-input').value = pct;
-            // Scales root rem font-size so Tailwind grid & flex elements reflow and rearrange cleanly
             document.documentElement.style.fontSize = `${16 * (pct / 100)}px`;
         }
-        function adjustPageZoom(delta) {
-            const cur = parseInt(document.getElementById('page-zoom-input').value) || 100;
-            setManualPageZoom(cur + delta);
-        }
+        function adjustPageZoom(delta) { setManualPageZoom((parseInt(document.getElementById('page-zoom-input').value) || 100) + delta); }
 
-        // ==========================================
-        // 1. DRAGGABLE FLOATING CALCULATOR
-        // ==========================================
+        // 1. DRAGGABLE CALCULATOR
         function toggleCalculator() { document.getElementById('calc-popover').classList.toggle('hidden'); }
         function calcInput(ch) { const d = document.getElementById('calc-display'); d.value = (d.value === '0' && ch !== '.') ? ch : d.value + ch; }
         function calcClear() { document.getElementById('calc-display').value = '0'; document.getElementById('calc-history').innerText = '0'; }
-        function calcEval() {
-            const d = document.getElementById('calc-display');
-            try { const expr = d.value.replace(/[^0-9+\-*/().]/g, ''); document.getElementById('calc-history').innerText = expr + ' ='; d.value = String(Number(Function('"use strict";return (' + expr + ')')().toFixed(4))); } catch (e) { d.value = 'Error'; }
-        }
+        function calcEval() { const d = document.getElementById('calc-display'); try { const expr = d.value.replace(/[^0-9+\-*/().]/g, ''); document.getElementById('calc-history').innerText = expr + ' ='; d.value = String(Number(Function('"use strict";return (' + expr + ')')().toFixed(4))); } catch (e) { d.value = 'Error'; } }
         function copyCalcResult() { copyTextValue(document.getElementById('calc-display').value); }
 
         document.addEventListener('DOMContentLoaded', () => {
             const calcBox = document.getElementById('calc-popover'), header = document.getElementById('calc-drag-header');
             let isDragging = false, offsetX = 0, offsetY = 0;
-            header.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                const rect = calcBox.getBoundingClientRect();
-                offsetX = e.clientX - rect.left;
-                offsetY = e.clientY - rect.top;
-                calcBox.style.right = 'auto';
-            });
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                calcBox.style.left = `${Math.max(0, Math.min(window.innerWidth - calcBox.offsetWidth, e.clientX - offsetX))}px`;
-                calcBox.style.top = `${Math.max(0, Math.min(window.innerHeight - calcBox.offsetHeight, e.clientY - offsetY))}px`;
-            });
+            header.addEventListener('mousedown', (e) => { isDragging = true; const r = calcBox.getBoundingClientRect(); offsetX = e.clientX - r.left; offsetY = e.clientY - r.top; calcBox.style.right = 'auto'; });
+            window.addEventListener('mousemove', (e) => { if (!isDragging) return; calcBox.style.left = `${Math.max(0, Math.min(window.innerWidth - calcBox.offsetWidth, e.clientX - offsetX))}px`; calcBox.style.top = `${Math.max(0, Math.min(window.innerHeight - calcBox.offsetHeight, e.clientY - offsetY))}px`; });
             window.addEventListener('mouseup', () => isDragging = false);
         });
 
-        // ==========================================
-        // 2. PLAYABLE 3-GAME ARCADE (SNAKE, SUPER MARIO, CHROME DINO) + SCAN AUTO-PLAY
-        // ==========================================
-        let isScanningMode = false;
-        let arcadeScore = 0, arcadeHigh = parseInt(localStorage.getItem('wmsArcadeHigh') || '0');
-        let arcadeFrame = 0;
-
-        // Game States
-        let dino = { y: 0, vy: 0, obs: [{ x: 420, w: 14, h: 22 }] };
-        let mario = { x: 40, y: 0, vy: 0, pipes: [{ x: 260, h: 24 }], coins: [{ x: 180, y: 45, taken: false }] };
-        let snake = { body: [{ x: 8, y: 5 }, { x: 7, y: 5 }, { x: 6, y: 5 }], dir: { x: 1, y: 0 }, food: { x: 16, y: 5 } };
+        // 2. TRUE RULES-BASED 3-GAME ARCADE (STARTS ONLY ON PRESSING START + BLENDED CANVAS)
+        let isScanningMode = false, arcadeRunning = false, arcadeGameOver = false;
+        let arcadeScore = 0, arcadeHigh = parseInt(localStorage.getItem('wmsArcadeHigh') || '0'), arcadeFrame = 0;
+        let dino = { y: 0, vy: 0, obs: [] };
+        let mario = { y: 0, vy: 0, pipes: [], pits: [], coins: [] };
+        let snake = { body: [{ x: 10, y: 5 }, { x: 9, y: 5 }, { x: 8, y: 5 }], dir: { x: 1, y: 0 }, nextDir: { x: 1, y: 0 }, food: { x: 18, y: 5 } };
 
         function toggleArcadeDrawer() {
-            const strip = document.getElementById('arcade-strip');
-            strip.classList.toggle('hidden');
+            const host = document.getElementById('arcade-top-host');
+            host.classList.toggle('hidden');
+            drawArcadeFrame();
         }
-
-        function initSelectedGame() {
-            arcadeScore = 0;
-            dino = { y: 0, vy: 0, obs: [{ x: 440, w: 14, h: 22 }] };
-            mario = { x: 40, y: 0, vy: 0, pipes: [{ x: 260, h: 24 }], coins: [{ x: 180, y: 45, taken: false }] };
-            snake = { body: [{ x: 8, y: 5 }, { x: 7, y: 5 }, { x: 6, y: 5 }], dir: { x: 1, y: 0 }, food: { x: 16, y: 5 } };
+        function prepareSelectedGame() {
+            arcadeRunning = false; arcadeGameOver = false; arcadeScore = 0; arcadeFrame = 0;
+            dino = { y: 0, vy: 0, obs: [{ x: 460, w: 14, h: 22, flying: false }] };
+            mario = { y: 0, vy: 0, pipes: [{ x: 320, h: 24 }], pits: [], coins: [{ x: 240, y: 48, taken: false }] };
+            snake = { body: [{ x: 10, y: 5 }, { x: 9, y: 5 }, { x: 8, y: 5 }], dir: { x: 1, y: 0 }, nextDir: { x: 1, y: 0 }, food: { x: 18, y: 5 } };
+            document.getElementById('btn-arcade-start').innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Start Game`;
+            document.getElementById('arcade-lvl-lbl').innerText = "LVL 1 • IDLE";
+            lucide.createIcons();
             updateArcadeLabels();
+            drawArcadeFrame();
         }
-
+        function startArcadeGame() {
+            prepareSelectedGame();
+            arcadeRunning = true;
+            document.getElementById('btn-arcade-start').innerHTML = `<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restart`;
+            document.getElementById('arcade-lvl-lbl').innerText = "LVL 1 • ACTIVE";
+            lucide.createIcons();
+        }
+        function endArcadeGame(reason) {
+            arcadeRunning = false; arcadeGameOver = true;
+            playTone('error');
+            document.getElementById('arcade-lvl-lbl').innerText = `GAME OVER (${reason})`;
+            document.getElementById('btn-arcade-start').innerHTML = `<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Play Again`;
+            lucide.createIcons();
+            drawArcadeFrame();
+        }
         function updateArcadeLabels() {
+            const lvl = Math.floor(arcadeScore / 200) + 1;
             if (arcadeScore > arcadeHigh) { arcadeHigh = arcadeScore; localStorage.setItem('wmsArcadeHigh', arcadeHigh); }
             document.getElementById('arcade-score-lbl').innerText = `SCORE: ${String(arcadeScore).padStart(4, '0')}`;
             document.getElementById('arcade-hi-lbl').innerText = `BEST: ${String(arcadeHigh).padStart(4, '0')}`;
             document.getElementById('nav-arcade-score').innerText = `Arcade: ${arcadeScore}`;
+            if (arcadeRunning) document.getElementById('arcade-lvl-lbl').innerText = `LVL ${lvl} • SPEED ${(1 + (lvl - 1) * 0.25).toFixed(2)}x`;
         }
-
         function handleArcadeCanvasClick() {
+            if (!arcadeRunning) return;
             const g = document.getElementById('arcade-game-select').value;
-            if (g === 'dino' && dino.y === 0) dino.vy = 10.5;
-            else if (g === 'mario' && mario.y === 0) mario.vy = 11.5;
-            else if (g === 'snake') {
-                // Rotate direction clockwise on click
-                const d = snake.dir;
-                snake.dir = { x: -d.y, y: d.x };
-            }
-        }
-
-        // Triggered automatically whenever a barcode is scanned in Scanning Mode!
-        function triggerArcadeScanAction() {
-            const g = document.getElementById('arcade-game-select').value;
-            arcadeScore += 50;
             if (g === 'dino' && dino.y === 0) dino.vy = 11;
             else if (g === 'mario' && mario.y === 0) mario.vy = 12;
-            else if (g === 'snake') {
-                // Auto-steer snake toward food on scan
-                const head = snake.body[0];
-                if (head.x < snake.food.x && snake.dir.x !== -1) snake.dir = { x: 1, y: 0 };
-                else if (head.x > snake.food.x && snake.dir.x !== 1) snake.dir = { x: -1, y: 0 };
-                else if (head.y < snake.food.y && snake.dir.y !== -1) snake.dir = { x: 0, y: 1 };
-                else if (head.y > snake.food.y && snake.dir.y !== 1) snake.dir = { x: 0, y: -1 };
-            }
+            else if (g === 'snake') snake.nextDir = { x: -snake.dir.y, y: snake.dir.x };
+        }
+        function triggerArcadeScanAction() {
+            if (!arcadeRunning) return;
+            arcadeScore += 25;
             updateArcadeLabels();
         }
 
-        function startArcadeEngine() {
-            const canvas = document.getElementById('arcade-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
+        function drawArcadeFrame() {
+            const canvas = document.getElementById('arcade-canvas'); if (!canvas) return;
+            const ctx = canvas.getContext('2d'), g = document.getElementById('arcade-game-select').value;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Blended subtle background silhouettes (clouds / warehouse racks)
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+            const bgShift = (arcadeFrame * 0.6) % 240;
+            for (let bx = -bgShift; bx < 520; bx += 120) {
+                ctx.fillRect(bx + 20, 18, 36, 10);
+                ctx.fillRect(bx + 70, 52, 18, 42);
+            }
+
+            if (g === 'dino') {
+                ctx.strokeStyle = 'rgba(161, 161, 170, 0.4)'; ctx.beginPath(); ctx.moveTo(0, 94); ctx.lineTo(480, 94); ctx.stroke();
+                ctx.fillStyle = '#10b981'; ctx.fillRect(34, 94 - 24 - dino.y, 20, 24);
+                ctx.fillStyle = '#ef4444';
+                dino.obs.forEach(ob => ctx.fillRect(ob.x, ob.flying ? 56 : 94 - ob.h, ob.w, ob.h));
+            } else if (g === 'mario') {
+                ctx.fillStyle = 'rgba(180, 83, 9, 0.45)'; ctx.fillRect(0, 94, 480, 20);
+                ctx.fillStyle = '#16a34a'; mario.pipes.forEach(p => ctx.fillRect(p.x, 94 - p.h, 20, p.h));
+                ctx.fillStyle = '#facc15'; mario.coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, 94 - c.y, 5, 0, Math.PI * 2); ctx.fill(); });
+                const my = 94 - 24 - mario.y;
+                ctx.fillStyle = '#dc2626'; ctx.fillRect(40, my, 18, 9);
+                ctx.fillStyle = '#2563eb'; ctx.fillRect(40, my + 9, 18, 15);
+            } else if (g === 'snake') {
+                ctx.fillStyle = '#ef4444'; ctx.fillRect(snake.food.x * 10, snake.food.y * 10, 9, 9);
+                snake.body.forEach((seg, idx) => { ctx.fillStyle = idx === 0 ? '#34d399' : '#10b981'; ctx.fillRect(seg.x * 10, seg.y * 10, 9, 9); });
+            }
+
+            if (!arcadeRunning) {
+                ctx.fillStyle = 'rgba(9, 9, 11, 0.55)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#f4f4f5'; ctx.font = 'bold 13px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+                ctx.fillText(arcadeGameOver ? 'GAME OVER — CLICK START TO RETRY' : 'PRESS START GAME TO PLAY', 240, 62);
+            }
+        }
+
+        function startArcadeLoop() {
             function tick() {
-                arcadeFrame++;
-                const g = document.getElementById('arcade-game-select').value;
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (arcadeRunning) {
+                    arcadeFrame++;
+                    const g = document.getElementById('arcade-game-select').value;
+                    const lvl = Math.floor(arcadeScore / 200) + 1;
+                    const speedMult = 1 + (lvl - 1) * 0.25;
 
-                if (g === 'dino') {
-                    // Chrome Dino Physics
-                    dino.y += dino.vy;
-                    if (dino.y > 0) dino.vy -= 0.7; else { dino.y = 0; dino.vy = 0; }
-                    if (arcadeFrame % 90 === 0) dino.obs.push({ x: 490, w: 14, h: 22 });
-
-                    for (let i = dino.obs.length - 1; i >= 0; i--) {
-                        dino.obs[i].x -= 4;
-                        const ob = dino.obs[i];
-                        // In Scanning Mode, auto-jump incoming cactus!
-                        if (isScanningMode && ob.x < 95 && ob.x > 60 && dino.y === 0) dino.vy = 10.5;
-                        if (ob.x < 56 && ob.x + ob.w > 34 && dino.y < ob.h - 3) {
-                            arcadeScore = Math.max(0, arcadeScore - 25); dino.obs.splice(i, 1); updateArcadeLabels();
-                        } else if (ob.x + ob.w < 0) {
-                            arcadeScore += 10; dino.obs.splice(i, 1); updateArcadeLabels();
+                    if (g === 'dino') {
+                        dino.y += dino.vy;
+                        if (dino.y > 0) dino.vy -= 0.72; else { dino.y = 0; dino.vy = 0; }
+                        const spawnGap = Math.max(48, Math.floor(95 / speedMult));
+                        if (arcadeFrame % spawnGap === 0) {
+                            const isFly = lvl >= 2 && Math.random() > 0.65;
+                            dino.obs.push({ x: 490, w: 14, h: isFly ? 12 : (18 + Math.floor(Math.random() * 12)), flying: isFly });
+                        }
+                        for (let i = dino.obs.length - 1; i >= 0; i--) {
+                            const ob = dino.obs[i];
+                            ob.x -= 4.2 * speedMult;
+                            if (isScanningMode && !ob.flying && ob.x < 105 && ob.x > 55 && dino.y === 0) dino.vy = 11.2;
+                            const dinoTop = 94 - 24 - dino.y, dinoBot = 94 - dino.y;
+                            const obTop = ob.flying ? 56 : 94 - ob.h, obBot = ob.flying ? 68 : 94;
+                            if (ob.x < 52 && ob.x + ob.w > 36 && dinoBot > obTop + 2 && dinoTop < obBot - 2) {
+                                endArcadeGame('Hit Obstacle'); break;
+                            } else if (ob.x + ob.w < 0) {
+                                arcadeScore += 15; dino.obs.splice(i, 1); updateArcadeLabels();
+                            }
+                        }
+                    } else if (g === 'mario') {
+                        mario.y += mario.vy;
+                        if (mario.y > 0) mario.vy -= 0.75; else { mario.y = 0; mario.vy = 0; }
+                        if (arcadeFrame % Math.max(55, Math.floor(105 / speedMult)) === 0) {
+                            mario.pipes.push({ x: 490, h: 22 + Math.floor(Math.random() * 12) });
+                            mario.coins.push({ x: 495, y: 52, taken: false });
+                        }
+                        for (let p of mario.pipes) {
+                            p.x -= 3.8 * speedMult;
+                            if (isScanningMode && p.x < 105 && p.x > 55 && mario.y === 0) mario.vy = 12;
+                            if (p.x < 56 && p.x + 18 > 42 && mario.y < p.h - 2) { endArcadeGame('Hit Pipe'); break; }
+                        }
+                        mario.pipes = mario.pipes.filter(p => p.x > -30);
+                        mario.coins.forEach(c => {
+                            c.x -= 3.8 * speedMult;
+                            if (!c.taken && Math.abs(c.x - 48) < 20 && Math.abs(c.y - (mario.y + 12)) < 22) { c.taken = true; arcadeScore += 30; updateArcadeLabels(); }
+                        });
+                        mario.coins = mario.coins.filter(c => c.x > -20 && !c.taken);
+                    } else if (g === 'snake') {
+                        const stepInterval = Math.max(3, 8 - lvl);
+                        if (arcadeFrame % stepInterval === 0) {
+                            const cols = 48, rows = 11;
+                            if (isScanningMode) {
+                                const h = snake.body[0];
+                                const candidates = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }].filter(d => !(d.x === -snake.dir.x && d.y === -snake.dir.y));
+                                candidates.sort((a, b) => (Math.abs((h.x + a.x) - snake.food.x) + Math.abs((h.y + a.y) - snake.food.y)) - (Math.abs((h.x + b.x) - snake.food.x) + Math.abs((h.y + b.y) - snake.food.y)));
+                                const safe = candidates.find(d => {
+                                    const nx = h.x + d.x, ny = h.y + d.y;
+                                    return nx >= 0 && nx < cols && ny >= 0 && ny < rows && !snake.body.some(s => s.x === nx && s.y === ny);
+                                });
+                                if (safe) snake.nextDir = safe;
+                            }
+                            snake.dir = snake.nextDir;
+                            const head = { x: snake.body[0].x + snake.dir.x, y: snake.body[0].y + snake.dir.y };
+                            // Wall collision OR eating own body ends game
+                            if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || snake.body.some(seg => seg.x === head.x && seg.y === head.y)) {
+                                endArcadeGame('Crashed');
+                            } else {
+                                snake.body.unshift(head);
+                                if (head.x === snake.food.x && head.y === snake.food.y) {
+                                    arcadeScore += 25; updateArcadeLabels();
+                                    snake.food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+                                } else { snake.body.pop(); }
+                            }
                         }
                     }
-                    // Draw Ground & Dino
-                    ctx.strokeStyle = '#52525b'; ctx.beginPath(); ctx.moveTo(0, 92); ctx.lineTo(480, 92); ctx.stroke();
-                    ctx.fillStyle = '#10b981'; ctx.fillRect(34, 92 - 24 - dino.y, 22, 24);
-                    ctx.fillStyle = '#09090b'; ctx.fillRect(48, 92 - 20 - dino.y, 4, 4);
-                    ctx.fillStyle = '#ef4444'; dino.obs.forEach(ob => ctx.fillRect(ob.x, 92 - ob.h, ob.w, ob.h));
-
-                } else if (g === 'mario') {
-                    // Super Mario Platformer Physics
-                    mario.y += mario.vy;
-                    if (mario.y > 0) mario.vy -= 0.75; else { mario.y = 0; mario.vy = 0; }
-                    if (arcadeFrame % 110 === 0) {
-                        mario.pipes.push({ x: 490, h: 24 });
-                        mario.coins.push({ x: 495, y: 48, taken: false });
-                    }
-                    mario.pipes.forEach((p, idx) => {
-                        p.x -= 3.5;
-                        if (isScanningMode && p.x < 95 && p.x > 60 && mario.y === 0) mario.vy = 11.5;
-                        if (p.x < 60 && p.x + 20 > 40 && mario.y < p.h) { arcadeScore = Math.max(0, arcadeScore - 20); updateArcadeLabels(); }
-                    });
-                    mario.pipes = mario.pipes.filter(p => p.x > -30);
-
-                    mario.coins.forEach(c => {
-                        c.x -= 3.5;
-                        if (!c.taken && Math.abs(c.x - 48) < 22 && Math.abs(c.y - (mario.y + 12)) < 24) {
-                            c.taken = true; arcadeScore += 30; updateArcadeLabels();
-                        }
-                    });
-                    mario.coins = mario.coins.filter(c => c.x > -20 && !c.taken);
-
-                    // Draw Brick Floor, Pipes, Coins & Mario
-                    ctx.fillStyle = '#78350f'; ctx.fillRect(0, 92, 480, 18);
-                    ctx.fillStyle = '#16a34a'; mario.pipes.forEach(p => ctx.fillRect(p.x, 92 - p.h, 20, p.h));
-                    ctx.fillStyle = '#facc15'; mario.coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x, 92 - c.y, 6, 0, Math.PI * 2); ctx.fill(); });
-                    // Mario Red Cap & Blue Overalls
-                    const my = 92 - 24 - mario.y;
-                    ctx.fillStyle = '#dc2626'; ctx.fillRect(40, my, 18, 10);
-                    ctx.fillStyle = '#2563eb'; ctx.fillRect(40, my + 10, 18, 14);
-
-                } else if (g === 'snake') {
-                    // Classic Grid Snake (Moves every 7 frames)
-                    if (arcadeFrame % 7 === 0) {
-                        const cols = 48, rows = 11;
-                        let head = { x: (snake.body[0].x + snake.dir.x + cols) % cols, y: (snake.body[0].y + snake.dir.y + rows) % rows };
-                        if (isScanningMode) {
-                            if (head.x < snake.food.x) snake.dir = { x: 1, y: 0 };
-                            else if (head.x > snake.food.x) snake.dir = { x: -1, y: 0 };
-                            else if (head.y < snake.food.y) snake.dir = { x: 0, y: 1 };
-                            else if (head.y > snake.food.y) snake.dir = { x: 0, y: -1 };
-                        }
-                        snake.body.unshift(head);
-                        if (head.x === snake.food.x && head.y === snake.food.y) {
-                            arcadeScore += 25; updateArcadeLabels();
-                            snake.food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
-                        } else {
-                            snake.body.pop();
-                        }
-                    }
-                    ctx.fillStyle = '#ef4444'; ctx.fillRect(snake.food.x * 10, snake.food.y * 10, 9, 9);
-                    snake.body.forEach((seg, idx) => {
-                        ctx.fillStyle = idx === 0 ? '#34d399' : '#10b981';
-                        ctx.fillRect(seg.x * 10, seg.y * 10, 9, 9);
-                    });
                 }
-
+                drawArcadeFrame();
                 requestAnimationFrame(tick);
             }
             tick();
         }
 
-        // ==========================================
-        // 3. DEDICATED SCANNING MODE + QUEUE SEARCH & COPY COLUMN/ALL
-        // ==========================================
+        // 3. BULK SCANNING MODE + SIZE/APPEARANCE + SMART GAP & DUPLICATE DETECTOR + N-UP A4 PRINT
         let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel';
 
         function toggleScanningMode() {
             isScanningMode = !isScanningMode;
-            const feederCol = document.getElementById('bulk-feeder-column');
-            const stageCol = document.getElementById('bulk-stage-column');
-            const btn = document.getElementById('btn-scan-mode');
-            const lbl = document.getElementById('lbl-scan-mode');
-            const modeBadge = document.getElementById('arcade-mode-badge');
+            const feederCol = document.getElementById('bulk-feeder-column'), stageCol = document.getElementById('bulk-stage-column'), btn = document.getElementById('btn-scan-mode'), lbl = document.getElementById('lbl-scan-mode');
+            const arcadeMod = document.getElementById('arcade-module'), topHost = document.getElementById('arcade-top-host'), scanDock = document.getElementById('scanning-arcade-dock'), modeBadge = document.getElementById('arcade-mode-badge');
 
             if (isScanningMode) {
                 feederCol.classList.add('hidden');
                 stageCol.className = "lg:col-span-12 space-y-4";
                 btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white flex items-center gap-1.5 shadow";
                 lbl.innerText = "Exit Scanning Mode";
-                if (modeBadge) {
-                    modeBadge.className = "px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold";
-                    modeBadge.innerText = "AUTO-PILOT ON SCAN ACTIVE";
-                }
+                // Dock Arcade directly inside Scanning Mode
+                topHost.classList.add('hidden');
+                scanDock.classList.remove('hidden');
+                scanDock.appendChild(arcadeMod);
+                modeBadge.innerText = "AUTO-PILOT ACTIVE";
+                if (!arcadeRunning) startArcadeGame();
             } else {
                 feederCol.classList.remove('hidden');
                 stageCol.className = "lg:col-span-8 space-y-4";
-                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5 shadow-xs";
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center gap-1.5";
                 lbl.innerText = "Enter Scanning Mode";
-                if (modeBadge) {
-                    modeBadge.className = "px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-mono text-[10px] font-bold";
-                    modeBadge.innerText = "MANUAL PLAY (Arrows / Space / Click)";
-                }
+                scanDock.classList.add('hidden');
+                topHost.appendChild(arcadeMod);
+                modeBadge.innerText = "MANUAL PLAY";
             }
         }
 
-        function setBulkSplitRatio(leftPct) { document.getElementById('bulk-left-queue').style.width = `${leftPct}%`; }
-        function updateBulkBarcodeSize(pct) {
-            document.getElementById('lbl-bulk-size').innerText = `${pct}%`;
-            document.getElementById('bulk-barcode-scaler').style.transform = `scale(${pct / 100})`;
+        function resetBulkAppearance() {
+            document.getElementById('bc-opt-width').value = 3; document.getElementById('lbl-bc-w').innerText = '3x';
+            document.getElementById('bc-opt-height').value = 18; document.getElementById('lbl-bc-h').innerText = '18mm';
+            document.getElementById('bc-opt-fontsize').value = 12; document.getElementById('lbl-bc-fs').innerText = '12pt';
+            document.getElementById('bc-opt-quiet').value = 10; document.getElementById('lbl-bc-qz').innerText = '10px (Default)';
+            document.getElementById('bc-opt-fg').value = '#000000'; document.getElementById('bc-opt-bg').value = '#ffffff';
+            document.getElementById('bc-opt-hri').checked = true; document.getElementById('bc-opt-trans').checked = false;
+            renderCurrentDeckSlide();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1185,12 +1209,40 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             document.getElementById('bulk-grid-panel').classList.toggle('hidden', mode !== 'grid');
             if (mode === 'grid') generateBatchGrid(); else renderCurrentDeckSlide();
         }
+        function getBulkBwipOpts(textVal) {
+            const sym = document.getElementById('batch-type').value;
+            const isTrans = document.getElementById('bc-opt-trans').checked;
+            const showHri = document.getElementById('bc-opt-hri').checked;
+            const fg = document.getElementById('bc-opt-fg').value.replace('#', '');
+            const bg = document.getElementById('bc-opt-bg').value.replace('#', '');
+            const opts = {
+                bcid: sym,
+                text: formatPayloadWithSuffix(textVal, document.getElementById('batch-suffix').value),
+                alttext: textVal,
+                parse: true,
+                scale: parseInt(document.getElementById('bc-opt-width').value) || 3,
+                height: parseInt(document.getElementById('bc-opt-height').value) || 18,
+                paddingwidth: parseInt(document.getElementById('bc-opt-quiet').value) || 10,
+                paddingheight: parseInt(document.getElementById('bc-opt-quiet').value) || 10,
+                barcolor: fg,
+                textcolor: fg,
+                includetext: showHri && !['qrcode', 'datamatrix'].includes(sym),
+                textxalign: 'center',
+                textsize: parseInt(document.getElementById('bc-opt-fontsize').value) || 12
+            };
+            if (!isTrans) opts.backgroundcolor = bg;
+            return opts;
+        }
         function renderCurrentDeckSlide() {
-            const canvas = document.getElementById('deck-canvas'), counter = document.getElementById('deck-counter'), currentText = document.getElementById('deck-current-text'), progress = document.getElementById('deck-progress'), badge = document.getElementById('deck-scanned-badge'), routingHeader = document.getElementById('deck-routing-header');
+            const canvas = document.getElementById('deck-canvas'), counter = document.getElementById('deck-counter'), currentText = document.getElementById('deck-current-text'), progress = document.getElementById('deck-progress'), badge = document.getElementById('deck-scanned-badge'), routingHeader = document.getElementById('deck-routing-header'), cardWrap = document.getElementById('bulk-card-wrapper');
             if (!bulkRecords.length) { counter.innerText = "0 / 0"; currentText.innerText = "Empty"; renderGroupedQueueColumns(); return; }
             const rec = bulkRecords[currentDeckIndex];
             counter.innerText = `${currentDeckIndex + 1} / ${bulkRecords.length}`; currentText.innerText = rec.id;
             progress.style.width = `${((currentDeckIndex + 1) / bulkRecords.length) * 100}%`;
+
+            const isTrans = document.getElementById('bc-opt-trans').checked;
+            if (isTrans) { cardWrap.style.backgroundColor = 'transparent'; cardWrap.classList.add('checker-bg'); }
+            else { cardWrap.style.backgroundColor = document.getElementById('bc-opt-bg').value; cardWrap.classList.remove('checker-bg'); }
 
             const extra = rec.cols.slice(1).filter(Boolean);
             if (extra.length) {
@@ -1199,19 +1251,22 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             } else routingHeader.classList.add('hidden');
 
             badge.innerHTML = scannedSet.has(currentDeckIndex) ? `<span class="h-2 w-2 rounded-full bg-emerald-500"></span> Scanned` : `<span class="h-2 w-2 rounded-full bg-amber-400"></span> Ready`;
-            const barScale = parseInt(document.getElementById('stage-bar-scale')?.value) || 4;
-            const barHeight = parseInt(document.getElementById('stage-bar-height')?.value) || 18;
-            try { bwipjs.toCanvas(canvas, { bcid: document.getElementById('batch-type').value, text: formatPayloadWithSuffix(rec.id, document.getElementById('batch-suffix').value), alttext: rec.id, parse: true, scale: barScale, height: barHeight, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
+            try { bwipjs.toCanvas(canvas, getBulkBwipOpts(rec.id)); } catch (e) {}
             renderGroupedQueueColumns();
         }
 
-        // Queue with Search Filter + Copy Column + Copy All
+        // Smart Gap & Duplicate Detector in Queue
         function renderGroupedQueueColumns() {
             const container = document.getElementById('deck-pills');
             const query = (document.getElementById('queue-search-input')?.value || '').trim().toUpperCase();
             document.getElementById('vertical-queue-stats').innerText = `${scannedSet.size}/${bulkRecords.length}`;
             container.innerHTML = '';
 
+            // Count duplicates across entire list
+            const idCounts = new Map();
+            bulkRecords.forEach(r => { const k = r.id.toUpperCase(); idCounts.set(k, (idCounts.get(k) || 0) + 1); });
+
+            let totalDupes = 0, totalGaps = 0;
             const groups = new Map();
             bulkRecords.forEach((rec, idx) => {
                 if (query && !rec.id.toUpperCase().includes(query)) return;
@@ -1222,9 +1277,7 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
 
             groups.forEach((entries, groupKey) => {
                 const colDiv = document.createElement('div');
-                colDiv.className = "min-w-[135px] flex-1 border theme-border rounded-lg theme-input p-1.5 space-y-1 shrink-0";
-                
-                // Column Header with Copy Column Button
+                colDiv.className = "min-w-[145px] flex-1 border theme-border rounded-lg theme-input p-1.5 space-y-1 shrink-0";
                 const headerDiv = document.createElement('div');
                 headerDiv.className = "px-1.5 py-1 border-b theme-border flex items-center justify-between text-[10px] font-mono font-bold";
                 headerDiv.innerHTML = `<span class="text-emerald-500 truncate">${escapeHtml(groupKey)} (${entries.length})</span>`;
@@ -1235,22 +1288,46 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
                 headerDiv.appendChild(copyColBtn);
                 colDiv.appendChild(headerDiv);
 
+                let prevNum = null, prevPad = 0;
                 entries.forEach(({ rec, idx }) => {
+                    const numMatch = rec.id.match(/(\d+)$/);
+                    if (numMatch) {
+                        const curNum = parseInt(numMatch[1], 10);
+                        prevPad = numMatch[1].length;
+                        if (prevNum !== null && curNum > prevNum + 1) {
+                            totalGaps++;
+                            const gapDiv = document.createElement('div');
+                            gapDiv.className = "px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-500 font-mono text-[9px] font-bold";
+                            const missingStart = String(prevNum + 1).padStart(prevPad, '0');
+                            const missingEnd = String(curNum - 1).padStart(prevPad, '0');
+                            gapDiv.innerText = curNum === prevNum + 2 ? `⚠ Gap: #${missingStart} missing` : `⚠ Gap: #${missingStart}..#${missingEnd}`;
+                            colDiv.appendChild(gapDiv);
+                        }
+                        prevNum = curNum;
+                    }
+
+                    const isDupe = (idCounts.get(rec.id.toUpperCase()) || 0) > 1;
+                    if (isDupe) totalDupes++;
+
                     const btn = document.createElement('button');
                     btn.onclick = () => { currentDeckIndex = idx; renderCurrentDeckSlide(); };
-                    btn.className = idx === currentDeckIndex ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-600 text-white font-bold" : scannedSet.has(idx) ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between bg-emerald-500/15 text-emerald-500" : "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between theme-text-muted hover:theme-elevated";
-                    btn.innerHTML = `<span class="truncate">${escapeHtml(rec.id)}</span><span>${scannedSet.has(idx) ? '✓' : '•'}</span>`;
+                    btn.className = idx === currentDeckIndex ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between items-center bg-emerald-600 text-white font-bold" : scannedSet.has(idx) ? "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between items-center bg-emerald-500/15 text-emerald-500" : "w-full px-2 py-1 rounded text-left font-mono text-[11px] flex justify-between items-center theme-text-muted hover:theme-elevated";
+                    btn.innerHTML = `<span class="truncate">${escapeHtml(rec.id)}</span><span class="flex items-center gap-1">${isDupe ? '<b class="text-[9px] px-1 rounded bg-red-500 text-white">DUP</b>' : ''}${scannedSet.has(idx) ? '✓' : '•'}</span>`;
                     colDiv.appendChild(btn);
                 });
                 container.appendChild(colDiv);
             });
+
+            const hBadge = document.getElementById('queue-health-badge');
+            if (totalDupes > 0 || totalGaps > 0) {
+                hBadge.classList.remove('hidden');
+                hBadge.innerText = `${totalDupes ? totalDupes + ' DUP ' : ''}${totalGaps ? totalGaps + ' GAP' : ''}`;
+            } else {
+                hBadge.classList.add('hidden');
+            }
         }
 
-        function copyAllQueueIds() {
-            if (!bulkRecords.length) return;
-            copyTextValue(bulkRecords.map(r => r.id).join('\n'));
-        }
-
+        function copyAllQueueIds() { if (bulkRecords.length) copyTextValue(bulkRecords.map(r => r.id).join('\n')); }
         function markAndNextDeck() {
             if (!bulkRecords.length) return;
             scannedSet.add(currentDeckIndex); playTone('success'); triggerArcadeScanAction();
@@ -1264,348 +1341,52 @@ LOC-A02, BIN-01, 5, ZONE-B</textarea>
             else { const sec = Math.max(0.5, parseFloat(document.getElementById('custom-timer-sec').value) || 2.5); autoPlayTimer = setInterval(() => stepDeck(1), sec * 1000); btn.innerText = "Pause"; }
         }
         function restartAutoPlayIfActive() { if (autoPlayTimer) { toggleAutoPlay(); toggleAutoPlay(); } }
-        function generateSequenceList() {
-            const p = document.getElementById('seq-prefix').value, s = document.getElementById('seq-start').value.trim(), c = parseInt(document.getElementById('seq-count').value) || 10;
-            const startNum = BigInt(s.replace(/\D/g, '') || '1'), lines = [];
-            for (let i = 0n; i < BigInt(c); i++) lines.push(`${p}${(startNum + i).toString().padStart(s.length, '0')}`);
-            document.getElementById('batch-input').value = lines.join('\n'); scannedSet.clear(); loadBulkDeck(false);
-        }
         function generateBatchGrid() {
             const grid = document.getElementById('batch-grid'), off = document.getElementById('offscreen-canvas'); grid.innerHTML = '';
             bulkRecords.forEach((rec, idx) => {
-                bwipjs.toCanvas(off, { bcid: document.getElementById('batch-type').value, text: rec.id, scale: 2, height: 12, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
+                bwipjs.toCanvas(off, getBulkBwipOpts(rec.id));
                 const card = document.createElement('div'); card.className = "theme-input border rounded-lg p-3 flex flex-col items-center gap-2 cursor-pointer";
                 card.onclick = () => { currentDeckIndex = idx; setBulkViewMode('carousel'); };
                 card.innerHTML = `<span class="text-[10px] font-mono">#${idx+1} ${escapeHtml(rec.id)}</span><div class="bg-white p-2 rounded"><img src="${off.toDataURL('image/png')}" class="max-h-16"/></div>`;
                 grid.appendChild(card);
             });
         }
-        async function decodeImageIntoBulk(e) {
-            const f = e.target.files[0]; if (!f) return;
-            try {
-                const t = await Html5Qrcode.scanFile(f, false);
-                const ta = document.getElementById('batch-input');
-                ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t;
-                loadBulkDeck(true); playTone('success'); showToast(`Decoded & Added: ${t}`);
-            } catch (err) { playTone('error'); alert("No barcode found in image."); }
-        }
 
-        // ==========================================
-        // 4. CARRIER LABELS, A4 NOTE, KEYBOARD CONTROLS & HELPERS
-        // ==========================================
-        const DEFAULT_CLIENTS = [{ code: 'FF', name: 'FitFlop (Default)' }, { code: 'NC', name: "Nobody's Child" }, { code: 'OD', name: 'Oodie' }, { code: 'BLK', name: 'Bleckmann' }];
-        const DEFAULT_CARRIERS = [{ code: 'RM', name: 'Royal Mail (Default)' }, { code: 'RMX', name: 'Royal Mail Express' }, { code: 'ASD', name: 'Asendia' }, { code: 'DPD', name: 'DPD UK' }, { code: 'DHL', name: 'DHL' }, { code: 'PF', name: 'Parcelforce' }, { code: 'EVR', name: 'Evri' }, { code: 'AMZ', name: 'Amazon' }];
-        let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV2') || JSON.stringify(DEFAULT_CLIENTS));
-        let savedCarriers = JSON.parse(localStorage.getItem('wmsCustomCarriersV2') || JSON.stringify(DEFAULT_CARRIERS));
-        let carrierUsageLedger = JSON.parse(localStorage.getItem('wmsCarrierDailyUsageV1') || '{}');
-        let carrierOrientation = 'landscape', carrierViewMode = 'single', currentCarrierBatch = [], previewCarrierIndex = 0;
-
-        function renderClientCarrierPresets() {
-            document.getElementById('cl-client-preset').innerHTML = savedClients.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
-            document.getElementById('cl-carrier-preset').innerHTML = savedCarriers.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
-        }
-        function promptNewClientPreset() {
-            const c = prompt("Client Code (e.g. NK):")?.trim().toUpperCase(); if (!c) return;
-            const n = prompt(`Client Name for ${c}:`, c) || c;
-            savedClients.push({ code: c, name: n }); localStorage.setItem('wmsCustomClientsV2', JSON.stringify(savedClients)); renderClientCarrierPresets();
-            document.getElementById('cl-client-preset').value = c; document.getElementById('cl-client-code').value = c; autoSetNextAvailableSerial();
-        }
-        function promptNewCarrierPreset() {
-            const c = prompt("Carrier Code (e.g. UPS):")?.trim().toUpperCase(); if (!c) return;
-            const n = prompt(`Carrier Name for ${c}:`, c) || c;
-            savedCarriers.push({ code: c, name: n }); localStorage.setItem('wmsCustomCarriersV2', JSON.stringify(savedCarriers)); renderClientCarrierPresets();
-            document.getElementById('cl-carrier-preset').value = c; document.getElementById('cl-carrier-code').value = c; autoSetNextAvailableSerial();
-        }
-        function syncCarrierPreset(kind) {
-            if (kind === 'client') document.getElementById('cl-client-code').value = document.getElementById('cl-client-preset').value;
-            else document.getElementById('cl-carrier-code').value = document.getElementById('cl-carrier-preset').value;
-            autoSetNextAvailableSerial();
-        }
-        function setCarrierOrientation(orient) {
-            carrierOrientation = orient;
-            document.getElementById('btn-orient-landscape').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('btn-orient-portrait').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('cl-orient-badge').innerText = orient === 'landscape' ? "150 × 100 MM LANDSCAPE" : "100 × 150 MM PORTRAIT";
-            renderSelectedCarrierMockup();
-            if (carrierViewMode === 'grid') renderCarrierGrid();
-        }
-        function setCarrierViewMode(mode) {
-            carrierViewMode = mode;
-            document.getElementById('cl-single-view').classList.toggle('hidden', mode !== 'single');
-            document.getElementById('cl-grid-view').classList.toggle('hidden', mode !== 'grid');
-            document.getElementById('btn-cl-view-single').className = mode === 'single' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('btn-cl-view-grid').className = mode === 'grid' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            if (mode === 'grid') renderCarrierGrid();
-        }
-        function getTodayIsoDate() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-        function formatIsoToYYMMDD(s) { return (!s || s.length < 10) ? '261119' : s.slice(2, 4) + s.slice(5, 7) + s.slice(8, 10); }
-        function formatHumanDate(iso, style) {
-            if (!iso || iso.length < 10) return '19/11/2026';
-            const yyyy = iso.slice(0, 4), yy = iso.slice(2, 4), mm = iso.slice(5, 7), dd = iso.slice(8, 10);
-            const mName = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][parseInt(mm, 10) - 1] || 'NOV';
-            if (style === 'DD MMM, YYYY') return `${dd} ${mName}, ${yyyy}`;
-            if (style === 'YYMMDD') return `${yy}${mm}${dd}`;
-            return `${dd}/${mm}/${yyyy}`;
-        }
-        function autoSetNextAvailableSerial() {
-            const c = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), r = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase(), y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
-            const used = carrierUsageLedger[`${c}-${r}-${y}`] || [];
-            document.getElementById('cl-start-serial').value = used.length ? Math.max(...used) + 1 : 1;
-            previewCarrierIndex = 0; updateCarrierPreview();
-        }
-        function updateCarrierPreview() {
-            const client = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), carrier = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase();
-            const dateIso = document.getElementById('cl-date').value || getTodayIsoDate(), humanDate = formatHumanDate(dateIso, document.getElementById('cl-date-style').value), yymmdd = formatIsoToYYMMDD(dateIso);
-            const digits = parseInt(document.getElementById('cl-digits').value) || 2, startSerial = Math.max(1, parseInt(document.getElementById('cl-start-serial').value) || 1), qty = Math.min(200, Math.max(1, parseInt(document.getElementById('cl-qty').value) || 1));
-
-            const usedSerials = [...new Set(carrierUsageLedger[`${client}-${carrier}-${yymmdd}`] || [])].sort((a, b) => a - b);
-            document.getElementById('cl-used-summary').innerText = usedSerials.length ? `Used serials today: ${usedSerials.map(n => '#' + String(n).padStart(digits, '0')).join(', ')}` : `No labels used yet for ${client}-${carrier} on ${humanDate}.`;
-
-            currentCarrierBatch = [];
-            for (let i = 0; i < qty; i++) {
-                const sNum = startSerial + i, sPad = String(sNum).padStart(digits, '0');
-                currentCarrierBatch.push({ client, carrier, yymmdd, humanDate, serialNum: sNum, serialPadded: sPad, fullCode: `${client}-${carrier}${yymmdd}${sPad}`, isAlreadyUsed: usedSerials.includes(sNum) });
-            }
-            if (previewCarrierIndex >= currentCarrierBatch.length) previewCarrierIndex = 0;
-            document.getElementById('cl-range-badge').innerText = qty > 1 ? `${currentCarrierBatch[0].fullCode} → ${currentCarrierBatch[qty - 1].fullCode}` : currentCarrierBatch[0].fullCode;
-            renderSelectedCarrierMockup();
-            if (carrierViewMode === 'grid') renderCarrierGrid();
-
-            document.getElementById('cl-generated-list').innerHTML = currentCarrierBatch.map((item, idx) => `
-                <button onclick="previewCarrierIndex=${idx}; updateCarrierPreview();" class="w-full px-2.5 py-1.5 rounded border text-left flex items-center justify-between ${idx === previewCarrierIndex ? 'border-emerald-500 bg-emerald-500/15 font-bold' : 'theme-input'}">
-                    <span>${idx + 1}. ${escapeHtml(item.fullCode)}</span>
-                    ${item.isAlreadyUsed ? '<span class="text-[9px] px-1 rounded bg-amber-500/20 text-amber-500">USED</span>' : ''}
-                </button>
+        // Multi-Label "N-Up" A4 Sheet Printing (8 Labels per A4 Page)
+        function printNUpA4Sheet() {
+            if (!bulkRecords.length) return;
+            const off = document.getElementById('offscreen-canvas'), items = [];
+            bulkRecords.forEach(r => {
+                try {
+                    bwipjs.toCanvas(off, getBulkBwipOpts(r.id));
+                    items.push({ ...r, dataUrl: off.toDataURL('image/png') });
+                } catch (e) {}
+            });
+            const win = window.open('', '_blank');
+            const cellsHtml = items.map(i => `
+                <div class="nup-cell">
+                    <div class="nup-meta">${escapeHtml(i.cols.slice(1).filter(Boolean).join(' | '))}</div>
+                    <img src="${i.dataUrl}" />
+                    <div class="nup-id">${escapeHtml(i.id)}</div>
+                </div>
             `).join('');
-        }
-        function renderSelectedCarrierMockup() {
-            if (!currentCarrierBatch.length) return;
-            const item = currentCarrierBatch[previewCarrierIndex] || currentCarrierBatch[0], box = document.getElementById('cl-mockup-box');
-            const isLand = carrierOrientation === 'landscape';
-            box.style.width = isLand ? '400px' : '266px';
-            box.style.height = isLand ? '266px' : '400px';
-
-            if (isLand) {
-                box.innerHTML = `
-                    <div class="border-b-2 border-zinc-900 pb-1.5 flex justify-between items-center font-mono font-black">
-                        <div class="text-2xl">${escapeHtml(item.client)} <span class="text-zinc-400">—</span> ${escapeHtml(item.carrier)}</div>
-                        <div class="flex items-center gap-2"><span class="text-sm font-extrabold">${escapeHtml(item.humanDate)}</span><span class="px-2 py-0.5 bg-zinc-900 text-white text-sm rounded">#${escapeHtml(item.serialPadded)}</span></div>
-                    </div>
-                    <div class="my-auto py-1 flex justify-center"><canvas id="cl-preview-canvas" class="max-w-full"></canvas></div>
-                    <div class="border-t-2 border-zinc-900 pt-1.5 grid grid-cols-2 gap-3 text-[11px] font-mono font-bold">
-                        <div class="border-r border-zinc-400 pr-2 flex items-end"><span>TIME:</span><span class="border-b border-zinc-800 flex-grow ml-1.5 h-3.5"></span></div>
-                        <div class="flex items-end"><span>SIGN:</span><span class="border-b border-zinc-800 flex-grow ml-1.5 h-3.5"></span></div>
-                    </div>`;
-            } else {
-                box.innerHTML = `
-                    <div class="border-b-2 border-zinc-900 pb-2 text-center font-mono font-black">
-                        <div class="text-3xl tracking-tight">${escapeHtml(item.client)} — ${escapeHtml(item.carrier)}</div>
-                        <div class="flex justify-center items-center gap-2 mt-1.5">
-                            <span class="text-xs font-extrabold">${escapeHtml(item.humanDate)}</span>
-                            <span class="px-2.5 py-0.5 bg-zinc-900 text-white text-sm rounded">#${escapeHtml(item.serialPadded)}</span>
-                        </div>
-                    </div>
-                    <div class="my-auto py-2 flex justify-center"><canvas id="cl-preview-canvas" class="max-w-full"></canvas></div>
-                    <div class="border-t-2 border-zinc-900 pt-2 space-y-2.5 text-[11px] font-mono font-bold">
-                        <div class="flex items-end"><span>TIME:</span><span class="border-b border-zinc-800 flex-grow ml-2 h-4"></span></div>
-                        <div class="flex items-end"><span>SIGN:</span><span class="border-b border-zinc-800 flex-grow ml-2 h-4"></span></div>
-                    </div>`;
-            }
-            try { bwipjs.toCanvas(document.getElementById('cl-preview-canvas'), { bcid: 'code128', text: item.fullCode, scale: isLand ? 3 : 2, height: isLand ? 16 : 22, includetext: true, textxalign: 'center', textsize: 11, backgroundcolor: 'ffffff' }); } catch (e) {}
-        }
-        function renderCarrierGrid() {
-            const grid = document.getElementById('cl-grid-view'), off = document.getElementById('offscreen-canvas'); grid.innerHTML = '';
-            currentCarrierBatch.forEach((item, idx) => {
-                bwipjs.toCanvas(off, { bcid: 'code128', text: item.fullCode, scale: 2, height: 14, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' });
-                const card = document.createElement('div'); card.className = "bg-white text-zinc-950 p-3 rounded-lg border-2 border-zinc-300 shadow flex flex-col justify-between gap-2 cursor-pointer";
-                card.onclick = () => { previewCarrierIndex = idx; setCarrierViewMode('single'); updateCarrierPreview(); };
-                card.innerHTML = `<div class="flex justify-between font-mono font-black text-sm border-b border-zinc-900 pb-1"><span>${item.client} — ${item.carrier}</span><span>#${item.serialPadded}</span></div><img src="${off.toDataURL('image/png')}" class="max-w-full mx-auto"/><div class="text-[10px] font-mono text-zinc-600 flex justify-between"><span>${item.humanDate}</span><span>Click to focus</span></div>`;
-                grid.appendChild(card);
-            });
-        }
-        function recordCarrierBatchAsUsed() {
-            currentCarrierBatch.forEach(item => {
-                const key = `${item.client}-${item.carrier}-${item.yymmdd}`;
-                if (!carrierUsageLedger[key]) carrierUsageLedger[key] = [];
-                if (!carrierUsageLedger[key].includes(item.serialNum)) carrierUsageLedger[key].push(item.serialNum);
-            });
-            localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); triggerArcadeScanAction(); updateCarrierPreview();
-        }
-        function resetCarrierDayHistory() {
-            const c = (document.getElementById('cl-client-code').value.trim() || 'FF').toUpperCase(), r = (document.getElementById('cl-carrier-code').value.trim() || 'RM').toUpperCase(), y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
-            delete carrierUsageLedger[`${c}-${r}-${y}`]; localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); document.getElementById('cl-start-serial').value = 1; updateCarrierPreview();
-        }
-        function copyAllCarrierCodes() { navigator.clipboard.writeText(currentCarrierBatch.map(i => i.fullCode).join('\n')); showToast("Copied all codes!"); }
-        function sendCarrierLabelsToBulkDeck() { recordCarrierBatchAsUsed(); document.getElementById('batch-input').value = currentCarrierBatch.map(i => i.fullCode).join('\n'); scannedSet.clear(); switchTab('bulk'); loadBulkDeck(false); }
-        function generateAndPrintCarrierLabels() {
-            if (!currentCarrierBatch.length) return;
-            recordCarrierBatchAsUsed();
-            const isLand = carrierOrientation === 'landscape', pageW = isLand ? '150mm' : '100mm', pageH = isLand ? '100mm' : '150mm', off = document.getElementById('offscreen-canvas'), rendered = [];
-            currentCarrierBatch.forEach(item => { bwipjs.toCanvas(off, { bcid: 'code128', text: item.fullCode, scale: 4, height: isLand ? 22 : 28, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); rendered.push({ ...item, dataUrl: off.toDataURL('image/png') }); });
-            const win = window.open('', '_blank');
-            const html = rendered.map(r => isLand
-                ? `<div style="width:150mm;height:100mm;padding:4mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:2.5px solid #000;flex:1;padding:4mm;display:flex;flex-direction:column;justify-content:space-between;"><div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:2mm;font-size:22pt;font-weight:900;"><span>${r.client} — ${r.carrier}</span><span style="font-size:13pt;">${r.humanDate} <b style="background:#000;color:#fff;padding:1mm 2mm;">#${r.serialPadded}</b></span></div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="border-top:2px solid #000;padding-top:2mm;display:grid;grid-template-columns:1fr 1fr;font-size:11pt;font-weight:bold;"><div>TIME: ____________</div><div>SIGN: ____________</div></div></div></div>`
-                : `<div style="width:100mm;height:150mm;padding:4mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:2.5px solid #000;flex:1;padding:5mm;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div style="border-bottom:2px solid #000;padding-bottom:3mm;"><div style="font-size:28pt;font-weight:900;">${r.client} — ${r.carrier}</div><div style="font-size:14pt;font-weight:bold;margin-top:2mm;">${r.humanDate} <span style="background:#000;color:#fff;padding:1mm 3mm;">#${r.serialPadded}</span></div></div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="border-top:2px solid #000;padding-top:3mm;text-align:left;font-size:12pt;font-weight:bold;line-height:2.2;"><div>TIME: ___________________</div><div>SIGN: ___________________</div></div></div></div>`
-            ).join('');
-            win.document.write(`<html><head><style>@page{size:${pageW} ${pageH};margin:0;}body{margin:0;}</style></head><body>${html}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>N-Up A4 Barcode Sheet (${items.length})</title>
+                    <style>
+                        @page { size: A4 portrait; margin: 10mm; }
+                        body { margin: 0; font-family: 'JetBrains Mono', monospace; background: #fff; color: #000; }
+                        .nup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+                        .nup-cell { border: 1.5px dashed #888; padding: 5mm; height: 60mm; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; page-break-inside: avoid; }
+                        .nup-meta { font-size: 8pt; font-weight: bold; color: #444; }
+                        .nup-cell img { max-width: 95%; max-height: 38mm; object-fit: contain; }
+                        .nup-id { font-size: 10pt; font-weight: 800; }
+                    </style>
+                </head>
+                <body><div class="nup-grid">${cellsHtml}</div><script>window.onload=function(){window.print();window.close();}<\/script></body>
+                </html>
+            `);
             win.document.close();
         }
-
-        // A4 Delivery Note
-        let a4Orientation = 'landscape';
-        function toggleA4Section(elId, show) { document.getElementById(elId).classList.toggle('hidden', !show); autoFitA4Content(); }
-        function autoFitA4Content() {
-            const paper = document.getElementById('a4-paper-sheet'), inner = document.getElementById('a4-inner-scaler');
-            inner.style.transform = 'scale(1)';
-            const availH = paper.clientHeight - 64, actualH = inner.scrollHeight;
-            if (actualH > availH) inner.style.transform = `scale(${Math.max(0.55, availH / actualH)})`;
-        }
-        function setOfficeMode(mode) {
-            document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word');
-            document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel');
-            document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel');
-            document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5";
-            document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5";
-            autoFitA4Content();
-        }
-        function setA4Orientation(orient) {
-            a4Orientation = orient; const paper = document.getElementById('a4-paper-sheet');
-            paper.style.width = orient === 'landscape' ? "842px" : "595px"; paper.style.height = orient === 'landscape' ? "595px" : "842px";
-            document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
-            autoFitA4Content();
-        }
-        function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); }
-        function addA4CustomField() {
-            const label = prompt("Section Header:", "CUSTOM FIELD"); if (!label) return;
-            const div = document.createElement('div'); div.className = "resizable-box border-2 border-zinc-900 bg-zinc-50 text-zinc-950 p-3 relative group"; div.style.width = "48%";
-            div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-1 right-1.5 text-red-600 font-bold text-xs print:hidden">×</button><div contenteditable="true" class="text-[10px] font-mono font-bold text-zinc-500 uppercase outline-none">${escapeHtml(label)}</div><div contenteditable="true" class="text-base font-mono font-extrabold uppercase outline-none mt-0.5">ENTER VALUE</div>`;
-            document.getElementById('a4-fields-grid').appendChild(div); autoFitA4Content();
-        }
-        function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); autoFitA4Content(); }
-        function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); }
-        function renderA4Barcode() { try { bwipjs.toCanvas(document.getElementById('a4-prev-canvas'), { bcid: 'code128', text: document.getElementById('a4-ref').value.trim() || 'ASD-BLK-261119', scale: 3, height: 16, includetext: true, textxalign: 'center', textsize: 11, backgroundcolor: 'ffffff' }); } catch (e) {} }
-        function printA4DeliveryNote() {
-            renderA4Barcode();
-            const clone = document.getElementById('a4-paper-sheet').cloneNode(true), orig = document.getElementById('a4-prev-canvas'), cCanv = clone.querySelector('#a4-prev-canvas');
-            if (orig && cCanv && !document.getElementById('a4-barcode-card').classList.contains('hidden')) { const img = document.createElement('img'); img.src = orig.toDataURL('image/png'); img.style.maxWidth = '100%'; cCanv.replaceWith(img); }
-            clone.querySelectorAll('button').forEach(b => b.remove());
-            clone.style.width = a4Orientation === 'landscape' ? '277mm' : '190mm'; clone.style.height = a4Orientation === 'landscape' ? '190mm' : '277mm';
-            const win = window.open('', '_blank');
-            win.document.write(`<!DOCTYPE html><html><head><script src="https://cdn.tailwindcss.com"><\/script><style>@page{size:A4 ${a4Orientation};margin:8mm;}body{margin:0;-webkit-print-color-adjust:exact;}</style></head><body>${clone.outerHTML}<script>setTimeout(()=>{window.print();window.close();},350);<\/script></body></html>`);
-            win.document.close();
-        }
-
-        // Keyboard Controls for Games (Arrows, WASD, Space) + Scanner
-        window.addEventListener('keydown', (e) => {
-            const tag = document.activeElement?.tagName.toLowerCase(), isEd = document.activeElement?.isContentEditable;
-            if (tag === 'input' || tag === 'textarea' || tag === 'select' || isEd) return;
-
-            const g = document.getElementById('arcade-game-select').value;
-            const arcadeVisible = !document.getElementById('arcade-strip').classList.contains('hidden');
-
-            if (arcadeVisible) {
-                if (g === 'snake') {
-                    if ((e.key === 'ArrowUp' || e.key === 'w') && snake.dir.y !== 1) { e.preventDefault(); snake.dir = { x: 0, y: -1 }; return; }
-                    if ((e.key === 'ArrowDown' || e.key === 's') && snake.dir.y !== -1) { e.preventDefault(); snake.dir = { x: 0, y: 1 }; return; }
-                    if ((e.key === 'ArrowLeft' || e.key === 'a') && snake.dir.x !== 1) { e.preventDefault(); snake.dir = { x: -1, y: 0 }; return; }
-                    if ((e.key === 'ArrowRight' || e.key === 'd') && snake.dir.x !== -1) { e.preventDefault(); snake.dir = { x: 1, y: 0 }; return; }
-                } else if ((g === 'dino' || g === 'mario') && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w')) {
-                    e.preventDefault();
-                    handleArcadeCanvasClick();
-                    return;
-                }
-            }
-
-            if (!document.getElementById('view-bulk').classList.contains('hidden')) {
-                if (e.key === 'ArrowRight') { e.preventDefault(); stepDeck(1); }
-                else if (e.key === 'ArrowLeft') { e.preventDefault(); stepDeck(-1); }
-                else if (e.key === ' ') { e.preventDefault(); markAndNextDeck(); }
-            }
-        });
-
-        // Sound Packs, File Manager & General Helpers
-        let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true'), audioCtx = null;
-        function playTone(type) {
-            if (!audioEnabled) return;
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const now = audioCtx.currentTime, osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-                const pack = document.getElementById('sound-pack-select')?.value || 'laser';
-                if (type === 'error') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(160, now); gain.gain.setValueAtTime(0.22, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18); }
-                else if (pack === 'arcade') { osc.type = 'square'; osc.frequency.setValueAtTime(987, now); osc.frequency.setValueAtTime(1318, now + 0.06); gain.gain.setValueAtTime(0.14, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16); }
-                else if (pack === 'click') { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03); }
-                else if (pack === 'chime') { osc.type = 'sine'; osc.frequency.setValueAtTime(1480, now); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15); }
-                else { osc.type = 'sine'; osc.frequency.setValueAtTime(2200, now); gain.gain.setValueAtTime(0.16, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08); }
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.18);
-            } catch (e) {}
-        }
-        function toggleAudio() { audioEnabled = !audioEnabled; localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled)); const icon = document.getElementById('icon-audio'); icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x'); lucide.createIcons(); }
-        function setTheme(mode) {
-            document.documentElement.setAttribute('data-theme', mode); localStorage.setItem('wmsThemeMode', mode);
-            ['dark', 'light', 'eye-protect'].forEach(m => { document.getElementById(`theme-${m}`).className = (m === mode) ? "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition" : "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 theme-text-muted transition"; });
-        }
-        function switchTab(tab) {
-            ['bulk', 'carrier', 'a4note'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md theme-text-muted hover:opacity-90 transition-all"; });
-            document.getElementById(`view-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white shadow-sm transition-all";
-            if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'a4note') { renderA4Barcode(); autoFitA4Content(); }
-        }
-
-        let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || '{"folders":["Default Shift","Carrier Runs"],"activeFolder":"Default Shift","files":[]}');
-        function saveWorkspaceState() { localStorage.setItem('wmsWorkspaceFilesV1', JSON.stringify(workspace)); document.getElementById('nav-file-count').innerText = workspace.files.length; }
-        function toggleFileManager() { const d = document.getElementById('file-manager-drawer'), b = document.getElementById('file-manager-backdrop'); const open = !d.classList.contains('-translate-x-full'); d.classList.toggle('-translate-x-full', open); b.classList.toggle('hidden', open); if (!open) { renderFolderDropdown(); renderFileManager(); } }
-        function renderFolderDropdown() { document.getElementById('fm-folder-select').innerHTML = workspace.folders.map(f => `<option value="${escapeHtml(f)}" ${f === workspace.activeFolder ? 'selected' : ''}>📁 ${escapeHtml(f)}</option>`).join(''); }
-        function createNewFolder() { const n = prompt("New folder name:"); if (n?.trim()) { workspace.folders.push(n.trim()); workspace.activeFolder = n.trim(); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); } }
-        function deleteCurrentFolder() { const f = document.getElementById('fm-folder-select').value; if (workspace.folders.length > 1) { workspace.folders = workspace.folders.filter(x => x !== f); workspace.activeFolder = workspace.folders[0]; saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); } }
-        function saveCurrentTaskToFile() { const f = document.getElementById('fm-folder-select').value, t = document.getElementById('fm-task-type').value, n = document.getElementById('fm-task-name').value.trim() || `Task-${Date.now()}`; workspace.files.unshift({ id: 't-'+Date.now(), folder: f, name: n, type: t, updated: new Date().toLocaleTimeString(), content: t === 'bulk' ? document.getElementById('batch-input').value : document.getElementById('a4-paper-sheet').innerHTML }); saveWorkspaceState(); renderFileManager(); }
-        function saveActiveTaskToLocalDisk() { const link = document.createElement('a'); link.download = `wms-export-${Date.now()}.csv`; link.href = URL.createObjectURL(new Blob([document.getElementById('batch-input').value], { type: 'text/plain' })); link.click(); }
-        function openLocalFileIntoFolder(e) { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = ev => { workspace.files.unshift({ id: 't-'+Date.now(), folder: workspace.activeFolder, name: file.name, type: 'bulk', updated: 'Now', content: ev.target.result }); saveWorkspaceState(); renderFileManager(); }; r.readAsText(file); }
-        function loadTaskFile(id) { const f = workspace.files.find(x => x.id === id); if (!f) return; if (f.type === 'bulk') { document.getElementById('batch-input').value = f.content; switchTab('bulk'); loadBulkDeck(false); } toggleFileManager(); }
-        function deleteTaskFile(id) { workspace.files = workspace.files.filter(x => x.id !== id); saveWorkspaceState(); renderFileManager(); }
-        function renderFileManager() { const f = document.getElementById('fm-folder-select').value; workspace.activeFolder = f; document.getElementById('fm-file-list').innerHTML = workspace.files.filter(x => x.folder === f).map(x => `<div class="p-2.5 rounded border theme-input flex justify-between items-center text-xs"><span class="truncate font-semibold">${escapeHtml(x.name)}</span><div class="flex gap-1"><button onclick="loadTaskFile('${x.id}')" class="px-2 py-0.5 bg-emerald-600 text-white rounded">Open</button><button onclick="deleteTaskFile('${x.id}')" class="px-1.5 text-red-400">×</button></div></div>`).join(''); }
-        function exportWorkspaceJSON() { const l = document.createElement('a'); l.download = `workspace.json`; l.href = URL.createObjectURL(new Blob([JSON.stringify(workspace)], { type: 'application/json' })); l.click(); }
-        function importWorkspaceJSON(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { workspace = JSON.parse(ev.target.result); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); }; r.readAsText(f); }
-        function quickSavePrompt() { const n = prompt("Save task as:"); if (n) { document.getElementById('fm-task-name').value = n; saveCurrentTaskToFile(); } }
-
-        function formatPayloadWithSuffix(raw, suf) { let t = raw.replace(/\\t/g, '^009').replace(/\\r/g, '^013'); return suf === 'enter' ? t + '^013' : (suf === 'tab' ? t + '^009' : t); }
-        function exportCurrentPNG() { const l = document.createElement('a'); l.download = `barcode.png`; l.href = document.getElementById('deck-canvas').toDataURL('image/png'); l.click(); }
-        function exportCurrentSVG() { const svg = bwipjs.toSVG({ bcid: document.getElementById('batch-type').value, text: bulkRecords[currentDeckIndex]?.id || '123', scale: 3, height: 18, includetext: true, textxalign: 'center' }); const l = document.createElement('a'); l.download = `barcode.svg`; l.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })); l.click(); }
-        function exportCurrentPDF() { const { jsPDF } = window.jspdf; const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [150, 100] }); pdf.addImage(document.getElementById('deck-canvas').toDataURL('image/png'), 'PNG', 20, 25, 110, 50); pdf.save(`label.pdf`); }
-        function exportZPL(c) { const l = document.createElement('a'); l.download = `${c || 'label'}.zpl`; l.href = URL.createObjectURL(new Blob([`^XA\n^FO50,50^BCN,120,Y,N,N^FD${c}^FS\n^XZ`], { type: 'text/plain' })); l.click(); }
-        function printCurrentDeckLabel() { if (bulkRecords.length) printRoutingBatch([bulkRecords[currentDeckIndex]]); }
-        function printBatchSheet() { if (bulkRecords.length) printRoutingBatch(bulkRecords); }
-        function printRoutingBatch(recs) {
-            const sym = document.getElementById('batch-type').value, off = document.getElementById('offscreen-canvas'), ren = [];
-            recs.forEach(r => { bwipjs.toCanvas(off, { bcid: sym, text: r.id, scale: 3, height: 18, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); ren.push({ ...r, dataUrl: off.toDataURL('image/png') }); });
-            const win = window.open('', '_blank');
-            win.document.write(`<html><head><style>@page{size:150mm 100mm;margin:0;}body{margin:0;}</style></head><body>${ren.map(r => `<div style="width:150mm;height:100mm;padding:5mm;box-sizing:border-box;page-break-after:always;display:flex;justify-content:center;align-items:center;font-family:monospace;"><div style="border:2px solid #000;padding:12px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div>${escapeHtml(r.cols.slice(1).filter(Boolean).join(' | '))}</div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="font-weight:bold;">${escapeHtml(r.id)}</div></div></div>`).join('')}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
-            win.document.close();
-        }
-        function importSpreadsheet(e, id) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { document.getElementById(id).value = ev.target.result.trim(); loadBulkDeck(false); }; r.readAsText(f); }
-        function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
-
-        let feedbackList = JSON.parse(localStorage.getItem('wmsFeedbackBoardV1') || '[]');
-        function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); }
-        function submitFeedbackToGitHub() { window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=Feedback&body=${encodeURIComponent(document.getElementById('fb-comment').value)}`, '_blank'); }
-        function renderFeedbackBoard() { document.getElementById('fb-comments-list').innerHTML = feedbackList.map(f => `<div class="p-3 rounded-lg border theme-input text-xs"><b>${escapeHtml(f.name)}</b> [${escapeHtml(f.cat)}]: ${escapeHtml(f.comment)}</div>`).join(''); }
-
-        function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-text').innerText = msg; t.classList.remove('translate-y-20', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2200); }
-        function copyTextValue(txt) { if (txt) { navigator.clipboard.writeText(txt); showToast(`Copied: ${txt}`); } }
-        function escapeHtml(s) { return String(s||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-
-        window.onload = function() {
-            setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
-            document.getElementById('sound-pack-select').value = localStorage.getItem('wmsSoundPack') || 'laser';
-            saveWorkspaceState(); renderBulkColumnEditor(); renderClientCarrierPresets(); renderFeedbackBoard();
-            document.getElementById('cl-date').value = getTodayIsoDate();
-            autoSetNextAvailableSerial(); renderA4Barcode(); loadBulkDeck(false);
-            startArcadeEngine();
-        };
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-        }
-    </script>
-</body>
-</html>

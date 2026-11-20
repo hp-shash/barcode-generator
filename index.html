@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>BARCODE GENERATOR // SHASH</title>
 
     <link rel="manifest" href="./manifest.json">
@@ -315,7 +318,7 @@
             </div>
             <div class="p-4 space-y-3 text-xs">
                 <p class="theme-text-muted leading-relaxed">
-                    Connect a shared <b>Supabase</b> table (<code>wms_shared_state</code> with columns <code>id text primary key, payload jsonb, updated_at timestamptz</code>) or a custom JSON REST endpoint so all users &amp; devices sync <code>@user</code> reminders, notes, templates, and presets in real time while keeping a local offline cache.
+                    Connect a shared <b>Supabase</b> table (<code>wms_shared_state</code> with columns <code>id text primary key, payload jsonb, updated_at timestamptz</code>) or a custom JSON REST endpoint. For Supabase, run the supplied <code>wms_shared_state_setup.sql</code> once in the project SQL Editor to create the table, access policies, and Realtime publication. Without those database permissions, browsers can only save locally.
                 </p>
                 <div>
                     <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Sync Provider</label>
@@ -1218,7 +1221,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <div class="p-2.5 rounded-xl border theme-border theme-elevated/40 space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">Templates</span>
-                            <span id="note-tpl-sync-badge" class="text-[10px] font-mono text-emerald-400">● Saved</span>
+                            <span id="note-tpl-sync-badge" class="text-[10px] font-mono text-amber-400">● Connecting</span>
                         </div>
                         <select id="note-template-library" onchange="applyDispatchTemplate(this.value)" class="w-full theme-card border rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-emerald-500">
                             <option value="">Select Template...</option>
@@ -1346,7 +1349,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                 <div id="a4-stage-viewport" class="flex-grow canvas-grid p-3 flex items-center justify-center overflow-auto">
                     <div id="a4-paper-sheet" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-6 flex flex-col items-center justify-center overflow-hidden transition-transform duration-150 origin-center" style="width: 842px; height: 595px;">
-                        <div id="a4-word-body" oninput="autoFitA4Content(); persistActiveNoteDraft();" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center"></div>
+                        <div id="a4-word-body" oninput="autoFitA4Content(); persistActiveNoteDraft();" onfocusout="persistActiveNoteDraft();" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center"></div>
 
                         <div id="a4-excel-body" class="hidden w-full h-full overflow-auto">
                             <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
@@ -1620,7 +1623,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function setTheme(mode) {
             document.documentElement.setAttribute('data-theme', mode);
-            localStorage.setItem('wmsThemeMode', mode);
+            safeLocalCacheWrite('wmsThemeMode', mode);
             ['dark', 'light', 'eye-protect'].forEach(m => {
                 document.getElementById(`theme-${m}`).className = (m === mode)
                     ? "px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1 bg-emerald-600 text-white transition"
@@ -1628,7 +1631,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             });
             const gSel = document.getElementById('theme-gradient-select');
             const options = THEME_GRADIENTS[mode] || THEME_GRADIENTS.dark;
-            const savedGrad = localStorage.getItem(`wmsGrad_${mode}`) || 'default';
+            const savedGrad = readStoredText(`wmsGrad_${mode}`, 'default');
             gSel.innerHTML = options.map(g => `<option value="${g.id}" ${g.id === savedGrad ? 'selected' : ''}>${g.name}</option>`).join('');
             setThemeGradient(savedGrad);
         }
@@ -1636,7 +1639,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function setThemeGradient(gradId) {
             const mode = document.documentElement.getAttribute('data-theme') || 'dark';
             document.documentElement.setAttribute('data-gradient', gradId);
-            localStorage.setItem(`wmsGrad_${mode}`, gradId);
+            safeLocalCacheWrite(`wmsGrad_${mode}`, gradId);
         }
 
         function setManualPageZoom(val) {
@@ -1781,7 +1784,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         // 2. ARCADE DRAWER + FLOATING RESIZABLE SUDOKU + 5 EXTRA GAME FEATURES
         // ==========================================
-        let arcadeRunning = false, arcadeLevel = 1, arcadeLives = 3, arcadeScore = 0, arcadeHigh = parseInt(localStorage.getItem('wmsArcadeHigh') || '0'), arcadeFrame = 0;
+        let arcadeRunning = false, arcadeLevel = 1, arcadeLives = 3, arcadeScore = 0, arcadeHigh = parseInt(readStoredText('wmsArcadeHigh', '0'), 10) || 0, arcadeFrame = 0;
         let bgClouds = [{ x: 80, y: 20 }, { x: 250, y: 14 }, { x: 420, y: 24 }];
         let dino = { y: 0, vy: 0, jumps: 0, ducking: false, shield: false, combo: 1, magnet: false, obs: [], orbs: [] };
         let mario = { y: 0, vy: 0, jumps: 0, starTimer: 0, pipes: [], goombas: [], coins: [], qBlocks: [], flagX: 900 };
@@ -2442,12 +2445,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             ]
         };
 
-        let activeShiftPresetKey = localStorage.getItem('wmsActiveShiftPresetKeyV1') || 'FF';
-        let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV2') || JSON.stringify(DEFAULT_CLIENTS));
-        let savedCarriers = JSON.parse(localStorage.getItem('wmsCustomCarriersV2') || JSON.stringify(DEFAULT_CARRIERS));
-        let allShiftPresets = JSON.parse(localStorage.getItem('wmsAllShiftPresetsV1') || 'null') || JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS));
+        let activeShiftPresetKey = readStoredText('wmsActiveShiftPresetKeyV1', 'FF');
+        let savedClients = readStoredJson('wmsCustomClientsV2', DEFAULT_CLIENTS);
+        if (!Array.isArray(savedClients)) savedClients = DEFAULT_CLIENTS;
+        let savedCarriers = readStoredJson('wmsCustomCarriersV2', DEFAULT_CARRIERS);
+        if (!Array.isArray(savedCarriers)) savedCarriers = DEFAULT_CARRIERS;
+        let allShiftPresets = readStoredJson('wmsAllShiftPresetsV1', null) || JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS));
+        if (!isPlainObject(allShiftPresets)) allShiftPresets = JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS));
         let shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF;
-        let carrierUsageLedger = JSON.parse(localStorage.getItem('wmsCarrierDailyUsageV1') || '{}');
+        let carrierUsageLedger = readStoredJson('wmsCarrierDailyUsageV1', {});
+        if (!isPlainObject(carrierUsageLedger)) carrierUsageLedger = {};
         let carrierOrientation = 'landscape', carrierViewMode = 'single', currentCarrierBatch = [], previewCarrierIndex = 0;
 
         function renderShiftBatchPills() {
@@ -2474,7 +2481,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function addShiftBatchRuleRow() { shiftBatchConfig.push({ client: 'FF', carrier: 'RM', qty: 5, start: 0, date: getTodayIsoDate() }); renderShiftBatchEditorRows(); }
         function switchShiftBatchPreset(key) {
             activeShiftPresetKey = key;
-            localStorage.setItem('wmsActiveShiftPresetKeyV1', key);
+            safeLocalCacheWrite('wmsActiveShiftPresetKeyV1', key);
             if (!allShiftPresets[key]) allShiftPresets[key] = JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS[key] || []));
             shiftBatchConfig = allShiftPresets[key];
             document.getElementById('btn-shift-preset-FF').className = key === 'FF' ? "px-2 py-0.5 rounded font-bold bg-emerald-600 text-white" : "px-2 py-0.5 rounded font-bold theme-text-muted";
@@ -2484,7 +2491,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
         function saveShiftBatchRules() {
             allShiftPresets[activeShiftPresetKey] = JSON.parse(JSON.stringify(shiftBatchConfig));
-            localStorage.setItem('wmsAllShiftPresetsV1', JSON.stringify(allShiftPresets));
+            safeLocalCacheWrite('wmsAllShiftPresetsV1', allShiftPresets);
             pushStateToCloud();
             renderShiftBatchPills();
             toggleShiftBatchEditor();
@@ -2705,7 +2712,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         // 5. TRAILER SHIPPING (SINGLE MASTER CODE GENERATOR FOR ALL IDS + RDT SCANNER)
         // ==========================================
-        let trailerScannedList = JSON.parse(localStorage.getItem('wmsTrailerScannedV1') || '[]');
+        let trailerScannedList = readStoredJson('wmsTrailerScannedV1', []);
+        if (!Array.isArray(trailerScannedList)) trailerScannedList = [];
         let currentTrailerMasterPayload = '';
 
         function generateTrailerSingleMasterCode() {
@@ -2850,9 +2858,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // 6. NOTES TAB (PERMANENT TEMPLATES + EDITABLE NC RACK LIST + MARGIN/BORDER OFF)
         // ==========================================
         let a4Orientation = 'landscape', lastFocusedEditable = null, activeSelectedTemplateId = '';
-        let savedNoteTemplates = JSON.parse(localStorage.getItem('wmsPermanentNoteTemplatesV1') || '{}');
+        let savedNoteTemplates = readStoredJson('wmsPermanentNoteTemplatesV1', {});
+        if (!isPlainObject(savedNoteTemplates)) savedNoteTemplates = {};
 
-        let hiddenBuiltinNoteTemplates = JSON.parse(localStorage.getItem('wmsHiddenBuiltinNoteTemplatesV1') || '[]');
+        let hiddenBuiltinNoteTemplates = readStoredJson('wmsHiddenBuiltinNoteTemplatesV1', []);
+        if (!Array.isArray(hiddenBuiltinNoteTemplates)) hiddenBuiltinNoteTemplates = [];
 
         const BUILTIN_NOTE_TEMPLATE_META = [
             { key: 'asendia', label: 'Asendia Shipping Note' },
@@ -2863,7 +2873,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function renderNoteTemplatesDropdown() {
             const sel = document.getElementById('note-template-library');
             if (!sel) return;
-            const customKeys = Object.keys(savedNoteTemplates);
+            // Built-in template overrides are stored alongside custom templates under a reserved key.
+            // Keep those internal entries out of the user-facing custom-template list.
+            const customKeys = Object.keys(savedNoteTemplates).filter(key => !key.startsWith('__builtin__:'));
             const visibleBuiltins = BUILTIN_NOTE_TEMPLATE_META.filter(t => !hiddenBuiltinNoteTemplates.includes(t.key));
             let opts = `<option value="">Select Template...</option>` +
                 visibleBuiltins.map(t => `<option value="${t.key}">${escapeHtml(t.label)}</option>`).join('');
@@ -2872,6 +2884,23 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
             sel.innerHTML = opts;
             if (activeSelectedTemplateId) sel.value = activeSelectedTemplateId;
+        }
+
+        function restoreSavedNoteTemplateBody(rawHtml) {
+            const body = document.getElementById('a4-word-body');
+            if (!body) return;
+            body.innerHTML = rawHtml || '';
+            body.querySelectorAll('[data-saved-barcode]').forEach((el, idx) => {
+                const code = el.getAttribute('data-saved-barcode');
+                const cid = `saved-note-bc-${Date.now()}-${idx}`;
+                const cv = document.createElement('canvas');
+                cv.id = cid;
+                cv.dataset.barcodeVal = code;
+                cv.className = 'mx-auto cursor-pointer';
+                cv.onclick = () => editNoteInlineBarcode(cid);
+                el.replaceWith(cv);
+                try { bwipjs.toCanvas(cv, { bcid: 'code128', text: code, scale: 3, height: 15, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
+            });
         }
 
         
@@ -2919,16 +2948,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
             if (tplKey.startsWith('custom:')) {
                 const name = tplKey.replace('custom:', '');
-                body.innerHTML = savedNoteTemplates[name] || '';
-                body.querySelectorAll('[data-saved-barcode]').forEach((el, idx) => {
-                    const code = el.getAttribute('data-saved-barcode');
-                    const cid = `custom-bc-${Date.now()}-${idx}`;
-                    const cv = document.createElement('canvas');
-                    cv.id = cid; cv.dataset.barcodeVal = code; cv.className = 'mx-auto cursor-pointer';
-                    cv.onclick = () => editNoteInlineBarcode(cid);
-                    el.replaceWith(cv);
-                    try { bwipjs.toCanvas(cv, { bcid: 'code128', text: code, scale: 3, height: 15, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
-                });
+                restoreSavedNoteTemplateBody(savedNoteTemplates[name] || '');
+            } else if (['asendia', 'nc_rack', 'packing'].includes(tplKey)
+                && Object.prototype.hasOwnProperty.call(savedNoteTemplates, `__builtin__:${tplKey}`)) {
+                // Once a built-in template has been edited, reload its shared saved version on every browser.
+                restoreSavedNoteTemplateBody(savedNoteTemplates[`__builtin__:${tplKey}`]);
             } else if (tplKey === 'asendia') {
                 resetSimpleTwoLineNote();
             } else if (tplKey === 'nc_rack') {
@@ -3115,6 +3139,31 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
         }
 
+        function readStoredText(key, fallback = '') {
+            try {
+                const value = localStorage.getItem(key);
+                return value === null ? fallback : value;
+            } catch (e) {
+                console.warn(`Could not read saved text setting "${key}"; using its default.`, e);
+                return fallback;
+            }
+        }
+
+        function safeLocalCacheRemove(key) {
+            try { localStorage.removeItem(key); return true; }
+            catch (e) { console.warn(`Could not clear local cache key "${key}":`, e); return false; }
+        }
+
+        function safeLocalCacheWrite(key, value) {
+            try {
+                localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+                return true;
+            } catch (e) {
+                console.warn(`Local cache write skipped for "${key}"; cloud sync can continue.`, e);
+                return false;
+            }
+        }
+
         function isPlainObject(value) {
             return value !== null && typeof value === 'object' && !Array.isArray(value);
         }
@@ -3130,12 +3179,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function loadPersistedCloudConfig() {
-            const parsed = readStoredJson('wmsCloudSyncConfigV1', {});
+            // V1 settings were device-local and could point different browsers at different rooms.
+            // Ignore them. Only settings explicitly saved by this version may override the shared defaults.
+            const parsed = readStoredJson('wmsCloudSyncConfigV2', {});
             const saved = isPlainObject(parsed) ? parsed : {};
             const merged = { ...DEFAULT_CLOUD_SYNC_CONFIG, ...saved };
-            if (!VALID_CLOUD_PROVIDERS.has(merged.provider)) {
-                merged.provider = DEFAULT_CLOUD_SYNC_CONFIG.provider;
-            }
+            if (!VALID_CLOUD_PROVIDERS.has(merged.provider)) merged.provider = DEFAULT_CLOUD_SYNC_CONFIG.provider;
             merged.sbUrl = typeof merged.sbUrl === 'string' && merged.sbUrl.trim()
                 ? merged.sbUrl.trim() : EMBEDDED_CLOUD_DEFAULTS.sbUrl;
             merged.sbKey = typeof merged.sbKey === 'string' && merged.sbKey.trim()
@@ -3157,13 +3206,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         let cloudPushWaiters = [];
         let isCloudPushInFlight = false;
         let lastLocalMutationAt = 0;
-        let offlineSyncQueue = readStoredJson('wmsOfflineSyncQueueV1', []);
+        let cloudBootstrapComplete = false;
+        let cloudSyncLastError = '';
+        let cloudLastSyncedSnapshot = null;
+        let cloudPreBootstrapLocalSnapshot = null;
+        let offlineSyncQueue = readStoredJson('wmsOfflineSyncQueueV2', []);
         if (!Array.isArray(offlineSyncQueue)) offlineSyncQueue = [];
         offlineSyncQueue = offlineSyncQueue.filter(item => isPlainObject(item) && typeof item.id === 'string');
 
         function persistOfflineSyncQueue() {
             try {
-                localStorage.setItem('wmsOfflineSyncQueueV1', JSON.stringify(offlineSyncQueue));
+                localStorage.setItem('wmsOfflineSyncQueueV2', JSON.stringify(offlineSyncQueue));
             } catch (e) {
                 console.warn('Could not persist the offline sync queue:', e);
             }
@@ -3184,21 +3237,53 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const badge = document.getElementById('offline-queue-badge');
             const dot = document.getElementById('offline-queue-dot');
             const txt = document.getElementById('offline-queue-text');
+            const noteTemplateBadge = document.getElementById('note-tpl-sync-badge');
             if (!badge || !dot || !txt) return;
+            const setTemplateBadge = (label, className) => {
+                if (!noteTemplateBadge) return;
+                noteTemplateBadge.innerText = `● ${label}`;
+                noteTemplateBadge.className = `text-[10px] font-mono ${className}`;
+            };
             const isOnline = navigator.onLine !== false;
+            const cloudEnabled = cloudSyncConfig && cloudSyncConfig.provider !== 'none';
             const count = offlineSyncQueue.length;
+
             if (!isOnline) {
                 badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400';
                 dot.className = 'h-2 w-2 rounded-full bg-rose-500 animate-pulse';
                 txt.innerText = `Offline (${count})`;
+                badge.title = 'The device is offline. Changes remain on this device until cloud connectivity returns.';
+                setTemplateBadge('Offline', 'text-rose-400');
+            } else if (!cloudEnabled) {
+                badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-zinc-500/15 text-zinc-400';
+                dot.className = 'h-2 w-2 rounded-full bg-zinc-400';
+                txt.innerText = `Local only (${count})`;
+                badge.title = 'Cloud sync is disabled. Data is stored only in this browser.';
+                setTemplateBadge('Local Only', 'text-zinc-400');
+            } else if (cloudSyncLastError) {
+                badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400';
+                dot.className = 'h-2 w-2 rounded-full bg-rose-500 animate-pulse';
+                txt.innerText = count ? `Cloud error (${count})` : 'Cloud unavailable';
+                badge.title = cloudSyncLastError;
+                setTemplateBadge('Cloud Error', 'text-rose-400');
+            } else if (!cloudBootstrapComplete) {
+                badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400';
+                dot.className = 'h-2 w-2 rounded-full bg-amber-400 animate-pulse';
+                txt.innerText = count ? `Pending: ${count}` : 'Connecting...';
+                badge.title = 'Waiting for the shared server state. A cloud save is not confirmed yet.';
+                setTemplateBadge('Connecting', 'text-amber-400');
             } else if (count > 0) {
                 badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400';
                 dot.className = 'h-2 w-2 rounded-full bg-amber-400 animate-pulse';
                 txt.innerText = `Pending: ${count}`;
+                badge.title = 'Some changes are waiting to be confirmed by the shared cloud.';
+                setTemplateBadge('Saving...', 'text-amber-400');
             } else {
                 badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500';
                 dot.className = 'h-2 w-2 rounded-full bg-emerald-500';
                 txt.innerText = 'Synced (0)';
+                badge.title = 'The shared cloud snapshot has been loaded and there are no pending changes.';
+                setTemplateBadge('Cloud Saved', 'text-emerald-400');
             }
         }
 
@@ -3208,35 +3293,39 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             try {
                 if (navigator.onLine === false) {
                     updateOfflineQueueBadge();
-                    showToast(`Device offline — ${offlineSyncQueue.length} change(s) queued safely.`);
+                    showToast(`Device offline — ${offlineSyncQueue.length} change(s) remain on this device.`);
                     return;
                 }
                 if (cloudSyncConfig.provider === 'none') {
                     updateCloudStatusUI('local', 'Local Cache');
-                    showToast('Cloud sync is disabled. Local data remains saved on this device.');
+                    showToast('Cloud sync is disabled.');
+                    return;
+                }
+                const pulled = await pullStateFromCloud(true);
+                if (!pulled) {
+                    showToast('Cloud not confirmed. Local data was not uploaded over the shared copy.');
                     return;
                 }
                 if (offlineSyncQueue.length > 0) {
                     const pushed = await pushStateToCloud(true);
                     if (!pushed || offlineSyncQueue.length > 0) {
-                        showToast('Local changes are still queued. Cloud data was not pulled to protect them.');
+                        showToast('Some local changes remain queued.');
                         return;
                     }
                 }
-                await pullStateFromCloud(true);
                 updateOfflineQueueBadge();
             } finally {
                 if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
             }
         }
 
-        window.addEventListener('online', () => {
+        window.addEventListener('online', async () => {
             updateOfflineQueueBadge();
-            if (offlineSyncQueue.length > 0) {
-                pushStateToCloud(true);
-            } else {
-                pullStateFromCloud(false);
-            }
+            if (cloudSyncConfig.provider === 'none') return;
+            // Reconcile with the server first. Never upload a browser cache merely because
+            // the browser reports that it has come back online.
+            await pullStateFromCloud(false);
+            if (cloudBootstrapComplete && offlineSyncQueue.length > 0) await pushStateToCloud(true);
         });
         window.addEventListener('offline', () => {
             updateOfflineQueueBadge();
@@ -3256,7 +3345,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 try { localStorage.setItem('wmsLastCloudSyncTsV1', nowStr); } catch (e) {}
                 tsEl.innerText = `Cloud (${label}): ${nowStr}`;
             } else if (tsEl) {
-                const prevTs = localStorage.getItem('wmsLastCloudSyncTsV1');
+                const prevTs = readStoredText('wmsLastCloudSyncTsV1', '');
                 if (prevTs) tsEl.innerText = `Cloud (${label}): ${prevTs}`;
                 else tsEl.innerText = `Cloud (${label})`;
             }
@@ -3301,16 +3390,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             filter: `id=eq.${escapeRealtimeFilterValue(room)}`
                         }, (payload) => {
                             const nextRow = payload && payload.new;
-                            if (!nextRow || !nextRow.payload) return;
-                            if (isCloudPushInFlight || cloudPullPromise || offlineSyncQueue.length > 0 || (Date.now() - lastLocalMutationAt) < 4000) return;
-                            applySharedStateSnapshot(nextRow.payload);
-                            updateCloudStatusUI('synced', 'Cloud Synced');
+                            if (!nextRow || !nextRow.payload || !cloudBootstrapComplete) return;
+                            // Pull/merge instead of blindly applying an event; this protects local edits
+                            // made after the last successful cloud snapshot.
+                            if (isCloudPushInFlight || cloudPullPromise) return;
+                            pullStateFromCloud(false);
                         });
                     supabaseRealtimeChannel = channel;
                     channel.subscribe((status, error) => {
                         if (supabaseRealtimeChannel !== channel) return;
                         if (status === 'SUBSCRIBED') {
-                            updateCloudStatusUI('synced', 'Cloud Synced');
+                            updateCloudStatusUI('syncing', 'Realtime Connected');
                         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
                             console.warn('Supabase Realtime subscription status:', status, error || '');
                             updateCloudStatusUI('error', 'Realtime Unavailable');
@@ -3325,13 +3415,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             // Polling remains as a fallback for webhook endpoints and Realtime outages.
             cloudPollInterval = setInterval(() => {
                 if (document.visibilityState === 'visible') pullStateFromCloud(false);
-            }, 10000);
+            }, 5000);
         }
 
         function initCloudClient() {
             stopCloudSubscriptions();
             cloudSyncConfig = loadPersistedCloudConfig();
-            try { localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig)); } catch (e) {}
+            try { localStorage.setItem('wmsCloudSyncConfigV2', JSON.stringify(cloudSyncConfig)); } catch (e) {}
+            cloudBootstrapComplete = cloudSyncConfig.provider === 'none';
+            cloudSyncLastError = '';
+            updateOfflineQueueBadge();
             supabaseClientInstance = null;
 
             if (cloudSyncConfig.provider === 'none') {
@@ -3347,13 +3440,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     if (!window.supabase || typeof window.supabase.createClient !== 'function') {
                         throw new Error('The Supabase client library did not load.');
                     }
-                    supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey);
+                    supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey, {
+                        global: { fetch: (input, options = {}) => fetch(input, { ...options, cache: 'no-store' }) }
+                    });
                     updateCloudStatusUI('syncing', 'Connecting Cloud...');
                     subscribeToRealtimeCloudSync();
                 } catch (e) {
                     console.warn('Supabase setup failed:', e);
                     supabaseClientInstance = null;
+                    cloudSyncLastError = e && e.message ? e.message : String(e || 'Supabase setup failed');
                     updateCloudStatusUI('error', 'Cloud Setup Error');
+                    updateOfflineQueueBadge();
                 }
                 return;
             }
@@ -3366,7 +3463,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     subscribeToRealtimeCloudSync();
                 } catch (e) {
                     console.warn('Webhook setup failed:', e);
+                    cloudSyncLastError = e && e.message ? e.message : String(e || 'Webhook setup failed');
                     updateCloudStatusUI('error', 'API Setup Error');
+                    updateOfflineQueueBadge();
                 }
                 return;
             }
@@ -3374,7 +3473,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             updateCloudStatusUI('local', 'Local Cache');
         }
 
-        let cloudAdminPassHash = localStorage.getItem('wmsCloudAdminPassHashV1') || '';
+        let cloudAdminPassHash = readStoredText('wmsCloudAdminPassHashV1', '');
 
         async function openCloudSyncModal() {
             if (!cloudAdminPassHash) {
@@ -3384,7 +3483,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     return;
                 }
                 cloudAdminPassHash = await hashPasswordText(setupPass.trim());
-                localStorage.setItem('wmsCloudAdminPassHashV1', cloudAdminPassHash);
+                safeLocalCacheWrite('wmsCloudAdminPassHashV1', cloudAdminPassHash);
                 showToast("Cloud Sync password set!");
             } else {
                 const entered = prompt("Enter Cloud Sync password:");
@@ -3427,6 +3526,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 showToast('Choose a valid cloud sync provider.');
                 return;
             }
+            const prevIdentity = currentCloudConfigIdentity();
             const prev = loadPersistedCloudConfig();
             const nextConfig = {
                 provider: chosenProvider,
@@ -3451,25 +3551,41 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
 
             cloudSyncConfig = nextConfig;
-            try { localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig)); }
+            try { localStorage.setItem('wmsCloudSyncConfigV2', JSON.stringify(cloudSyncConfig)); }
             catch (e) { showToast('Could not save cloud settings in this browser.'); return; }
-            initCloudClient();
-            closeCloudSyncModal();
 
+            const nextIdentity = currentCloudConfigIdentity();
+            const changedRoom = stableCloudJson(prevIdentity) !== stableCloudJson(nextIdentity);
+            if (changedRoom) {
+                cloudLastSyncedSnapshot = null;
+                cloudPreBootstrapLocalSnapshot = null;
+                offlineSyncQueue = [];
+                cloudPushRequested = false;
+                try {
+                    localStorage.removeItem('wmsCloudBaseSnapshotV2');
+                    localStorage.removeItem('wmsCloudBaseIdentityV2');
+                } catch (e) {}
+                persistOfflineSyncQueue();
+            }
+
+            initCloudClient();
+            restoreCloudBaseForCurrentConfig();
+            closeCloudSyncModal();
             if (cloudSyncConfig.provider !== 'none') {
-                if (offlineSyncQueue.length > 0) {
-                    const pushed = await pushStateToCloud(true);
-                    if (!pushed) {
-                        showToast('Settings saved. Local changes remain queued until cloud access is restored.');
-                        return;
-                    }
-                }
-                const pulled = await pullStateFromCloud(true);
-                if (pulled) await pushStateToCloud(true);
+                // The newly selected room is authoritative. Do not upload the previous room's cache.
+                const loaded = await pullStateFromCloud(true);
+                if (!loaded) showToast('Settings saved, but cloud access is not ready. Check the database setup and permissions.');
+            } else {
+                cloudBootstrapComplete = true;
+                showToast('Local-only mode enabled.');
             }
         }
 
         function buildSharedStateSnapshot() {
+            // Keep the in-memory mutation clock authoritative when browser storage is blocked
+            // (notably private/incognito modes). LocalStorage is only a persistence fallback.
+            const persistedMutationTs = Number(readStoredJson('wmsLastLocalMutationAtV1', 0)) || 0;
+            const localMutationTs = Math.max(Number(lastLocalMutationAt) || 0, persistedMutationTs);
             return {
                 todoStoreByUser,
                 userPasswordsMap,
@@ -3480,8 +3596,193 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 hiddenBuiltinNoteTemplates,
                 activeNoteIdByUser,
                 allShiftPresets,
-                updatedAt: new Date().toISOString()
+                updatedAt: localMutationTs ? new Date(localMutationTs).toISOString() : new Date(0).toISOString()
             };
+        }
+
+        function cloneCloudJson(value) {
+            if (value === undefined) return undefined;
+            return JSON.parse(JSON.stringify(value));
+        }
+
+        function stableCloudJson(value) {
+            if (Array.isArray(value)) return '[' + value.map(stableCloudJson).join(',') + ']';
+            if (isPlainObject(value)) {
+                return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + stableCloudJson(value[key])).join(',') + '}';
+            }
+            return JSON.stringify(value);
+        }
+
+        function cloudJsonEqual(a, b) {
+            return stableCloudJson(a) === stableCloudJson(b);
+        }
+
+        function cloudSnapshotDataEqual(a, b) {
+            if (!isPlainObject(a) || !isPlainObject(b)) return cloudJsonEqual(a, b);
+            const left = { ...a }, right = { ...b };
+            delete left.updatedAt;
+            delete right.updatedAt;
+            return cloudJsonEqual(left, right);
+        }
+
+        function snapshotTime(value) {
+            const parsed = value && value.updatedAt ? Date.parse(value.updatedAt) : 0;
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function mergeCloudArrayById(base, local, remote, localWins) {
+            const baseMap = new Map((base || []).filter(x => isPlainObject(x) && typeof x.id === 'string').map(x => [x.id, x]));
+            const localMap = new Map((local || []).filter(x => isPlainObject(x) && typeof x.id === 'string').map(x => [x.id, x]));
+            const remoteMap = new Map((remote || []).filter(x => isPlainObject(x) && typeof x.id === 'string').map(x => [x.id, x]));
+            const orderedIds = [...new Set([...(remote || []).map(x => x?.id).filter(Boolean), ...(local || []).map(x => x?.id).filter(Boolean), ...(base || []).map(x => x?.id).filter(Boolean)])];
+            const result = [];
+
+            for (const id of orderedIds) {
+                const hasBase = baseMap.has(id), hasLocal = localMap.has(id), hasRemote = remoteMap.has(id);
+                const b = baseMap.get(id), l = localMap.get(id), r = remoteMap.get(id);
+                if (hasBase && !hasLocal) {
+                    if (!hasRemote) continue;
+                    if (!cloudJsonEqual(r, b) && !localWins) result.push(cloneCloudJson(r));
+                    continue;
+                }
+                if (hasBase && !hasRemote) {
+                    if (hasLocal && !cloudJsonEqual(l, b) && localWins) result.push(cloneCloudJson(l));
+                    continue;
+                }
+                if (!hasLocal && !hasRemote) continue;
+                if (hasLocal && !hasRemote) { result.push(cloneCloudJson(l)); continue; }
+                if (!hasLocal && hasRemote) { result.push(cloneCloudJson(r)); continue; }
+                result.push(mergeCloudJsonValue(hasBase ? b : undefined, l, r, localWins));
+            }
+            return result;
+        }
+
+        function mergeCloudSetArray(base, local, remote, localWins) {
+            const bSet = new Set(Array.isArray(base) ? base : []);
+            const lSet = new Set(Array.isArray(local) ? local : []);
+            const rSet = new Set(Array.isArray(remote) ? remote : []);
+            const all = [...new Set([...(Array.isArray(remote) ? remote : []), ...(Array.isArray(local) ? local : [])])];
+            return all.filter(value => {
+                const b = bSet.has(value), l = lSet.has(value), r = rSet.has(value);
+                if (l === b) return r;
+                if (r === b) return l;
+                return localWins ? l : r;
+            });
+        }
+
+        function mergeCloudJsonValue(base, local, remote, localWins) {
+            if (cloudJsonEqual(local, base)) return cloneCloudJson(remote);
+            if (cloudJsonEqual(remote, base)) return cloneCloudJson(local);
+
+            if (Array.isArray(local) && Array.isArray(remote)) {
+                const combined = [...(Array.isArray(base) ? base : []), ...local, ...remote];
+                const idRecords = combined.filter(x => x !== null && x !== undefined);
+                if (idRecords.length && idRecords.every(x => isPlainObject(x) && typeof x.id === 'string')) {
+                    return mergeCloudArrayById(Array.isArray(base) ? base : [], local, remote, localWins);
+                }
+                if (combined.every(x => typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean')) {
+                    return mergeCloudSetArray(base, local, remote, localWins);
+                }
+                return cloneCloudJson(localWins ? local : remote);
+            }
+
+            if (isPlainObject(local) && isPlainObject(remote)) {
+                const baseObject = isPlainObject(base) ? base : {};
+                const result = {};
+                const keys = new Set([...Object.keys(baseObject), ...Object.keys(local), ...Object.keys(remote)]);
+                for (const key of keys) {
+                    const hasB = Object.prototype.hasOwnProperty.call(baseObject, key);
+                    const hasL = Object.prototype.hasOwnProperty.call(local, key);
+                    const hasR = Object.prototype.hasOwnProperty.call(remote, key);
+                    const b = baseObject[key], l = local[key], r = remote[key];
+
+                    if (hasB && !hasL) {
+                        if (!hasR) continue;
+                        if (!cloudJsonEqual(r, b) && !localWins) result[key] = cloneCloudJson(r);
+                        continue;
+                    }
+                    if (hasB && !hasR) {
+                        if (hasL && !cloudJsonEqual(l, b) && localWins) result[key] = cloneCloudJson(l);
+                        continue;
+                    }
+                    if (!hasL && !hasR) continue;
+                    if (hasL && !hasR) { result[key] = cloneCloudJson(l); continue; }
+                    if (!hasL && hasR) { result[key] = cloneCloudJson(r); continue; }
+                    result[key] = mergeCloudJsonValue(hasB ? b : undefined, l, r, localWins);
+                }
+                return result;
+            }
+
+            return cloneCloudJson(localWins ? local : remote);
+        }
+
+        function mergeCloudSnapshots(base, local, remote) {
+            const localWins = snapshotTime(local) >= snapshotTime(remote);
+            const merged = mergeCloudJsonValue(base || {}, local || {}, remote || {}, localWins);
+            if (!isPlainObject(merged)) return cloneCloudJson(remote || {});
+            merged.updatedAt = localWins ? (local?.updatedAt || remote?.updatedAt || new Date().toISOString())
+                : (remote?.updatedAt || local?.updatedAt || new Date().toISOString());
+            return merged;
+        }
+
+        function currentCloudConfigIdentity() {
+            return {
+                provider: cloudSyncConfig.provider,
+                roomId: cloudSyncConfig.roomId || 'bleckmann-main',
+                endpoint: cloudSyncConfig.provider === 'supabase'
+                    ? (cloudSyncConfig.sbUrl || '') : (cloudSyncConfig.webhookUrl || '')
+            };
+        }
+
+        function restoreCloudBaseForCurrentConfig() {
+            const current = currentCloudConfigIdentity();
+            const savedIdentity = readStoredJson('wmsCloudBaseIdentityV2', null);
+            const identityMatches = isPlainObject(savedIdentity)
+                && savedIdentity.provider === current.provider
+                && savedIdentity.roomId === current.roomId
+                && savedIdentity.endpoint === current.endpoint;
+            cloudLastSyncedSnapshot = identityMatches
+                ? readStoredJson('wmsCloudBaseSnapshotV2', null) : null;
+            if (!identityMatches) {
+                try {
+                    localStorage.removeItem('wmsCloudBaseSnapshotV2');
+                    localStorage.removeItem('wmsCloudBaseIdentityV2');
+                } catch (e) {}
+            }
+        }
+
+        function persistCloudBaseSnapshot(snapshot) {
+            cloudLastSyncedSnapshot = cloneCloudJson(snapshot);
+            try {
+                localStorage.setItem('wmsCloudBaseSnapshotV2', JSON.stringify(cloudLastSyncedSnapshot));
+                localStorage.setItem('wmsCloudBaseIdentityV2', JSON.stringify(currentCloudConfigIdentity()));
+            } catch (e) { console.warn('Could not persist cloud sync baseline:', e); }
+        }
+
+        async function readCloudSnapshotFromProvider() {
+            if (cloudSyncConfig.provider === 'supabase') {
+                if (!supabaseClientInstance) throw new Error('Supabase client is not ready. Check the project URL and publishable key.');
+                const { data, error } = await supabaseClientInstance
+                    .from('wms_shared_state')
+                    .select('payload,updated_at')
+                    .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
+                    .maybeSingle();
+                if (error) throw error;
+                return data ? { payload: data.payload, updatedAt: data.updated_at, row: data } : null;
+            }
+
+            if (cloudSyncConfig.provider === 'webhook') {
+                if (!cloudSyncConfig.webhookUrl) throw new Error('The JSON REST endpoint URL is missing.');
+                const url = new URL(cloudSyncConfig.webhookUrl);
+                url.searchParams.set('roomId', cloudSyncConfig.roomId || 'bleckmann-main');
+                const response = await fetch(url.toString(), { method: 'GET', cache: 'no-store', headers: { 'Accept': 'application/json' } });
+                if (response.status === 404) return null;
+                if (!response.ok) throw new Error('Cloud GET failed: HTTP ' + response.status);
+                const json = await response.json();
+                const payload = isPlainObject(json) && Object.prototype.hasOwnProperty.call(json, 'payload') ? json.payload : json;
+                return payload ? { payload, updatedAt: json?.updated_at || payload?.updatedAt || null, row: json } : null;
+            }
+            return null;
         }
 
         function applySharedStateSnapshot(snap) {
@@ -3490,49 +3791,61 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
             if (isPlainObject(snap.todoStoreByUser)) {
                 todoStoreByUser = snap.todoStoreByUser;
-                localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+                safeLocalCacheWrite('wmsShiftTodosByUserV2', todoStoreByUser);
                 applied = true;
             }
             if (isPlainObject(snap.userPasswordsMap)) {
                 userPasswordsMap = snap.userPasswordsMap;
-                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
                 applied = true;
             }
             if (isPlainObject(snap.savedTodoBatchesByUser)) {
                 savedTodoBatchesByUser = snap.savedTodoBatchesByUser;
-                localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
+                safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
                 applied = true;
             }
             if (isPlainObject(snap.iphoneNotesByUser)) {
                 iphoneNotesByUser = snap.iphoneNotesByUser;
-                localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+                safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
                 applied = true;
             }
             if (isPlainObject(snap.customUserShiftBatches)) {
                 customUserShiftBatches = snap.customUserShiftBatches;
-                localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
+                safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
                 applied = true;
             }
             if (isPlainObject(snap.savedNoteTemplates)) {
                 savedNoteTemplates = snap.savedNoteTemplates;
-                localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
+                safeLocalCacheWrite('wmsPermanentNoteTemplatesV1', savedNoteTemplates);
                 renderNoteTemplatesDropdown();
+                const activeTemplateIsCustom = activeSelectedTemplateId && activeSelectedTemplateId.startsWith('custom:');
+                const activeTemplateIsBuiltin = ['asendia', 'nc_rack', 'packing'].includes(activeSelectedTemplateId);
+                const noteBody = document.getElementById('a4-word-body');
+                const userIsEditingNote = noteBody && noteBody.contains(document.activeElement);
+                const customKey = activeTemplateIsCustom ? activeSelectedTemplateId.slice(7) : null;
+                const builtinOverrideKey = activeTemplateIsBuiltin ? `__builtin__:${activeSelectedTemplateId}` : null;
+                const hasActiveSavedVersion = (customKey && Object.prototype.hasOwnProperty.call(savedNoteTemplates, customKey))
+                    || (builtinOverrideKey && Object.prototype.hasOwnProperty.call(savedNoteTemplates, builtinOverrideKey));
+                if (hasActiveSavedVersion && !userIsEditingNote) {
+                    applyDispatchTemplate(activeSelectedTemplateId);
+                    autoFitA4Content();
+                }
                 applied = true;
             }
             if (Array.isArray(snap.hiddenBuiltinNoteTemplates)) {
                 hiddenBuiltinNoteTemplates = snap.hiddenBuiltinNoteTemplates.filter(key => typeof key === 'string');
-                localStorage.setItem('wmsHiddenBuiltinNoteTemplatesV1', JSON.stringify(hiddenBuiltinNoteTemplates));
+                safeLocalCacheWrite('wmsHiddenBuiltinNoteTemplatesV1', hiddenBuiltinNoteTemplates);
                 renderNoteTemplatesDropdown();
                 applied = true;
             }
             if (isPlainObject(snap.activeNoteIdByUser)) {
                 activeNoteIdByUser = snap.activeNoteIdByUser;
-                localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+                safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
                 applied = true;
             }
             if (isPlainObject(snap.allShiftPresets)) {
                 allShiftPresets = snap.allShiftPresets;
-                localStorage.setItem('wmsAllShiftPresetsV1', JSON.stringify(allShiftPresets));
+                safeLocalCacheWrite('wmsAllShiftPresetsV1', allShiftPresets);
                 shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF || shiftBatchConfig;
                 renderShiftBatchPills();
                 applied = true;
@@ -3545,11 +3858,77 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             return applied;
         }
 
+        async function writeMergedSnapshotToCloud(localSnapshot, queuedIds) {
+            const maxAttempts = cloudSyncConfig.provider === 'supabase' ? 6 : 1;
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const latestRow = await readCloudSnapshotFromProvider();
+                const remoteSnapshot = latestRow && isPlainObject(latestRow.payload) ? latestRow.payload : null;
+                const baseline = isPlainObject(cloudLastSyncedSnapshot) ? cloudLastSyncedSnapshot : (remoteSnapshot || {});
+                let mergedSnapshot = remoteSnapshot
+                    ? mergeCloudSnapshots(baseline, localSnapshot, remoteSnapshot)
+                    : cloneCloudJson(localSnapshot);
+                mergedSnapshot.updatedAt = new Date().toISOString();
+
+                if (remoteSnapshot && cloudSnapshotDataEqual(mergedSnapshot, remoteSnapshot)) {
+                    persistCloudBaseSnapshot(remoteSnapshot);
+                    return { ok: true, snapshot: remoteSnapshot, updatedAt: latestRow.updatedAt };
+                }
+
+                if (cloudSyncConfig.provider === 'supabase') {
+                    if (!latestRow) {
+                        const { data, error } = await supabaseClientInstance
+                            .from('wms_shared_state')
+                            .insert({ id: cloudSyncConfig.roomId || 'bleckmann-main', payload: mergedSnapshot, updated_at: mergedSnapshot.updatedAt })
+                            .select('payload,updated_at')
+                            .maybeSingle();
+                        if (error) {
+                            if (error.code === '23505' && attempt < maxAttempts - 1) continue;
+                            throw error;
+                        }
+                        const stored = data?.payload || mergedSnapshot;
+                        persistCloudBaseSnapshot(stored);
+                        return { ok: true, snapshot: stored, updatedAt: data?.updated_at || mergedSnapshot.updatedAt };
+                    }
+
+                    const { data, error } = await supabaseClientInstance
+                        .from('wms_shared_state')
+                        .update({ payload: mergedSnapshot, updated_at: mergedSnapshot.updatedAt })
+                        .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
+                        .eq('updated_at', latestRow.updatedAt)
+                        .select('payload,updated_at')
+                        .maybeSingle();
+                    if (error) throw error;
+                    if (!data) {
+                        if (attempt < maxAttempts - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 40 * (attempt + 1)));
+                            continue;
+                        }
+                        throw new Error('Cloud data changed repeatedly during save. Please retry sync.');
+                    }
+                    persistCloudBaseSnapshot(data.payload || mergedSnapshot);
+                    return { ok: true, snapshot: data.payload || mergedSnapshot, updatedAt: data.updated_at };
+                }
+
+                if (cloudSyncConfig.provider === 'webhook') {
+                    const response = await fetch(cloudSyncConfig.webhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        cache: 'no-store',
+                        body: JSON.stringify({ roomId: cloudSyncConfig.roomId || 'bleckmann-main', payload: mergedSnapshot, updated_at: mergedSnapshot.updatedAt })
+                    });
+                    if (!response.ok) throw new Error('Cloud POST failed: HTTP ' + response.status);
+                    persistCloudBaseSnapshot(mergedSnapshot);
+                    return { ok: true, snapshot: mergedSnapshot, updatedAt: mergedSnapshot.updatedAt };
+                }
+            }
+            throw new Error('Cloud save did not complete.');
+        }
+
         async function flushCloudPushQueue() {
             if (cloudPushPromise) return cloudPushPromise;
+            if (!cloudBootstrapComplete) return false;
 
             cloudPushPromise = (async () => {
-                // Yield once so the shared promise is assigned before any fast failure path runs.
                 await Promise.resolve();
                 let succeeded = true;
                 isCloudPushInFlight = true;
@@ -3564,46 +3943,36 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         }
 
                         const queuedBatch = offlineSyncQueue.slice();
-                        const payload = buildSharedStateSnapshot();
-                        updateCloudStatusUI('syncing', 'Syncing...');
-
-                        if (cloudSyncConfig.provider === 'supabase') {
-                            if (!supabaseClientInstance) throw new Error('Supabase is not configured or the client failed to initialize.');
-                            const { error } = await supabaseClientInstance
-                                .from('wms_shared_state')
-                                .upsert({
-                                    id: cloudSyncConfig.roomId || 'bleckmann-main',
-                                    payload,
-                                    updated_at: new Date().toISOString()
-                                });
-                            if (error) throw error;
-                        } else if (cloudSyncConfig.provider === 'webhook') {
-                            if (!cloudSyncConfig.webhookUrl) throw new Error('The JSON REST endpoint URL is missing.');
-                            const response = await fetch(cloudSyncConfig.webhookUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                cache: 'no-store',
-                                body: JSON.stringify({
-                                    roomId: cloudSyncConfig.roomId || 'bleckmann-main',
-                                    payload
-                                })
-                            });
-                            if (!response.ok) throw new Error('HTTP ' + response.status);
-                        } else {
-                            throw new Error('Cloud sync is not enabled for the selected provider.');
-                        }
-
                         const sentIds = new Set(queuedBatch.map(item => item.id));
+                        const localAtStart = buildSharedStateSnapshot();
+                        updateCloudStatusUI('syncing', 'Saving Shared Data...');
+                        const result = await writeMergedSnapshotToCloud(localAtStart, sentIds);
+
+                        const liveAfterRequest = buildSharedStateSnapshot();
+                        // A mutation made after localAtStart must survive this request even if the
+                        // server write timestamp is later than the keystroke timestamp.
+                        const rebased = mergeCloudJsonValue(localAtStart, liveAfterRequest, result.snapshot, true);
+                        if (isPlainObject(rebased)) rebased.updatedAt = liveAfterRequest.updatedAt || result.snapshot.updatedAt;
+                        applySharedStateSnapshot(rebased);
                         offlineSyncQueue = offlineSyncQueue.filter(item => !sentIds.has(item.id));
                         persistOfflineSyncQueue();
+                        cloudSyncLastError = '';
                         updateCloudStatusUI('synced', cloudSyncConfig.provider === 'webhook' ? 'API Synced' : 'Cloud Synced');
+                        updateOfflineQueueBadge();
+
+                        if (!cloudSnapshotDataEqual(rebased, result.snapshot) && offlineSyncQueue.length === 0) {
+                            enqueueOfflineSyncChange('Concurrent Local Edit');
+                            cloudPushRequested = true;
+                        }
                     }
                 } catch (e) {
                     succeeded = false;
                     cloudPushRequested = false;
                     console.warn('Cloud push failed; local changes remain queued:', e);
-                    updateCloudStatusUI('error', 'Offline Cache');
+                    cloudSyncLastError = e && e.message ? e.message : String(e || 'Cloud save failed');
+                    updateCloudStatusUI('error', 'Cloud Save Failed');
                     updateOfflineQueueBadge();
+                    if (typeof showToast === 'function') showToast('Cloud save failed. Your local copy was kept; check Cloud Sync settings and database permissions.');
                 } finally {
                     isCloudPushInFlight = false;
                     cloudPushPromise = null;
@@ -3620,10 +3989,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (cloudSyncConfig.provider === 'none') return Promise.resolve(true);
 
             lastLocalMutationAt = Date.now();
+            try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
             enqueueOfflineSyncChange('State Change');
             cloudPushRequested = true;
             clearTimeout(cloudSyncTimer);
             cloudSyncTimer = null;
+
+            if (!cloudBootstrapComplete) {
+                updateCloudStatusUI('syncing', 'Waiting for Cloud Load...');
+                return Promise.resolve(false);
+            }
 
             const completion = new Promise(resolve => cloudPushWaiters.push(resolve));
             if (cloudPushPromise) return completion;
@@ -3633,71 +4008,123 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 cloudSyncTimer = setTimeout(() => {
                     cloudSyncTimer = null;
                     flushCloudPushQueue();
-                }, 600);
+                }, 500);
             }
             return completion;
         }
 
         async function pullStateFromCloud(notify = false) {
-            if (cloudSyncConfig.provider === 'none') return true;
+            if (cloudSyncConfig.provider === 'none') {
+                cloudBootstrapComplete = true;
+                return true;
+            }
             if (navigator.onLine === false) {
                 updateCloudStatusUI('error', 'Offline Cache');
-                if (notify) showToast('Device offline. Local data is unchanged.');
+                if (notify) showToast('Device offline. Local data remains on this device only.');
                 return false;
             }
-            if (isCloudPushInFlight || offlineSyncQueue.length > 0) {
-                if (notify) showToast('Pending local changes must sync before pulling cloud data.');
-                return false;
-            }
-            if (!notify && (Date.now() - lastLocalMutationAt) < 4000) return false;
-            if (cloudPullPromise) return cloudPullPromise;
+            if (isCloudPushInFlight || cloudPullPromise) return cloudPullPromise || false;
 
-            const mutationAtStart = lastLocalMutationAt;
             cloudPullPromise = (async () => {
-                // Yield once so concurrent pulls share the same promise, even on setup errors.
-                await Promise.resolve();
+                let shouldPushMergedLocal = false;
                 try {
-                    updateCloudStatusUI('syncing', 'Pulling...');
-                    let snapshot = null;
-                    if (cloudSyncConfig.provider === 'supabase') {
-                        if (!supabaseClientInstance) throw new Error('Supabase is not configured or the client failed to initialize.');
-                        const { data, error } = await supabaseClientInstance
-                            .from('wms_shared_state')
-                            .select('payload')
-                            .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
-                            .maybeSingle();
-                        if (error) throw error;
-                        snapshot = data && data.payload ? data.payload : null;
-                    } else if (cloudSyncConfig.provider === 'webhook') {
-                        if (!cloudSyncConfig.webhookUrl) throw new Error('The JSON REST endpoint URL is missing.');
-                        const url = new URL(cloudSyncConfig.webhookUrl);
-                        url.searchParams.set('roomId', cloudSyncConfig.roomId || 'bleckmann-main');
-                        const response = await fetch(url.toString(), { method: 'GET', cache: 'no-store' });
-                        if (!response.ok) throw new Error('HTTP ' + response.status);
-                        const json = await response.json();
-                        snapshot = json && isPlainObject(json) && Object.prototype.hasOwnProperty.call(json, 'payload')
-                            ? json.payload : json;
+                    updateCloudStatusUI('syncing', 'Loading Shared Data...');
+                    const row = await readCloudSnapshotFromProvider();
+                    const localSnapshot = buildSharedStateSnapshot();
+                    const queueIdsIncludedInSnapshot = new Set(offlineSyncQueue.map(item => item.id));
+
+                    if (row && isPlainObject(row.payload)) {
+                        const remoteSnapshot = row.payload;
+                        // A persisted cloud baseline tracks genuine offline edits. If none exists,
+                        // this browser's older cache is untrusted and the server wins outright.
+                        const baseline = isPlainObject(cloudLastSyncedSnapshot)
+                            ? cloudLastSyncedSnapshot
+                            : (isPlainObject(cloudPreBootstrapLocalSnapshot) ? cloudPreBootstrapLocalSnapshot : null);
+                        const reconciled = baseline
+                            ? mergeCloudSnapshots(baseline, localSnapshot, remoteSnapshot)
+                            : cloneCloudJson(remoteSnapshot);
+                        // Any queued changes captured in localSnapshot have now been reconciled.
+                        offlineSyncQueue = offlineSyncQueue.filter(item => !queueIdsIncludedInSnapshot.has(item.id));
+                        persistOfflineSyncQueue();
+
+                        persistCloudBaseSnapshot(remoteSnapshot);
+                        applySharedStateSnapshot(reconciled);
+                        cloudBootstrapComplete = true;
+                        cloudPreBootstrapLocalSnapshot = null;
+                        if (!cloudSnapshotDataEqual(reconciled, remoteSnapshot)) shouldPushMergedLocal = true;
                     } else {
-                        throw new Error('Unknown cloud sync provider.');
+                        // First use of this shared room: create its row once. An INSERT (not upsert)
+                        // prevents a second browser from replacing the first browser's new room state.
+                        const initialSnapshot = cloneCloudJson(localSnapshot);
+                        initialSnapshot.updatedAt = new Date().toISOString();
+                        if (cloudSyncConfig.provider === 'supabase') {
+                            const { data, error } = await supabaseClientInstance
+                                .from('wms_shared_state')
+                                .insert({ id: cloudSyncConfig.roomId || 'bleckmann-main', payload: initialSnapshot, updated_at: initialSnapshot.updatedAt })
+                                .select('payload,updated_at')
+                                .maybeSingle();
+                            if (error) {
+                                if (error.code === '23505') {
+                                    // A different browser initialized the room first. Fetch its copy.
+                                    const retryRow = await readCloudSnapshotFromProvider();
+                                    if (!retryRow?.payload) throw error;
+                                    const retryBaseline = isPlainObject(cloudPreBootstrapLocalSnapshot)
+                                        ? cloudPreBootstrapLocalSnapshot : retryRow.payload;
+                                    const retryMergedAtStart = mergeCloudSnapshots(retryBaseline, localSnapshot, retryRow.payload);
+                                    const retryLiveNow = buildSharedStateSnapshot();
+                                    const retryMerged = mergeCloudJsonValue(localSnapshot, retryLiveNow, retryMergedAtStart, true);
+                                    if (isPlainObject(retryMerged)) retryMerged.updatedAt = retryLiveNow.updatedAt || retryMergedAtStart.updatedAt;
+                                    persistCloudBaseSnapshot(retryRow.payload);
+                                    applySharedStateSnapshot(retryMerged);
+                                    if (!cloudSnapshotDataEqual(retryMerged, retryRow.payload)) shouldPushMergedLocal = true;
+                                } else {
+                                    throw error;
+                                }
+                            } else {
+                                const storedInitial = data?.payload || initialSnapshot;
+                                const liveAfterInsert = buildSharedStateSnapshot();
+                                const rebasedInitial = mergeCloudJsonValue(localSnapshot, liveAfterInsert, storedInitial, true);
+                                if (isPlainObject(rebasedInitial)) rebasedInitial.updatedAt = liveAfterInsert.updatedAt || storedInitial.updatedAt;
+                                persistCloudBaseSnapshot(storedInitial);
+                                applySharedStateSnapshot(rebasedInitial);
+                                if (!cloudSnapshotDataEqual(rebasedInitial, storedInitial)) shouldPushMergedLocal = true;
+                                offlineSyncQueue = offlineSyncQueue.filter(item => !queueIdsIncludedInSnapshot.has(item.id));
+                                persistOfflineSyncQueue();
+                            }
+                        } else {
+                            const response = await fetch(cloudSyncConfig.webhookUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                                cache: 'no-store',
+                                body: JSON.stringify({ roomId: cloudSyncConfig.roomId || 'bleckmann-main', payload: initialSnapshot, updated_at: initialSnapshot.updatedAt })
+                            });
+                            if (!response.ok) throw new Error('Cloud initialization failed: HTTP ' + response.status);
+                            persistCloudBaseSnapshot(initialSnapshot);
+                            applySharedStateSnapshot(initialSnapshot);
+                        }
+                        cloudBootstrapComplete = true;
+                        cloudPreBootstrapLocalSnapshot = null;
                     }
 
-                    // Do not let a response overwrite edits made while the request was in flight.
-                    if (isCloudPushInFlight || offlineSyncQueue.length > 0 || lastLocalMutationAt !== mutationAtStart) {
-                        updateOfflineQueueBadge();
-                        return false;
-                    }
-                    if (snapshot) applySharedStateSnapshot(snapshot);
+                    cloudSyncLastError = '';
                     updateCloudStatusUI('synced', cloudSyncConfig.provider === 'webhook' ? 'API Synced' : 'Cloud Synced');
-                    if (notify) showToast(cloudSyncConfig.provider === 'webhook'
-                        ? 'Synced latest shared data from API!' : 'Synced latest shared data from Cloud!');
+                    updateOfflineQueueBadge();
+                    if (notify) showToast('Shared reminders and Notes templates loaded from cloud.');
                     return true;
                 } catch (e) {
-                    console.warn('Cloud pull failed; local cache was kept:', e);
-                    updateCloudStatusUI('error', 'Offline Cache');
-                    if (notify) showToast('Cloud pull failed. Local data was kept.');
+                    console.warn('Cloud bootstrap/pull failed; local cache was not uploaded:', e);
+                    cloudSyncLastError = e && e.message ? e.message : String(e || 'Cloud connection failed');
+                    updateCloudStatusUI('error', 'Cloud Connection Failed');
+                    updateOfflineQueueBadge();
+                    if (notify) showToast('Cloud connection failed. Local cache was kept and was not uploaded.');
                     return false;
                 } finally {
                     cloudPullPromise = null;
+                    if (cloudBootstrapComplete && (shouldPushMergedLocal || offlineSyncQueue.length > 0)) {
+                        // Diff/reconciliation found edits made after the last cloud baseline,
+                        // or a previously failed save is still queued.
+                        pushStateToCloud(true);
+                    }
                 }
             })();
             return cloudPullPromise;
@@ -3713,7 +4140,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             return 'plain:' + raw;
         }
 
-        let todoStoreByUser = JSON.parse(localStorage.getItem('wmsShiftTodosByUserV2') || 'null');
+        let todoStoreByUser = readStoredJson('wmsShiftTodosByUserV2', null);
+        if (!isPlainObject(todoStoreByUser)) todoStoreByUser = null;
         if (!todoStoreByUser) {
             todoStoreByUser = {
                 Shash: [
@@ -3722,12 +4150,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 ]
             };
         }
-        let userPasswordsMap = JSON.parse(localStorage.getItem('wmsTodoUserPasswordsV1') || '{}');
-        let savedTodoBatchesByUser = JSON.parse(localStorage.getItem('wmsSavedTodoBatchesV1') || '{}');
+        let userPasswordsMap = readStoredJson('wmsTodoUserPasswordsV1', {});
+        if (!isPlainObject(userPasswordsMap)) userPasswordsMap = {};
+        let savedTodoBatchesByUser = readStoredJson('wmsSavedTodoBatchesV1', {});
+        if (!isPlainObject(savedTodoBatchesByUser)) savedTodoBatchesByUser = {};
         if (!savedTodoBatchesByUser.Shash) {
-            savedTodoBatchesByUser.Shash = JSON.parse(JSON.stringify(todoStoreByUser.Shash));
+            savedTodoBatchesByUser.Shash = Array.isArray(todoStoreByUser.Shash)
+                ? JSON.parse(JSON.stringify(todoStoreByUser.Shash)) : [];
         }
-        let iphoneNotesByUser = JSON.parse(localStorage.getItem('wmsIphoneNotesByUserV1') || '{}');
+        let iphoneNotesByUser = readStoredJson('wmsIphoneNotesByUserV1', {});
+        if (!isPlainObject(iphoneNotesByUser)) iphoneNotesByUser = {};
         let todoUndoStack = [];
 
         function pushTodoUndoSnapshot() {
@@ -3743,7 +4175,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast("Undid To-Do action!");
         }
 
-        let activeTodoUser = localStorage.getItem('wmsActiveTodoUserV1') || 'Shash';
+        let activeTodoUser = readStoredText('wmsActiveTodoUserV1', 'Shash');
         let todoFilter = 'all', newTodoFlagged = false;
 
         function getCurrentUserTodos() {
@@ -3771,13 +4203,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (nextPass === null) return;
             if (nextPass.trim()) {
                 userPasswordsMap[activeTodoUser] = await hashPasswordText(nextPass.trim());
-                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
                 pushStateToCloud();
                 refreshTodoUserDropdown();
                 showToast(`Password protected for ${activeTodoUser}!`);
             } else {
                 delete userPasswordsMap[activeTodoUser];
-                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
                 pushStateToCloud();
                 refreshTodoUserDropdown();
                 showToast(`Password removed for ${activeTodoUser}`);
@@ -3805,10 +4237,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (!todoStoreByUser[name]) todoStoreByUser[name] = savedTodoBatchesByUser[name] ? JSON.parse(JSON.stringify(savedTodoBatchesByUser[name])) : [];
             if (pass) {
                 userPasswordsMap[name] = await hashPasswordText(pass);
-                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
             }
             activeTodoUser = name;
-            localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
+            safeLocalCacheWrite('wmsActiveTodoUserV1', activeTodoUser);
             refreshTodoUserDropdown();
             saveAndRenderTodos();
             showToast(`Added & switched to ${name}`);
@@ -3822,9 +4254,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             pushTodoUndoSnapshot();
             delete todoStoreByUser[activeTodoUser];
             delete userPasswordsMap[activeTodoUser];
-            localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+            safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
             activeTodoUser = Object.keys(todoStoreByUser)[0];
-            localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
+            safeLocalCacheWrite('wmsActiveTodoUserV1', activeTodoUser);
             refreshTodoUserDropdown();
             saveAndRenderTodos();
             showToast(`Removed user; active: ${activeTodoUser}`);
@@ -3852,12 +4284,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 }
             }
             activeTodoUser = userName;
-            localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
+            safeLocalCacheWrite('wmsActiveTodoUserV1', activeTodoUser);
             loadIphoneNoteForUser();
             saveAndRenderTodos(true);
         }
 
-        let customUserShiftBatches = JSON.parse(localStorage.getItem('wmsCustomUserShiftBatchesV1') || '{}');
+        let customUserShiftBatches = readStoredJson('wmsCustomUserShiftBatchesV1', {});
+        if (!isPlainObject(customUserShiftBatches)) customUserShiftBatches = {};
         let draftBatchRows = [];
 
         function parseBatchReminderLine(line) {
@@ -3940,7 +4373,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 noteTitle,
                 noteText
             };
-            localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
+            safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
             pushStateToCloud(true);
             playTone('success');
             showToast(`Saved custom shift batch for ${activeTodoUser}!`);
@@ -3979,8 +4412,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 };
                 notesArr.unshift(noteObj);
                 activeNoteIdByUser[activeTodoUser] = noteObj.id;
-                localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
-                localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+                safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
+                safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
                 loadIphoneNoteForUser();
             }
             saveAndRenderTodos();
@@ -3990,18 +4423,20 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         async function saveCurrentUserBatch() {
             savedTodoBatchesByUser[activeTodoUser] = JSON.parse(JSON.stringify(getCurrentUserTodos()));
-            localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
-            localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+            safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
+            safeLocalCacheWrite('wmsShiftTodosByUserV2', todoStoreByUser);
             persistIphoneNote();
-            await pushStateToCloud(true);
-            playTone('success');
-            showToast(`Saved batch & notes for ${activeTodoUser} (Local + Cloud)!`);
+            const cloudSaved = await pushStateToCloud(true);
+            playTone(cloudSaved ? 'success' : 'error');
+            if (cloudSyncConfig.provider === 'none') showToast(`Batch & notes for ${activeTodoUser} saved locally only.`);
+            else if (cloudSaved && offlineSyncQueue.length === 0) showToast(`Batch & notes for ${activeTodoUser} saved to shared cloud.`);
+            else showToast(`Batch & notes for ${activeTodoUser} kept locally; cloud save is not confirmed.`);
         }
 
         function updateJsonBackupTimestampUI(tsStr) {
             const el = document.getElementById('ui-json-backup-timestamp');
-            if (tsStr) localStorage.setItem('wmsLastJsonBackupTsV1', tsStr);
-            const savedTs = tsStr || localStorage.getItem('wmsLastJsonBackupTsV1');
+            if (tsStr) safeLocalCacheWrite('wmsLastJsonBackupTsV1', tsStr);
+            const savedTs = tsStr || readStoredText('wmsLastJsonBackupTsV1', '');
             if (el) el.innerText = savedTs ? `JSON Backup: ${savedTs}` : 'JSON Backup: —';
         }
 
@@ -4051,7 +4486,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
         }, 60 * 1000);
 
-        let activeNoteIdByUser = JSON.parse(localStorage.getItem('wmsActiveNoteIdByUserV1') || '{}');
+        let activeNoteIdByUser = readStoredJson('wmsActiveNoteIdByUserV1', {});
+        if (!isPlainObject(activeNoteIdByUser)) activeNoteIdByUser = {};
 
         function getUserNotesCollection(userName = activeTodoUser) {
             const raw = iphoneNotesByUser[userName];
@@ -4087,7 +4523,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function selectUserNoteItem(noteId) {
             activeNoteIdByUser[activeTodoUser] = noteId;
-            localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+            safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
             loadIphoneNoteForUser();
             pushStateToCloud();
         }
@@ -4098,8 +4534,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const created = { id: 'note-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), title, html: '<div></div>' };
             notesArr.unshift(created);
             activeNoteIdByUser[activeTodoUser] = created.id;
-            localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
-            localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
+            safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
             refreshUserNotesDropdown();
             loadIphoneNoteForUser();
             pushStateToCloud(true);
@@ -4121,8 +4557,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const filtered = notesArr.filter(n => n.id !== cur.id);
             iphoneNotesByUser[activeTodoUser] = filtered;
             activeNoteIdByUser[activeTodoUser] = filtered[0].id;
-            localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
-            localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
+            safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
             refreshUserNotesDropdown();
             loadIphoneNoteForUser();
             pushStateToCloud(true);
@@ -4167,7 +4603,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const cur = getActiveNoteObj(activeTodoUser);
             cur.title = tInp.value;
             cur.html = ed.innerHTML;
-            localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
             refreshUserNotesDropdown();
             renderIphoneNotesUpfrontList();
             pushStateToCloud();
@@ -4383,7 +4819,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     if (Array.isArray(data.savedBatch)) savedTodoBatchesByUser[targetUser] = data.savedBatch;
                     if (data.note) { const arr = getUserNotesCollection(targetUser); arr.unshift({ id: 'note-' + Date.now(), title: data.note.title || 'Imported Note', html: data.note.html || '' }); activeNoteIdByUser[targetUser] = arr[0].id; }
                     activeTodoUser = targetUser;
-                    localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
+                    safeLocalCacheWrite('wmsActiveTodoUserV1', activeTodoUser);
                     refreshTodoUserDropdown();
                     saveAndRenderTodos();
                     showToast(`Imported data for ${targetUser}!`);
@@ -4395,8 +4831,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function saveAndRenderTodos(skipCloudPush = false) {
-            localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
-            localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
+            safeLocalCacheWrite('wmsShiftTodosByUserV2', todoStoreByUser);
+            safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
             if (!skipCloudPush) pushStateToCloud();
 
             const currentTodos = getCurrentUserTodos();
@@ -4477,7 +4913,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         });
         window.addEventListener('keyup', (e) => { if (e.key === 'ArrowDown' || e.key === 's') dino.ducking = false; });
 
-        let audioEnabled = JSON.parse(localStorage.getItem('wmsAudioEnabled') ?? 'true'), audioCtx = null;
+        let audioEnabled = readStoredJson('wmsAudioEnabled', true), audioCtx = null;
         function playTone(type) {
             if (!audioEnabled) return;
             try {
@@ -4492,7 +4928,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.18);
             } catch (e) {}
         }
-        function toggleAudio() { audioEnabled = !audioEnabled; localStorage.setItem('wmsAudioEnabled', JSON.stringify(audioEnabled)); updateAudioMuteUI(); if (audioEnabled) playTone('success'); }
+        function toggleAudio() { audioEnabled = !audioEnabled; safeLocalCacheWrite('wmsAudioEnabled', audioEnabled); updateAudioMuteUI(); if (audioEnabled) playTone('success'); }
         function updateAudioMuteUI() {
             const btn = document.getElementById('btn-sound-toggle'), icon = document.getElementById('icon-audio'), lbl = document.getElementById('lbl-sound-state');
             icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x'); lbl.innerText = audioEnabled ? 'ON' : 'OFF';
@@ -4506,8 +4942,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'trailer') { generateTrailerSingleMasterCode(); renderTrailerManifest(); setTimeout(() => document.getElementById('tr-rdt-input').focus(), 100); } if (tab === 'a4note') autoFitA4Content(); if (tab === 'todo') { pullStateFromCloud(false); saveAndRenderTodos(true); alertOverdueRemindersOnTabOpen(); }
         }
 
-        let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || '{"folders":["Default Shift","Carrier Runs"],"activeFolder":"Default Shift","files":[]}');
-        function saveWorkspaceState() { localStorage.setItem('wmsWorkspaceFilesV1', JSON.stringify(workspace)); document.getElementById('nav-file-count').innerText = workspace.files.length; }
+        let workspace = readStoredJson('wmsWorkspaceFilesV1', { folders: ['Default Shift', 'Carrier Runs'], activeFolder: 'Default Shift', files: [] });
+        if (!isPlainObject(workspace) || !Array.isArray(workspace.folders) || !Array.isArray(workspace.files)) workspace = { folders: ['Default Shift', 'Carrier Runs'], activeFolder: 'Default Shift', files: [] };
+        function saveWorkspaceState() { safeLocalCacheWrite('wmsWorkspaceFilesV1', workspace); document.getElementById('nav-file-count').innerText = workspace.files.length; }
         function toggleFileManager() { const d = document.getElementById('file-manager-drawer'), b = document.getElementById('file-manager-backdrop'); const open = !d.classList.contains('-translate-x-full'); d.classList.toggle('-translate-x-full', open); b.classList.toggle('hidden', open); if (!open) { renderFolderDropdown(); renderFileManager(); } }
         function renderFolderDropdown() { document.getElementById('fm-folder-select').innerHTML = workspace.folders.map(f => `<option value="${escapeHtml(f)}" ${f === workspace.activeFolder ? 'selected' : ''}>📁 ${escapeHtml(f)}</option>`).join(''); }
         function createNewFolder() { const n = prompt("New folder name:"); if (n?.trim()) { workspace.folders.push(n.trim()); workspace.activeFolder = n.trim(); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); } }
@@ -4539,7 +4976,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         async function decodeImageIntoBulk(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); const ta = document.getElementById('batch-input'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t; loadBulkDeck(true); playTone('success'); showToast(`Decoded & Added: ${t}`); } catch (err) { playTone('error'); } }
         function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
 
-        let feedbackList = JSON.parse(localStorage.getItem('wmsFeedbackBoardV1') || '[]');
+        let feedbackList = readStoredJson('wmsFeedbackBoardV1', []);
+        if (!Array.isArray(feedbackList)) feedbackList = [];
         function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); }
         function submitFeedbackToGitHub() { window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=Feedback&body=${encodeURIComponent(document.getElementById('fb-comment').value)}`, '_blank'); }
         function renderFeedbackBoard() { document.getElementById('fb-comments-list').innerHTML = feedbackList.map(f => `<div class="p-3 rounded-lg border theme-input text-xs"><b>${escapeHtml(f.name)}</b> [${escapeHtml(f.cat)}]: ${escapeHtml(f.comment)}</div>`).join(''); }
@@ -4551,19 +4989,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function markLocalStateDirty() {
             lastLocalMutationAt = Date.now();
-            try {
-                localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
-                localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
-                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
-                localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
-                localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
-                localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
-                localStorage.setItem('wmsActiveNoteTemplateIdV1', activeSelectedTemplateId || '');
-                const activeDraftHtml = serializeNoteBodyHtml();
-                if (activeDraftHtml) localStorage.setItem('wmsActiveNoteCanvasDraftV1', activeDraftHtml);
-            } catch (e) {
-                console.warn('LocalStorage write warning:', e);
-            }
+            safeLocalCacheWrite('wmsLastLocalMutationAtV1', String(lastLocalMutationAt));
+            safeLocalCacheWrite('wmsPermanentNoteTemplatesV1', savedNoteTemplates);
+            safeLocalCacheWrite('wmsShiftTodosByUserV2', todoStoreByUser);
+            safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
+            safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
+            safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
+            safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
+            safeLocalCacheWrite('wmsActiveNoteTemplateIdV1', activeSelectedTemplateId || '');
+            const activeDraftHtml = serializeNoteBodyHtml();
+            if (activeDraftHtml) safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeDraftHtml);
         }
 
         function serializeNoteBodyHtml() {
@@ -4598,16 +5033,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function persistActiveNoteDraft() {
             const serialized = serializeNoteBodyHtml();
-            localStorage.setItem('wmsActiveNoteCanvasDraftV1', serialized);
+            safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', serialized);
             if (activeSelectedTemplateId && activeSelectedTemplateId.startsWith('custom:')) {
-                const tplName = activeSelectedTemplateId.replace('custom:', '');
+                const tplName = activeSelectedTemplateId.slice(7);
                 savedNoteTemplates[tplName] = serialized;
-                markLocalStateDirty();
-                pushStateToCloud(false);
+            } else if (['asendia', 'nc_rack', 'packing'].includes(activeSelectedTemplateId)) {
+                // Persist edits to built-in templates as shared overrides, not as browser-only drafts.
+                savedNoteTemplates[`__builtin__:${activeSelectedTemplateId}`] = serialized;
+            } else {
+                return;
             }
+            markLocalStateDirty();
+            pushStateToCloud(false);
         }
 
-        function addNewBlankNoteTemplate() {
+        async function addNewBlankNoteTemplate() {
             const name = prompt("Enter new permanent template name:")?.trim();
             if (!name) return;
             const body = document.getElementById('a4-word-body');
@@ -4627,12 +5067,14 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             markLocalStateDirty();
             renderNoteTemplatesDropdown();
             autoFitA4Content();
-            pushStateToCloud(true);
-            playTone('success');
-            showToast(`Created & permanently saved "${name}"!`);
+            const cloudSaved = await pushStateToCloud(true);
+            playTone(cloudSaved ? 'success' : 'error');
+            if (cloudSyncConfig.provider === 'none') showToast(`Template "${name}" saved locally only.`);
+            else if (cloudSaved && offlineSyncQueue.length === 0) showToast(`Template "${name}" saved to shared cloud.`);
+            else showToast(`Template "${name}" kept locally; cloud save is not confirmed.`);
         }
 
-        function saveCurrentNoteAsPermanentTemplate() {
+        async function saveCurrentNoteAsPermanentTemplate() {
             const defaultName = activeSelectedTemplateId.startsWith('custom:') ? activeSelectedTemplateId.replace('custom:', '') : '';
             const name = prompt("Save permanent template name (existing name updates it):", defaultName)?.trim();
             if (!name) return;
@@ -4640,12 +5082,14 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             activeSelectedTemplateId = `custom:${name}`;
             markLocalStateDirty();
             renderNoteTemplatesDropdown();
-            pushStateToCloud(true);
-            playTone('success');
-            showToast(`Permanently saved template "${name}"!`);
+            const cloudSaved = await pushStateToCloud(true);
+            playTone(cloudSaved ? 'success' : 'error');
+            if (cloudSyncConfig.provider === 'none') showToast(`Template "${name}" saved locally only.`);
+            else if (cloudSaved && offlineSyncQueue.length === 0) showToast(`Template "${name}" saved to shared cloud.`);
+            else showToast(`Template "${name}" kept locally; cloud save is not confirmed.`);
         }
 
-        function deleteSelectedPermanentTemplate() {
+        async function deleteSelectedPermanentTemplate() {
             const selVal = document.getElementById('note-template-library')?.value || activeSelectedTemplateId;
             if (!selVal) {
                 return showToast("Select a template to delete.");
@@ -4657,21 +5101,26 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 activeSelectedTemplateId = '';
                 markLocalStateDirty();
                 renderNoteTemplatesDropdown();
-                pushStateToCloud(true);
-                showToast(`Removed template "${name}"`);
+                const cloudSaved = await pushStateToCloud(true);
+                if (cloudSyncConfig.provider === 'none') showToast(`Template "${name}" deleted locally only.`);
+                else if (cloudSaved && offlineSyncQueue.length === 0) showToast(`Template "${name}" deleted from shared cloud.`);
+                else showToast(`Template "${name}" hidden locally; cloud delete is not confirmed.`);
                 return;
             }
             const meta = BUILTIN_NOTE_TEMPLATE_META.find(t => t.key === selVal);
             if (!confirm(`Permanently delete template "${meta ? meta.label : selVal}"?`)) return;
             if (!hiddenBuiltinNoteTemplates.includes(selVal)) {
                 hiddenBuiltinNoteTemplates.push(selVal);
-                localStorage.setItem('wmsHiddenBuiltinNoteTemplatesV1', JSON.stringify(hiddenBuiltinNoteTemplates));
+                safeLocalCacheWrite('wmsHiddenBuiltinNoteTemplatesV1', hiddenBuiltinNoteTemplates);
             }
+            delete savedNoteTemplates[`__builtin__:${selVal}`];
             if (activeSelectedTemplateId === selVal) activeSelectedTemplateId = '';
             markLocalStateDirty();
             renderNoteTemplatesDropdown();
-            pushStateToCloud(true);
-            showToast(`Deleted permanent template "${meta ? meta.label : selVal}"`);
+            const cloudSaved = await pushStateToCloud(true);
+            if (cloudSyncConfig.provider === 'none') showToast('Template hidden locally only.');
+            else if (cloudSaved && offlineSyncQueue.length === 0) showToast('Template hidden from shared cloud.');
+            else showToast('Template hidden locally; cloud delete is not confirmed.');
         }
 
         function toggleTodoManageDrawer() {
@@ -4752,33 +5201,66 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (mentionMatches.length) showToast(`Reminder sent to @${mentionMatches.join(', @')}!`);
         }
 
-        window.addEventListener('visibilitychange', () => {
+        document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
-                markLocalStateDirty();
-                pushStateToCloud(true);
+                if (cloudBootstrapComplete && cloudSyncConfig.provider !== 'none') pushStateToCloud(true);
+            } else if (document.visibilityState === 'visible' && cloudSyncConfig.provider !== 'none') {
+                pullStateFromCloud(false);
             }
         });
+        window.addEventListener('focus', () => {
+            if (cloudSyncConfig.provider !== 'none') pullStateFromCloud(false);
+        });
         window.addEventListener('pagehide', () => {
-            markLocalStateDirty();
-            pushStateToCloud(true);
+            if (cloudBootstrapComplete && cloudSyncConfig.provider !== 'none') pushStateToCloud(true);
         });
 
-        window.onload = function() {
-            setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
-            document.getElementById('sound-pack-select').value = localStorage.getItem('wmsSoundPack') || 'laser';
+        window.onload = async function() {
+            setTheme(readStoredText('wmsThemeMode', 'dark'));
+            document.getElementById('sound-pack-select').value = readStoredText('wmsSoundPack', 'laser');
             updateAudioMuteUI();
             makeElementDraggable('calc-popover', 'calc-drag-header');
             makeElementDraggable('chess-floating-window', 'chess-drag-header');
             makeElementDraggable('sudoku-floating-window', 'sudoku-drag-header');
-            updateJsonBackupTimestampUI(); initCloudClient(); updateOfflineQueueBadge(); if (offlineSyncQueue.length > 0 && navigator.onLine !== false) pushStateToCloud(true); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(true);
-            pullStateFromCloud(false).then(() => { refreshTodoUserDropdown(); saveAndRenderTodos(true); }); generateTrailerSingleMasterCode(); renderTrailerManifest();
+            updateJsonBackupTimestampUI();
+            initCloudClient();
+            restoreCloudBaseForCurrentConfig();
+            updateOfflineQueueBadge();
+            // Capture this tab's starting cache only as a base for edits made during a temporary
+            // first-load outage. It is never uploaded wholesale over an existing server row.
+            cloudPreBootstrapLocalSnapshot = buildSharedStateSnapshot();
+            if (cloudSyncConfig.provider !== 'none') {
+                // V1 queue entries contained no snapshot and could cause a stale cache to overwrite
+                // the server. Discard that legacy queue; V2 changes are reconciled against a baseline.
+                if (!cloudLastSyncedSnapshot) {
+                    try { localStorage.removeItem('wmsOfflineSyncQueueV1'); } catch (e) {}
+                }
+                const cloudLoaded = await pullStateFromCloud(false);
+                if (!cloudLoaded) {
+                    console.warn('Cloud startup was not completed. Local edits will not be uploaded until a successful cloud load.');
+                }
+            } else {
+                cloudBootstrapComplete = true;
+            }
+            saveWorkspaceState();
+            refreshTodoUserDropdown();
+            switchShiftBatchPreset(activeShiftPresetKey);
+            renderBulkColumnEditor();
+            renderClientCarrierPresets();
+            renderShiftBatchPills();
+            renderFeedbackBoard();
+            saveAndRenderTodos(true);
+            generateTrailerSingleMasterCode();
+            renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
-            const savedTplId = localStorage.getItem('wmsActiveNoteTemplateIdV1') || '';
-            const savedDraftHtml = localStorage.getItem('wmsActiveNoteCanvasDraftV1') || '';
+            const savedTplId = readStoredText('wmsActiveNoteTemplateIdV1', '');
+            const savedDraftHtml = readStoredText('wmsActiveNoteCanvasDraftV1', '');
             renderNoteTemplatesDropdown();
-            if (savedTplId && (savedTplId.startsWith('custom:') || ['asendia', 'nc_rack', 'packing'].includes(savedTplId))) {
+            if (savedTplId && savedTplId.startsWith('custom:') && Object.prototype.hasOwnProperty.call(savedNoteTemplates, savedTplId.slice(7))) {
                 applyDispatchTemplate(savedTplId);
-            } else if (savedDraftHtml.trim()) {
+            } else if (savedTplId && ['asendia', 'nc_rack', 'packing'].includes(savedTplId)) {
+                applyDispatchTemplate(savedTplId);
+            } else if (!savedTplId && savedDraftHtml.trim()) {
                 hydrateNoteBodyHtml(savedDraftHtml);
                 applyNoteBorderThickness();
                 autoFitA4Content();
@@ -4801,8 +5283,23 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             } catch (e) {}
         });
 
+        // This page uses the cloud as its shared source of truth. Retire the old app-shell
+        // worker so an old cache cannot keep serving stale HTML/JavaScript in another browser.
+        // We deliberately do not register a cache-first worker for this cloud-synced app.
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                registrations.forEach(registration => {
+                    const worker = registration.active || registration.waiting || registration.installing;
+                    const scriptUrl = worker && worker.scriptURL;
+                    if (!scriptUrl) return;
+                    try {
+                        const workerUrl = new URL(scriptUrl);
+                        if (workerUrl.origin === location.origin && workerUrl.pathname.endsWith('/sw.js')) {
+                            registration.unregister().catch(() => {});
+                        }
+                    } catch (e) {}
+                });
+            }).catch(() => {});
         }
     </script>
 </body>

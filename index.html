@@ -184,13 +184,14 @@
                         <span id="offline-queue-dot" class="h-2 w-2 rounded-full bg-emerald-500"></span>
                         <span id="offline-queue-text">Synced (0)</span>
                     </span>
+                    <button onclick="openCloudAuthModal()" id="btn-cloud-auth" title="Supabase account sign-in" class="px-2 py-1 rounded theme-elevated border text-[10px] font-mono font-bold">Sign in</button>
                     <button onclick="forceManualCloudSync()" id="btn-force-sync" title="Manual Force Sync (Push Pending Queue & Pull Latest Cloud)" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 text-[10px] font-mono font-bold flex items-center gap-1 transition">
                         <i data-lucide="refresh-cw" id="icon-force-sync" class="w-3 h-3 text-emerald-500"></i>
                         <span>Force Sync</span>
                     </button>
                 </div>
 
-                <button onclick="openCloudSyncModal()" id="btn-cloud-sync" title="Cloud Sync Settings (Password Protected)" class="hidden items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+                <button onclick="openCloudSyncModal()" id="btn-cloud-sync" title="Shared Cloud Connection Settings" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                     <span id="cloud-sync-dot" class="h-2 w-2 rounded-full bg-amber-400"></span>
                     <span id="cloud-sync-lbl" class="text-[11px] font-mono">Local Cache</span>
                 </button>
@@ -217,7 +218,7 @@
                         <i data-lucide="volume-2" id="icon-audio" class="w-3.5 h-3.5"></i>
                         <span id="lbl-sound-state">ON</span>
                     </button>
-                    <select id="sound-pack-select" onchange="localStorage.setItem('wmsSoundPack', this.value); playTone('success');" class="bg-transparent text-[10px] font-mono outline-none pr-1 cursor-pointer">
+                    <select id="sound-pack-select" onchange="safeLocalCacheWrite('wmsSoundPack', this.value); playTone('success');" class="bg-transparent text-[10px] font-mono outline-none pr-1 cursor-pointer">
                         <option value="laser" selected>Laser (Def)</option>
                         <option value="arcade">8-Bit Coin</option>
                         <option value="click">Mech Click</option>
@@ -245,14 +246,14 @@
         <!-- Row 2: 5-Tab Navigation Bar Placed Below -->
         <div class="px-4 sm:px-6 py-2 flex items-center justify-center sm:justify-start overflow-x-auto">
             <nav class="flex flex-wrap items-center gap-1.5 theme-input p-1 rounded-xl border">
-                <button onclick="switchTab('bulk')" id="tab-bulk" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm transition-all">
-                    <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk & Labels
+                <button onclick="switchTab('bulk')" id="tab-bulk" title="Local only — this tab is never uploaded to the cloud" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm transition-all">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i> Bulk &amp; Labels <span class="text-[9px] font-mono opacity-60">LOCAL</span>
                 </button>
-                <button onclick="switchTab('carrier')" id="tab-carrier" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all">
-                    <i data-lucide="truck" class="w-3.5 h-3.5"></i> Carrier Labels
+                <button onclick="switchTab('carrier')" id="tab-carrier" title="Local only — serial history stays on this device" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all">
+                    <i data-lucide="truck" class="w-3.5 h-3.5"></i> Carrier Labels <span class="text-[9px] font-mono opacity-60">LOCAL</span>
                 </button>
-                <button onclick="switchTab('trailer')" id="tab-trailer" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all">
-                    <i data-lucide="container" class="w-3.5 h-3.5"></i> Trailer Shipping
+                <button onclick="switchTab('trailer')" id="tab-trailer" title="Local only — trailer scans stay on this device" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all">
+                    <i data-lucide="container" class="w-3.5 h-3.5"></i> Trailer Shipping <span class="text-[9px] font-mono opacity-60">LOCAL</span>
                     <span id="nav-trailer-count" class="px-1.5 py-0.2 theme-elevated rounded text-[10px] font-mono">0</span>
                 </button>
                 <button onclick="switchTab('a4note')" id="tab-a4note" class="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all">
@@ -312,50 +313,61 @@
         <div class="w-full max-w-lg theme-card border-2 border-emerald-500/40 rounded-2xl shadow-2xl overflow-hidden">
             <div class="px-4 py-3 theme-elevated border-b theme-border flex items-center justify-between">
                 <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="cloud" class="w-4 h-4 text-emerald-500"></i> Cloud-First Sync + Local Cache
+                    <i data-lucide="cloud" class="w-4 h-4 text-emerald-500"></i> Shared Cloud Workspace
                 </span>
                 <button onclick="closeCloudSyncModal()" class="text-base font-bold theme-text-dim hover:text-rose-400 px-1">×</button>
             </div>
             <div class="p-4 space-y-3 text-xs">
                 <p class="theme-text-muted leading-relaxed">
-                    Connect a shared <b>Supabase</b> table (<code>wms_shared_state</code> with columns <code>id text primary key, payload jsonb, updated_at timestamptz</code>) or a custom JSON REST endpoint. For Supabase, run the supplied <code>wms_shared_state_setup.sql</code> once in the project SQL Editor to create the table, access policies, and Realtime publication. Without those database permissions, browsers can only save locally.
+                    All browsers use the same deployment-configured Supabase project and room. Run the supplied <code>wms_shared_state_setup.sql</code> once in the project SQL Editor. Cloud data is authoritative; browser storage is only a temporary recovery cache and cannot redirect a browser to another workspace. To change the project or room, update <code>EMBEDDED_CLOUD_DEFAULTS</code> in this HTML and redeploy the same file to every device.
+                </p>
+                <p class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-amber-300 leading-relaxed">
+                    Security: cloud access requires a signed-in Supabase Auth user and workspace membership. Apply the supplied secure migration before enabling shared cloud data. The three operational tabs (Bulk & Labels, Carrier Labels and Trailer Shipping) remain local-only and are excluded from cloud snapshots.
                 </p>
                 <div>
                     <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Sync Provider</label>
-                    <select id="cloud-provider-select" onchange="toggleCloudProviderFields()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none">
-                        <option value="none">Offline Local Cache Only</option>
-                        <option value="supabase">Supabase (Recommended — Cloud + Cache)</option>
-                        <option value="webhook">Custom JSON REST Endpoint (GET / POST)</option>
+                    <select id="cloud-provider-select" disabled class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none opacity-80">
+                        <option value="supabase" selected>Shared Supabase Workspace</option>
                     </select>
                 </div>
                 <div id="cloud-supabase-fields" class="hidden space-y-2">
                     <div>
                         <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Supabase Project URL</label>
-                        <input type="text" id="cloud-sb-url" placeholder="https://xyzcompany.supabase.co" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                        <input type="text" id="cloud-sb-url" readonly placeholder="https://xyzcompany.supabase.co" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Supabase Anon Public Key</label>
-                        <input type="password" id="cloud-sb-key" placeholder="eyJhbGciOiJIUzI1NiIs..." class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                        <input type="password" id="cloud-sb-key" readonly placeholder="Supabase publishable key" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
                     </div>
                     <div>
                         <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Workspace Room / Warehouse ID</label>
-                        <input type="text" id="cloud-room-id" value="bleckmann-main" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                        <input type="text" id="cloud-room-id" value="bleckmann-main" readonly class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
                     </div>
                 </div>
-                <div id="cloud-webhook-fields" class="hidden space-y-2">
-                    <div>
-                        <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Shared JSON Endpoint URL (Supports GET &amp; POST)</label>
-                        <input type="text" id="cloud-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
-                    </div>
-                </div>
+
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t theme-border">
                     <button onclick="pullStateFromCloud(true)" class="px-3 py-1.5 rounded-lg theme-elevated border font-semibold hover:border-emerald-500">Pull Now</button>
                     <div class="flex gap-2">
-                        <button onclick="lockCloudSyncButton()" class="px-3 py-1.5 rounded-lg theme-input border font-medium text-amber-400">Lock &amp; Hide</button><button onclick="closeCloudSyncModal()" class="px-3 py-1.5 rounded-lg theme-input border font-medium">Cancel</button>
+                        <button onclick="closeCloudSyncModal()" class="px-3 py-1.5 rounded-lg theme-input border font-medium text-amber-400">Close Settings</button><button onclick="closeCloudSyncModal()" class="px-3 py-1.5 rounded-lg theme-input border font-medium">Cancel</button>
                         <button onclick="saveCloudSyncSettings()" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow">Save &amp; Sync</button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="cloud-auth-modal" class="hidden fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-sm theme-card border-2 border-emerald-500/40 rounded-2xl shadow-2xl p-5 space-y-3">
+            <div class="text-sm font-bold">Sign in to Shared Workspace</div>
+            <p class="text-xs theme-text-muted">Sign in with an account created in your Supabase project. Cloud data is available only to workspace members. Local-only tabs continue to work without signing in.</p>
+            <input id="cloud-auth-email" type="email" autocomplete="username" placeholder="Email address" class="w-full theme-input border rounded-lg px-3 py-2 text-sm">
+            <input id="cloud-auth-password" type="password" autocomplete="current-password" placeholder="Password" class="w-full theme-input border rounded-lg px-3 py-2 text-sm">
+            <div id="cloud-auth-error" class="hidden text-xs text-rose-400"></div>
+            <div class="flex gap-2">
+                <button onclick="closeCloudAuthModal()" class="flex-1 px-3 py-2 rounded-lg theme-input border text-xs">Continue locally</button>
+                <button onclick="signInToCloud()" class="flex-1 px-3 py-2 rounded-lg bg-emerald-600 text-white font-bold text-xs">Sign in</button>
+            </div>
+            <button onclick="signOutOfCloud()" class="w-full text-xs theme-text-dim underline">Sign out of cloud account</button>
         </div>
     </div>
 
@@ -472,7 +484,7 @@
                 <div id="arcade-sudoku-wrap" class="hidden flex items-center gap-3">
                     <div id="sudoku-grid" class="grid grid-cols-9 border-2 border-emerald-500/60 rounded overflow-hidden bg-zinc-950 font-mono text-xs"></div>
                     <div class="space-y-1.5 text-xs font-mono">
-                        <div class="font-bold text-emerald-500" id="sudoku-clues-lbl">Clues: 52/81</div>
+                        <div class="font-bold text-emerald-500" id="sudoku-floating-clues-lbl">Clues: 52/81</div>
                         <button onclick="checkSudokuBoard()" class="w-full px-3 py-1.5 rounded bg-emerald-600 text-white font-bold">Check</button>
                         <button onclick="generateNewSudoku()" class="w-full px-3 py-1.5 rounded theme-elevated border">New Board</button>
                     </div>
@@ -593,7 +605,7 @@
                             <span>Schema: <code id="bulk-schema-hint" class="font-mono text-emerald-500">ID, SKU, QTY, LANE</code></span>
                             <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">5 items</span>
                         </div>
-                        <textarea id="batch-input" rows="5" oninput="handleBulkFeederInput()" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM01, SKU-101, 24, LANE-1
+                        <textarea id="batch-input" rows="5" oninput="handleBulkFeederInput(); pushStateToCloud()" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM01, SKU-101, 24, LANE-1
 FF-RM03, SKU-101, 24, LANE-1
 FF-RM03, SKU-102, 12, LANE-2
 FF-DPD01, SKU-505, 40, DOCK-A
@@ -605,7 +617,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <div class="grid grid-cols-2 gap-2.5">
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Symbology</label>
-                                <select id="batch-type" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="batch-type" onchange="loadBulkDeck(true); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="code128" selected>Code 128 (Default)</option>
                                     <option value="gs1-128">GS1-128</option>
                                     <option value="code39">Code 39</option>
@@ -616,7 +628,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Keystroke Suffix</label>
-                                <select id="batch-suffix" onchange="loadBulkDeck(true)" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="batch-suffix" onchange="loadBulkDeck(true); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="none" selected>None (Default)</option>
                                     <option value="enter">Enter (\r)</option>
                                     <option value="tab">Tab (\t)</option>
@@ -627,7 +639,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Width</label>
-                                <select id="bulk-bar-width" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="bulk-bar-width" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="2">2x (Slim)</option>
                                     <option value="3">3x (Medium)</option>
                                     <option value="4" selected>4x (Default)</option>
@@ -637,7 +649,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Bar Height</label>
-                                <select id="bulk-bar-height" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="bulk-bar-height" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="12">12mm (Short)</option>
                                     <option value="18" selected>18mm (Default)</option>
                                     <option value="24">24mm (Tall)</option>
@@ -646,7 +658,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Font Size</label>
-                                <select id="bulk-font-size" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="bulk-font-size" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="9">9pt (Small)</option>
                                     <option value="12" selected>12pt (Default)</option>
                                     <option value="15">15pt (Large)</option>
@@ -658,21 +670,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">HRI Text</label>
-                                <select id="bulk-hri-mode" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="bulk-hri-mode" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="on" selected>ON (Default)</option>
                                     <option value="off">OFF (Bars Only)</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Background</label>
-                                <select id="bulk-bg-mode" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="bulk-bg-mode" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="solid" selected>Solid (Default)</option>
                                     <option value="transparent">Transparent</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-[10px] uppercase theme-text-dim mb-1">Quiet Zone</label>
-                                <select id="bulk-quiet-zone" onchange="renderCurrentDeckSlide()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
+                                <select id="bulk-quiet-zone" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-full theme-input border rounded-lg px-2 py-1.5 text-xs outline-none">
                                     <option value="4">4px (Tight)</option>
                                     <option value="10" selected>10px (Default)</option>
                                     <option value="18">18px (Wide)</option>
@@ -688,7 +700,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                                     <button type="button" onclick="setBulkColor('fg','#1e3a8a')" class="w-3.5 h-3.5 rounded-xs bg-blue-900" title="Navy"></button>
                                     <button type="button" onclick="setBulkColor('fg','#991b1b')" class="w-3.5 h-3.5 rounded-xs bg-red-800" title="Dark Red"></button>
                                     <button type="button" onclick="setBulkColor('fg','#065f46')" class="w-3.5 h-3.5 rounded-xs bg-emerald-800" title="Dark Green"></button>
-                                    <input type="color" id="bulk-fg-color" value="#000000" onchange="renderCurrentDeckSlide()" class="w-4 h-4 bg-transparent border-0 cursor-pointer" title="Custom">
+                                    <input type="color" id="bulk-fg-color" value="#000000" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-4 h-4 bg-transparent border-0 cursor-pointer" title="Custom">
                                 </div>
                             </div>
                             <div class="flex items-center justify-between theme-input border rounded-lg px-2 py-1.5 text-xs gap-1">
@@ -698,7 +710,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                                     <button type="button" onclick="setBulkColor('bg','#fef08a')" class="w-3.5 h-3.5 rounded-xs bg-yellow-200 border border-zinc-400" title="Yellow"></button>
                                     <button type="button" onclick="setBulkColor('bg','#bae6fd')" class="w-3.5 h-3.5 rounded-xs bg-sky-200 border border-zinc-400" title="Sky"></button>
                                     <button type="button" onclick="setBulkColor('bg','#bbf7d0')" class="w-3.5 h-3.5 rounded-xs bg-green-200 border border-zinc-400" title="Mint"></button>
-                                    <input type="color" id="bulk-bg-color" value="#ffffff" onchange="renderCurrentDeckSlide()" class="w-4 h-4 bg-transparent border-0 cursor-pointer" title="Custom">
+                                    <input type="color" id="bulk-bg-color" value="#ffffff" onchange="renderCurrentDeckSlide(); saveBulkSettingsToCloud()" class="w-4 h-4 bg-transparent border-0 cursor-pointer" title="Custom">
                                 </div>
                             </div>
                         </div>
@@ -748,10 +760,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                                 <span class="font-bold uppercase">Queue (<span id="vertical-queue-stats" class="text-emerald-500">0/5</span>)</span>
                                 <div class="flex items-center gap-1">
                                     <label class="flex items-center gap-1 px-1.5 py-0.5 rounded theme-input border text-[10px] cursor-pointer" title="Automatically sort queue whenever entries change">
-                                        <input type="checkbox" id="chk-queue-autosort" checked onchange="loadBulkDeck(true)" class="accent-emerald-500">
+                                        <input type="checkbox" id="chk-queue-autosort" checked onchange="loadBulkDeck(true); saveBulkSettingsToCloud()" class="accent-emerald-500">
                                         <span>Auto-Sort</span>
                                     </label>
-                                    <select id="queue-sort-rule" onchange="loadBulkDeck(true)" class="theme-input border rounded px-1 py-0.5 text-[10px] outline-none" title="Sort Order & Grouping Rule">
+                                    <select id="queue-sort-rule" onchange="loadBulkDeck(true); saveBulkSettingsToCloud()" class="theme-input border rounded px-1 py-0.5 text-[10px] outline-none" title="Sort Order & Grouping Rule">
                                         <option value="nat-asc" selected>A→Z / 01→99</option>
                                         <option value="nat-desc">Z→A / 99→01</option>
                                         <option value="len-asc">Shortest First</option>
@@ -1096,22 +1108,22 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Trailer / Vehicle ID</label>
-                            <input type="text" id="tr-trailer-id" value="TRL-UK-804" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-trailer-id" value="TRL-UK-804" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Loading Bay / Dock</label>
-                            <input type="text" id="tr-dock-door" value="BAY-04" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-dock-door" value="BAY-04" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Security Seal #</label>
-                            <input type="text" id="tr-seal-num" value="SL-994021" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-seal-num" value="SL-994021" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Carrier / Destination</label>
-                            <input type="text" id="tr-carrier-name" value="DPD / ROYAL MAIL" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-carrier-name" value="DPD / ROYAL MAIL" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                     </div>
 
@@ -1186,6 +1198,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                                     <th class="p-2.5">#</th>
                                     <th class="p-2.5">Shipped Label ID</th>
                                     <th class="p-2.5">Prefix / Type</th>
+                                    <th class="p-2.5">Trailer / Seal</th>
                                     <th class="p-2.5">Scan Time</th>
                                     <th class="p-2.5 text-right">Remove</th>
                                 </tr>
@@ -1303,12 +1316,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                         <div class="grid grid-cols-2 gap-2">
                             <label class="flex items-center justify-between theme-input border rounded-lg px-2 py-1 text-[11px] font-mono">
-                                <span class="flex items-center gap-1"><input type="checkbox" id="a4-margin-enabled" checked class="accent-emerald-500"> Margin</span>
-                                <span><input type="number" id="a4-print-margin-mm" value="8" min="0" max="25" class="w-7 bg-transparent font-bold text-right outline-none">mm</span>
+                                <span class="flex items-center gap-1"><input type="checkbox" id="a4-margin-enabled" checked onchange="pushStateToCloud()" class="accent-emerald-500"> Margin</span>
+                                <span><input type="number" id="a4-print-margin-mm" value="8" min="0" max="25" onchange="pushStateToCloud()" class="w-7 bg-transparent font-bold text-right outline-none">mm</span>
                             </label>
                             <div class="flex items-center justify-between theme-input border rounded-lg px-2 py-1 text-[11px] font-mono">
                                 <span>Border</span>
-                                <select id="a4-border-width" onchange="applyNoteBorderThickness()" class="bg-transparent font-bold outline-none">
+                                <select id="a4-border-width" onchange="applyNoteBorderThickness(); pushStateToCloud()" class="bg-transparent font-bold outline-none">
                                     <option value="0px">OFF</option>
                                     <option value="2px">2px</option>
                                     <option value="4px" selected>4px</option>
@@ -1344,14 +1357,14 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             <button type="button" onclick="resetNoteDocZoom()" class="px-1.5 py-0.5 rounded theme-text-dim hover:text-emerald-500 text-[10px]" title="Fit to View">Fit</button>
                         </div>
                     </div>
-                    <button onclick="showA4PrintLayoutPreview()" class="px-2.5 py-1 rounded theme-elevated border text-[11px] font-mono hover:border-emerald-500">Layout Info</button>
+                    <div class="flex gap-1.5"><button onclick="showNotesVersionHistory()" class="px-2.5 py-1 rounded theme-elevated border text-[11px] font-mono hover:border-emerald-500">History</button><button onclick="showA4PrintLayoutPreview()" class="px-2.5 py-1 rounded theme-elevated border text-[11px] font-mono hover:border-emerald-500">Layout Info</button></div>
                 </div>
 
                 <div id="a4-stage-viewport" class="flex-grow canvas-grid p-3 flex items-center justify-center overflow-auto">
                     <div id="a4-paper-sheet" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-6 flex flex-col items-center justify-center overflow-hidden transition-transform duration-150 origin-center" style="width: 842px; height: 595px;">
                         <div id="a4-word-body" oninput="autoFitA4Content(); persistActiveNoteDraft();" onfocusout="persistActiveNoteDraft();" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center"></div>
 
-                        <div id="a4-excel-body" class="hidden w-full h-full overflow-auto">
+                        <div id="a4-excel-body" oninput="pushStateToCloud()" class="hidden w-full h-full overflow-auto">
                             <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
                                 <thead>
                                     <tr class="bg-zinc-200">
@@ -1402,6 +1415,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <button onclick="setOrChangeUserPassword()" class="px-2 py-1 rounded-lg theme-elevated border text-xs font-semibold hover:border-emerald-500" title="User Lock">🔒</button>
                         <button onclick="toggleTodoManageDrawer()" class="px-2.5 py-1 rounded-lg theme-elevated border text-xs font-semibold hover:border-emerald-500">Presets & Backup ▾</button>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2" aria-label="Shift dashboard">
+                    <div class="theme-elevated border rounded-lg p-2"><div class="text-[9px] uppercase font-mono theme-text-dim">Open</div><div id="todo-dash-open" class="text-lg font-black">0</div></div>
+                    <div class="theme-elevated border rounded-lg p-2"><div class="text-[9px] uppercase font-mono theme-text-dim">Overdue</div><div id="todo-dash-overdue" class="text-lg font-black text-rose-500">0</div></div>
+                    <div class="theme-elevated border rounded-lg p-2"><div class="text-[9px] uppercase font-mono theme-text-dim">Pinned</div><div id="todo-dash-pinned" class="text-lg font-black text-blue-400">0</div></div>
                 </div>
 
                 <!-- Collapsible Presets & Backup Drawer -->
@@ -1866,7 +1885,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('arcade-overlay-title').innerText = `GAME OVER — ${reason}`;
         }
         function updateArcadeStats() {
-            if (arcadeScore > arcadeHigh) { arcadeHigh = arcadeScore; localStorage.setItem('wmsArcadeHigh', arcadeHigh); }
+            if (arcadeScore > arcadeHigh) { arcadeHigh = arcadeScore; safeLocalCacheWrite('wmsArcadeHigh', arcadeHigh); }
             document.getElementById('arcade-score-lbl').innerText = `SCORE: ${String(arcadeScore).padStart(4, '0')}`;
             document.getElementById('arcade-hi-lbl').innerText = `BEST: ${String(arcadeHigh).padStart(4, '0')}`;
             document.getElementById('arcade-lvl-lbl').innerText = `LVL ${arcadeLevel} • ${'♥'.repeat(Math.max(0, arcadeLives))}`;
@@ -1889,7 +1908,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             for (let b = 0; b < 3; b++) { const r1 = b * 3 + Math.floor(Math.random() * 3), r2 = b * 3 + Math.floor(Math.random() * 3); [grid[r1], grid[r2]] = [grid[r2], grid[r1]]; }
             sudokuSolution = grid.map(r => [...r]);
             const cluesCount = Math.max(22, Math.round(52 - ((arcadeLevel - 1) / 99) * 30));
-            document.getElementById('sudoku-clues-lbl').innerText = `Clues: ${cluesCount}/81`;
+            document.querySelectorAll('#sudoku-clues-lbl, #sudoku-floating-clues-lbl').forEach(el => { el.innerText = `Clues: ${cluesCount}/81`; });
             const cellsToKeep = new Set(); while (cellsToKeep.size < cluesCount) cellsToKeep.add(Math.floor(Math.random() * 81));
             let html = '';
             for (let idx = 0; idx < 81; idx++) {
@@ -2062,6 +2081,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             scannedSet.clear();
             renderBulkColumnEditor();
             loadBulkDeck(false);
+            pushStateToCloud(true);
             playTone('success');
             showToast("Bulk & Label Feeder reset to defaults!");
         }
@@ -2093,16 +2113,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
         });
 
+        function saveBulkSettingsToCloud() {
+            // pushStateToCloud queues edits made while the first cloud read is still in progress.
+            pushStateToCloud();
+        }
+
         function renderBulkColumnEditor() {
             document.getElementById('bulk-schema-hint').innerText = bulkColumnHeaders.join(', ');
             document.getElementById('bulk-columns-bar').innerHTML = bulkColumnHeaders.map((col, idx) => `
                 <div class="inline-flex items-center rounded border theme-input text-[11px] font-mono overflow-hidden">
-                    <input type="text" value="${escapeHtml(col)}" onchange="bulkColumnHeaders[${idx}]=this.value.toUpperCase(); renderBulkColumnEditor(); renderCurrentDeckSlide();" class="w-14 px-1 py-0.5 bg-transparent font-bold outline-none text-center">
-                    ${idx > 0 ? `<button onclick="bulkColumnHeaders.splice(${idx},1); renderBulkColumnEditor(); renderCurrentDeckSlide();" class="px-1 text-rose-500">×</button>` : ''}
+                    <input type="text" value="${escapeHtml(col)}" onchange="bulkColumnHeaders[${idx}]=this.value.toUpperCase().trim(); renderBulkColumnEditor(); renderCurrentDeckSlide(); saveBulkSettingsToCloud();" class="w-14 px-1 py-0.5 bg-transparent font-bold outline-none text-center">
+                    ${idx > 0 ? `<button onclick="bulkColumnHeaders.splice(${idx},1); renderBulkColumnEditor(); renderCurrentDeckSlide(); saveBulkSettingsToCloud();" class="px-1 text-rose-500">×</button>` : ''}
                 </div>
             `).join('');
         }
-        function addBulkColumn() { const name = prompt("New column name:", `COL${bulkColumnHeaders.length + 1}`); if (name?.trim()) { bulkColumnHeaders.push(name.trim().toUpperCase()); renderBulkColumnEditor(); renderCurrentDeckSlide(); } }
+        function addBulkColumn() { const name = prompt("New column name:", `COL${bulkColumnHeaders.length + 1}`); if (name?.trim()) { bulkColumnHeaders.push(name.trim().toUpperCase()); renderBulkColumnEditor(); renderCurrentDeckSlide(); saveBulkSettingsToCloud(); } }
         function parseDynamicRow(line) { const parts = line.split(',').map(s => s.trim()); return { id: parts[0] || '', cols: parts }; }
         function extractGroupPrefix(idStr) { const m = idStr.trim().match(/^([A-Za-z\-_]+)/); return m ? m[1].replace(/[-_]+$/, '').toUpperCase() : 'ITEMS'; }
 
@@ -2132,10 +2157,15 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 const idKey = line.split(',')[0].trim().toUpperCase();
                 if (!seen.has(idKey)) { seen.add(idKey); uniqueLines.push(line); }
             });
-            ta.value = uniqueLines.join('\n'); scannedSet.clear(); loadBulkDeck(false); playTone('success'); showToast("Removed duplicate IDs!");
+            ta.value = uniqueLines.join('\n'); scannedSet.clear(); loadBulkDeck(false); pushStateToCloud(true); playTone('success'); showToast("Removed duplicate IDs!");
+        }
+
+        function getBulkRecordStableKey(record) {
+            return record ? `${record.id}\u001f${(record.cols || []).join('\u001f')}` : '';
         }
 
         function loadBulkDeck(preserve = false) {
+            const previouslyScannedKeys = new Set([...scannedSet].map(index => getBulkRecordStableKey(bulkRecords[index])).filter(Boolean));
             let parsed = document.getElementById('batch-input').value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(parseDynamicRow).filter(r => r.id);
 
             // Auto-Sort automatically whenever entries change or sort rule updates
@@ -2151,6 +2181,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
 
             bulkRecords = parsed;
+            scannedSet = new Set(bulkRecords.map((record, index) => previouslyScannedKeys.has(getBulkRecordStableKey(record)) ? index : -1).filter(index => index >= 0));
             document.getElementById('bulk-line-count').innerText = `${bulkRecords.length} items`;
             if (!preserve || currentDeckIndex >= bulkRecords.length) currentDeckIndex = 0;
             runQueueDiagnostics();
@@ -2187,6 +2218,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (!toAdd.length) return showToast("All gaps already present.");
             ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + toAdd.join('\n');
             loadBulkDeck(false);
+            pushStateToCloud(true);
             playTone('success');
             showToast(`Inserted ${toAdd.length} missing serial(s)!`);
         }
@@ -2338,6 +2370,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             scannedSet.add(currentDeckIndex); playTone('success');
             if (currentDeckIndex < bulkRecords.length - 1) currentDeckIndex++;
             renderCurrentDeckSlide();
+            pushStateToCloud();
         }
         function stepDeck(d) { if (bulkRecords.length) { currentDeckIndex = (currentDeckIndex + d + bulkRecords.length) % bulkRecords.length; renderCurrentDeckSlide(); } }
         function toggleAutoPlay() {
@@ -2379,6 +2412,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (kind === 'fg') document.getElementById('bulk-fg-color').value = hex;
             else document.getElementById('bulk-bg-color').value = hex;
             renderCurrentDeckSlide();
+            saveBulkSettingsToCloud();
         }
         function setClSerialBg(hex) {
             document.getElementById('cl-serial-bg-color').value = hex;
@@ -2479,7 +2513,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             `).join('');
         }
         function addShiftBatchRuleRow() { shiftBatchConfig.push({ client: 'FF', carrier: 'RM', qty: 5, start: 0, date: getTodayIsoDate() }); renderShiftBatchEditorRows(); }
-        function switchShiftBatchPreset(key) {
+        function switchShiftBatchPreset(key, skipCloudPush = false) {
             activeShiftPresetKey = key;
             safeLocalCacheWrite('wmsActiveShiftPresetKeyV1', key);
             if (!allShiftPresets[key]) allShiftPresets[key] = JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS[key] || []));
@@ -2488,6 +2522,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('btn-shift-preset-NC').className = key === 'NC' ? "px-2 py-0.5 rounded font-bold bg-emerald-600 text-white" : "px-2 py-0.5 rounded font-bold theme-text-muted";
             renderShiftBatchPills();
             if (!document.getElementById('shift-batch-editor').classList.contains('hidden')) renderShiftBatchEditorRows();
+            if (!skipCloudPush) pushStateToCloud();
         }
         function saveShiftBatchRules() {
             allShiftPresets[activeShiftPresetKey] = JSON.parse(JSON.stringify(shiftBatchConfig));
@@ -2513,12 +2548,39 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             currentCarrierBatch = fullBatch; previewCarrierIndex = 0; updateCarrierPreview(true); generateAndPrintCarrierLabels();
         }
 
+        function splitCarrierUsageKey(key, yymmdd) {
+            const suffix = `-${yymmdd}`;
+            const pair = String(key).endsWith(suffix) ? String(key).slice(0, -suffix.length) : String(key);
+            const clientCodes = [...new Set([
+                ...DEFAULT_CLIENTS.map(item => item.code),
+                ...(Array.isArray(savedClients) ? savedClients.map(item => item.code) : []),
+                ...(Array.isArray(shiftBatchConfig) ? shiftBatchConfig.map(item => item.client) : [])
+            ].filter(Boolean).map(String))].sort((a, b) => b.length - a.length);
+            const carrierCodes = new Set([
+                ...DEFAULT_CARRIERS.map(item => item.code),
+                ...(Array.isArray(savedCarriers) ? savedCarriers.map(item => item.code) : []),
+                ...(Array.isArray(shiftBatchConfig) ? shiftBatchConfig.map(item => item.carrier) : [])
+            ].filter(Boolean).map(String));
+            for (const clientCode of clientCodes) {
+                const prefix = `${clientCode}-`;
+                if (!pair.startsWith(prefix)) continue;
+                const carrierCode = pair.slice(prefix.length);
+                if (carrierCodes.has(carrierCode)) return [clientCode, carrierCode];
+            }
+            // Legacy fallback: split at the last separator, not the first, so a
+            // hyphen in a client code remains intact for older/custom records.
+            const separator = pair.lastIndexOf('-');
+            return separator > 0 ? [pair.slice(0, separator), pair.slice(separator + 1)] : [pair, ''];
+        }
+
         function renderSmartUsageCheck(yymmdd, digits) {
             const box = document.getElementById('cl-smart-usage-list'); if (!box) return;
-            const todayKeys = Object.keys(carrierUsageLedger).filter(k => k.endsWith(`-${yymmdd}`) && carrierUsageLedger[k].length > 0).sort();
+            const todayKeys = Object.keys(carrierUsageLedger).filter(k => k.endsWith(`-${yymmdd}`) && Array.isArray(carrierUsageLedger[k]) && carrierUsageLedger[k].length > 0).sort();
             if (!todayKeys.length) { box.innerHTML = `<div class="theme-text-dim text-[11px]">No labels generated yet for ${yymmdd}.</div>`; return; }
             box.innerHTML = todayKeys.map(k => {
-                const [cCode, rCode] = k.split('-'), nums = [...new Set(carrierUsageLedger[k])].sort((a, b) => a - b), maxUsed = Math.max(...nums), nextFree = maxUsed + 1;
+                const [cCode, rCode] = splitCarrierUsageKey(k, yymmdd), nums = [...new Set(carrierUsageLedger[k].map(Number).filter(Number.isFinite))].sort((a, b) => a - b);
+                if (!nums.length) return '';
+                const maxUsed = Math.max(...nums), nextFree = maxUsed + 1;
                 const rangeStr = nums.length > 1 ? `#${String(nums[0]).padStart(digits, '0')}–#${String(maxUsed).padStart(digits, '0')}` : `#${String(nums[0]).padStart(digits, '0')}`;
                 return `<div class="p-2 rounded border theme-input flex items-center justify-between gap-2"><div><span class="font-bold text-emerald-500">${escapeHtml(cCode)}-${escapeHtml(rCode)}</span> <span class="theme-text-muted text-[11px]">Used: ${rangeStr}</span></div><button onclick="applySuggestedNext('${escapeHtml(cCode)}', '${escapeHtml(rCode)}', ${nextFree})" class="px-2 py-0.5 rounded bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold hover:bg-emerald-600 hover:text-white">Next: #${String(nextFree).padStart(digits, '0')}</button></div>`;
             }).join('');
@@ -2535,8 +2597,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('cl-client-preset').innerHTML = savedClients.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
             document.getElementById('cl-carrier-preset').innerHTML = savedCarriers.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
         }
-        function promptNewClientPreset() { const c = prompt("Client Code:")?.trim().toUpperCase(); if (!c) return; const n = prompt(`Client Name:`, c) || c; savedClients.push({ code: c, name: n }); localStorage.setItem('wmsCustomClientsV2', JSON.stringify(savedClients)); renderClientCarrierPresets(); document.getElementById('cl-client-preset').value = c; document.getElementById('cl-client-code').value = c; autoSetNextAvailableSerial(); }
-        function promptNewCarrierPreset() { const c = prompt("Carrier Code:")?.trim().toUpperCase(); if (!c) return; const n = prompt(`Carrier Name:`, c) || c; savedCarriers.push({ code: c, name: n }); localStorage.setItem('wmsCustomCarriersV2', JSON.stringify(savedCarriers)); renderClientCarrierPresets(); document.getElementById('cl-carrier-preset').value = c; document.getElementById('cl-carrier-code').value = c; autoSetNextAvailableSerial(); }
+        function promptNewClientPreset() { const c = prompt("Client Code:")?.trim().toUpperCase(); if (!c) return; if (!/^[A-Z0-9_-]{1,10}$/.test(c)) return showToast('Use 1–10 letters, numbers, hyphens or underscores for client codes.'); if (savedClients.some(x => String(x.code).toUpperCase() === c)) return showToast('That client code already exists.'); const n = prompt(`Client Name:`, c) || c; savedClients.push({ id: `client:${c}`, code: c, name: n }); safeLocalCacheWrite('wmsCustomClientsV2', savedClients); renderClientCarrierPresets(); document.getElementById('cl-client-preset').value = c; document.getElementById('cl-client-code').value = c; autoSetNextAvailableSerial(); }
+        function promptNewCarrierPreset() { const c = prompt("Carrier Code:")?.trim().toUpperCase(); if (!c) return; if (!/^[A-Z0-9_-]{1,10}$/.test(c)) return showToast('Use 1–10 letters, numbers, hyphens or underscores for carrier codes.'); if (savedCarriers.some(x => String(x.code).toUpperCase() === c)) return showToast('That carrier code already exists.'); const n = prompt(`Carrier Name:`, c) || c; savedCarriers.push({ id: `carrier:${c}`, code: c, name: n }); safeLocalCacheWrite('wmsCustomCarriersV2', savedCarriers); renderClientCarrierPresets(); document.getElementById('cl-carrier-preset').value = c; document.getElementById('cl-carrier-code').value = c; autoSetNextAvailableSerial(); pushStateToCloud(true); }
         function syncCarrierPreset(kind) { if (kind === 'client') document.getElementById('cl-client-code').value = document.getElementById('cl-client-preset').value; else document.getElementById('cl-carrier-code').value = document.getElementById('cl-carrier-preset').value; autoSetNextAvailableSerial(); }
         function setCarrierOrientation(orient) {
             carrierOrientation = orient;
@@ -2678,19 +2740,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 if (!carrierUsageLedger[key]) carrierUsageLedger[key] = [];
                 if (!carrierUsageLedger[key].includes(item.serialNum)) carrierUsageLedger[key].push(item.serialNum);
             });
-            localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); updateCarrierPreview(true);
+            safeLocalCacheWrite('wmsCarrierDailyUsageV1', carrierUsageLedger);
+            updateCarrierPreview(true);
         }
         function resetCarrierDayHistory() {
             const y = formatIsoToYYMMDD(document.getElementById('cl-date').value);
             if (confirm(`Reset ALL carrier serial usage logs for ${y}?`)) {
                 Object.keys(carrierUsageLedger).forEach(k => { if (k.endsWith(`-${y}`)) delete carrierUsageLedger[k]; });
-                localStorage.setItem('wmsCarrierDailyUsageV1', JSON.stringify(carrierUsageLedger)); document.getElementById('cl-start-serial').value = 1; updateCarrierPreview();
+                safeLocalCacheWrite('wmsCarrierDailyUsageV1', carrierUsageLedger); document.getElementById('cl-start-serial').value = 1; updateCarrierPreview();
             }
         }
         function copyAllCarrierCodes() { navigator.clipboard.writeText(currentCarrierBatch.map(i => i.fullCode).join('\n')); showToast(`Copied ${currentCarrierBatch.length} labels!`); }
-        function sendCarrierLabelsToBulkDeck() { recordCarrierBatchAsUsed(); document.getElementById('batch-input').value = currentCarrierBatch.map(i => i.fullCode).join('\n'); scannedSet.clear(); switchTab('bulk'); loadBulkDeck(false); }
-        function generateAndPrintCarrierLabels() {
+        async function sendCarrierLabelsToBulkDeck() { if (!currentCarrierBatch.length) return; if (!(await reserveCarrierBatchInCloud(currentCarrierBatch))) return; recordCarrierBatchAsUsed(); document.getElementById('batch-input').value = currentCarrierBatch.map(i => i.fullCode).join('\n'); scannedSet.clear(); switchTab('bulk'); loadBulkDeck(false); }
+        async function generateAndPrintCarrierLabels() {
             if (!currentCarrierBatch.length) return;
+            if (!(await reserveCarrierBatchInCloud(currentCarrierBatch))) return;
             recordCarrierBatchAsUsed();
             const isLand = carrierOrientation === 'landscape', pageW = isLand ? '150mm' : '100mm', pageH = isLand ? '100mm' : '150mm', off = document.getElementById('offscreen-canvas'), rendered = [];
             const marginOn = document.getElementById('cl-margin-enabled')?.checked ?? true;
@@ -2703,8 +2767,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             currentCarrierBatch.forEach(item => { bwipjs.toCanvas(off, { bcid: 'code128', text: item.fullCode, scale: 4, height: isLand ? 16 : 20, includetext: true, textxalign: 'center', textsize: 13, paddingwidth: 16, paddingheight: 6, backgroundcolor: 'ffffff' }); rendered.push({ ...item, dataUrl: off.toDataURL('image/png') }); });
 
             const html = rendered.map(r => isLand
-                ? `<div style="width:150mm;height:100mm;padding:${marginMm}mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:${borderCss};flex:1;padding:3mm 4mm;display:flex;flex-direction:column;justify-content:space-between;"><div style="border-bottom:2px solid #000;padding-bottom:2mm;display:flex;justify-content:space-between;align-items:center;font-size:24pt;font-weight:900;"><span>${r.client} — ${r.carrier}</span><span style="font-size:13pt;">${r.humanDate} <b style="background:${serBg};color:#fff;padding:1mm 3.5mm;font-size:22pt;margin-left:2mm;border-radius:4px;">#${r.serialPadded}</b></span></div><div style="margin:auto;padding:2mm 6mm;text-align:center;"><img src="${r.dataUrl}" style="max-width:100%;"/></div>${showPen ? `<div style="border-top:2px solid #000;padding-top:3mm;display:grid;grid-template-columns:1fr 1fr;font-size:11pt;font-weight:900;"><div style="border-right:2px solid #000;padding-right:4mm;height:12mm;display:flex;align-items:flex-end;">TIME: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div><div style="padding-left:4mm;height:12mm;display:flex;align-items:flex-end;">SIGN: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div></div>` : ''}</div></div>`
-                : `<div style="width:100mm;height:150mm;padding:${marginMm}mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:${borderCss};flex:1;padding:4mm;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div style="border-bottom:2px solid #000;padding-bottom:3mm;"><div style="font-size:30pt;font-weight:900;">${r.client} — ${r.carrier}</div><div style="font-size:14pt;font-weight:bold;margin-top:2mm;">${r.humanDate} <span style="background:${serBg};color:#fff;padding:1mm 4mm;font-size:22pt;font-weight:900;margin-left:2mm;border-radius:4px;">#${r.serialPadded}</span></div></div><div style="margin:auto;padding:2mm 4mm;"><img src="${r.dataUrl}" style="max-width:100%;"/></div>${showPen ? `<div style="border-top:2px solid #000;padding-top:3mm;text-align:left;font-size:11pt;font-weight:900;"><div style="height:12mm;display:flex;align-items:flex-end;margin-bottom:3mm;">TIME: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div><div style="height:12mm;display:flex;align-items:flex-end;">SIGN: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div></div>` : ''}</div></div>`
+                ? `<div style="width:150mm;height:100mm;padding:${marginMm}mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:${borderCss};flex:1;padding:3mm 4mm;display:flex;flex-direction:column;justify-content:space-between;"><div style="border-bottom:2px solid #000;padding-bottom:2mm;display:flex;justify-content:space-between;align-items:center;font-size:24pt;font-weight:900;"><span>${escapeHtml(r.client)} — ${escapeHtml(r.carrier)}</span><span style="font-size:13pt;">${escapeHtml(r.humanDate)} <b style="background:${serBg};color:#fff;padding:1mm 3.5mm;font-size:22pt;margin-left:2mm;border-radius:4px;">#${r.serialPadded}</b></span></div><div style="margin:auto;padding:2mm 6mm;text-align:center;"><img src="${r.dataUrl}" style="max-width:100%;"/></div>${showPen ? `<div style="border-top:2px solid #000;padding-top:3mm;display:grid;grid-template-columns:1fr 1fr;font-size:11pt;font-weight:900;"><div style="border-right:2px solid #000;padding-right:4mm;height:12mm;display:flex;align-items:flex-end;">TIME: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div><div style="padding-left:4mm;height:12mm;display:flex;align-items:flex-end;">SIGN: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div></div>` : ''}</div></div>`
+                : `<div style="width:100mm;height:150mm;padding:${marginMm}mm;box-sizing:border-box;page-break-after:always;display:flex;font-family:monospace;"><div style="border:${borderCss};flex:1;padding:4mm;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div style="border-bottom:2px solid #000;padding-bottom:3mm;"><div style="font-size:30pt;font-weight:900;">${escapeHtml(r.client)} — ${escapeHtml(r.carrier)}</div><div style="font-size:14pt;font-weight:bold;margin-top:2mm;">${escapeHtml(r.humanDate)} <span style="background:${serBg};color:#fff;padding:1mm 4mm;font-size:22pt;font-weight:900;margin-left:2mm;border-radius:4px;">#${r.serialPadded}</span></div></div><div style="margin:auto;padding:2mm 4mm;"><img src="${r.dataUrl}" style="max-width:100%;"/></div>${showPen ? `<div style="border-top:2px solid #000;padding-top:3mm;text-align:left;font-size:11pt;font-weight:900;"><div style="height:12mm;display:flex;align-items:flex-end;margin-bottom:3mm;">TIME: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div><div style="height:12mm;display:flex;align-items:flex-end;">SIGN: <div style="border-bottom:1.5px solid #000;flex:1;margin-left:2mm;"></div></div></div>` : ''}</div></div>`
             ).join('');
             safeOpenPrintWindow(`<!DOCTYPE html><html><head><style>@page{size:${pageW} ${pageH};margin:0;}body{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print();},150);};<\/script></body></html>`);
         }
@@ -2714,6 +2778,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         let trailerScannedList = readStoredJson('wmsTrailerScannedV1', []);
         if (!Array.isArray(trailerScannedList)) trailerScannedList = [];
+        trailerScannedList = trailerScannedList.map((item, index) => ({ ...item, id: item.id || `scan:${String(item.code || 'unknown')}:${String(item.time || index)}` }));
         let currentTrailerMasterPayload = '';
 
         function generateTrailerSingleMasterCode() {
@@ -2786,36 +2851,43 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             win.document.close();
         }
 
-        function processTrailerRdtScan() {
+        async function processTrailerRdtScan() {
             const inp = document.getElementById('tr-rdt-input');
             const rawVal = inp.value.trim().toUpperCase();
             if (!rawVal) return;
-            inp.value = '';
-
-            const extractedCodes = rawVal.split(/[,;\t\r\n]+/).map(s => s.trim()).filter(Boolean);
+            const extractedCodes = [...new Set(rawVal.split(/[,;\t\r\n]+/).map(s => s.trim()).filter(Boolean))];
             const blockDups = document.getElementById('tr-block-dups').checked;
-            const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
-            let addedCount = 0, dupCount = 0;
-
-            extractedCodes.forEach(code => {
-                if (blockDups && trailerScannedList.some(item => item.code === code)) { dupCount++; return; }
-                trailerScannedList.unshift({ code, prefix: extractGroupPrefix(code), time });
-                addedCount++;
-            });
-
-            localStorage.setItem('wmsTrailerScannedV1', JSON.stringify(trailerScannedList));
-            if (addedCount > 0) {
-                playTone('success');
-                document.getElementById('tr-last-scan-msg').innerHTML = `<span class="text-emerald-500 font-bold">✓ SHIPPED ${addedCount} LABEL(S)${dupCount ? ` (${dupCount} dups skipped)` : ''}</span>`;
-            } else {
+            inp.value = '';
+            try {
+                const result = await commitTrailerScansToCloud(extractedCodes, blockDups);
+                const { addedCount, dupCount } = result;
+                if (addedCount > 0) {
+                    playTone('success');
+                    document.getElementById('tr-last-scan-msg').innerHTML = `<span class="text-emerald-500 font-bold">✓ SHIPPED ${addedCount} LABEL(S)${dupCount ? ` (${dupCount} duplicates skipped on this device)` : ''}</span>`;
+                } else {
+                    playTone('error');
+                    document.getElementById('tr-last-scan-msg').innerHTML = `<span class="text-rose-500 font-bold">✕ DUPLICATE BLOCKED</span>`;
+                }
+                renderTrailerManifest();
+            } catch (error) {
+                inp.value = rawVal;
                 playTone('error');
-                document.getElementById('tr-last-scan-msg').innerHTML = `<span class="text-rose-500 font-bold">✕ DUPLICATE BLOCKED</span>`;
+                showToast(`Local manifest save failed: ${error.message || error}. Scan retained for retry.`);
             }
-            renderTrailerManifest();
         }
 
-        function removeTrailerScanItem(idx) { trailerScannedList.splice(idx, 1); localStorage.setItem('wmsTrailerScannedV1', JSON.stringify(trailerScannedList)); renderTrailerManifest(); }
-        function clearTrailerManifest() { if (confirm("Clear all shipped labels for a new trailer?")) { trailerScannedList = []; localStorage.setItem('wmsTrailerScannedV1', '[]'); renderTrailerManifest(); } }
+        function removeTrailerScanItem(idx) {
+            trailerScannedList.splice(idx, 1);
+            safeLocalCacheWrite('wmsTrailerScannedV1', trailerScannedList);
+            renderTrailerManifest();
+        }
+        function clearTrailerManifest() {
+            if (confirm("Clear this device’s local trailer scan history? This cannot be undone.")) {
+                trailerScannedList = [];
+                safeLocalCacheWrite('wmsTrailerScannedV1', trailerScannedList);
+                renderTrailerManifest();
+            }
+        }
 
         function renderTrailerManifest() {
             const trl = document.getElementById('tr-trailer-id').value || 'TRL-01', bay = document.getElementById('tr-dock-door').value || 'BAY-01', seal = document.getElementById('tr-seal-num').value || 'NONE';
@@ -2832,7 +2904,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <td class="p-2.5 theme-text-dim">${trailerScannedList.length - idx}</td>
                     <td class="p-2.5 font-bold">${escapeHtml(item.code)}</td>
                     <td class="p-2.5"><span class="px-1.5 py-0.2 rounded theme-elevated border text-[10px]">${escapeHtml(item.prefix)}</span></td>
-                    <td class="p-2.5 theme-text-dim">${item.time}</td>
+                    <td class="p-2.5 text-[10px] theme-text-muted">${escapeHtml(item.trailerId || trl)} / ${escapeHtml(item.seal || seal)}${item.carrier ? ` • ${escapeHtml(item.carrier)}` : ''}</td>
+                    <td class="p-2.5 theme-text-dim">${escapeHtml(item.time || '')}</td>
                     <td class="p-2.5 text-right"><button onclick="removeTrailerScanItem(${idx})" class="text-rose-400 font-bold px-1.5">×</button></td>
                 </tr>
             `).join('');
@@ -2840,17 +2913,23 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function exportTrailerCSV() {
             if (!trailerScannedList.length) return alert("No labels shipped on this trailer yet.");
-            const trl = document.getElementById('tr-trailer-id').value, bay = document.getElementById('tr-dock-door').value, seal = document.getElementById('tr-seal-num').value;
-            let csv = `data:text/csv;charset=utf-8,Trailer,Bay,Seal,Label_ID,Type,Scan_Time\n` + trailerScannedList.map(i => `"${trl}","${bay}","${seal}","${i.code}","${i.prefix}","${i.time}"`).join('\n');
-            const l = document.createElement('a'); l.href = encodeURI(csv); l.download = `trailer-${trl}-${Date.now()}.csv`; l.click();
+            const trl = document.getElementById('tr-trailer-id').value || 'TRL-01';
+            const bay = document.getElementById('tr-dock-door').value || 'BAY-01';
+            const seal = document.getElementById('tr-seal-num').value || 'NONE';
+            const csvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+            const csvRows = [['Trailer', 'Bay', 'Seal', 'Carrier', 'Label_ID', 'Type', 'Scan_Time'], ...trailerScannedList.map(item => [item.trailerId || trl, item.bay || bay, item.seal || seal, item.carrier || '', item.code, item.prefix, item.time])];
+            const csvText = csvRows.map(row => row.map(csvCell).join(',')).join('\r\n');
+            const l = document.createElement('a'); l.href = URL.createObjectURL(new Blob([csvText], { type: 'text/csv;charset=utf-8' })); l.download = `trailer-scan-history-${Date.now()}.csv`; l.click();
+            setTimeout(() => URL.revokeObjectURL(l.href), 1000);
         }
 
         function printTrailerManifest() {
             if (!trailerScannedList.length) return alert("Scan at least one label onto the trailer first.");
             const trl = document.getElementById('tr-trailer-id').value, bay = document.getElementById('tr-dock-door').value, seal = document.getElementById('tr-seal-num').value, carrier = document.getElementById('tr-carrier-name').value;
             const win = window.open('', '_blank');
-            const rowsHtml = trailerScannedList.map((i, idx) => `<tr><td style="border:1px solid #000;padding:4px;">${trailerScannedList.length - idx}</td><td style="border:1px solid #000;padding:4px;font-weight:bold;">${escapeHtml(i.code)}</td><td style="border:1px solid #000;padding:4px;">${escapeHtml(i.prefix)}</td><td style="border:1px solid #000;padding:4px;">${i.time}</td></tr>`).join('');
-            win.document.write(`<html><head><title>Trailer Manifest - ${escapeHtml(trl)}</title><style>body{font-family:monospace;padding:15mm;}table{width:100%;border-collapse:collapse;margin-top:10mm;font-size:10pt;}</style></head><body><h1>OUTBOUND TRAILER LOAD MANIFEST</h1><p><b>TRAILER:</b> ${escapeHtml(trl)} | <b>DOCK:</b> ${escapeHtml(bay)} | <b>SEAL:</b> ${escapeHtml(seal)} | <b>CARRIER:</b> ${escapeHtml(carrier)} | <b>TOTAL UNITS:</b> ${trailerScannedList.length}</p><table><thead><tr><th style="border:1px solid #000;padding:5px;text-align:left;">#</th><th style="border:1px solid #000;padding:5px;text-align:left;">LABEL ID</th><th style="border:1px solid #000;padding:5px;text-align:left;">TYPE</th><th style="border:1px solid #000;padding:5px;text-align:left;">TIME</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="margin-top:15mm;display:flex;justify-content:space-between;font-weight:bold;"><span>LOADER SIGN: ___________________</span><span>DRIVER SIGN: ___________________</span></div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
+            if (!win) return showToast('Allow pop-ups to print the trailer scan register.');
+            const rowsHtml = trailerScannedList.map((i, idx) => `<tr><td style="border:1px solid #000;padding:4px;">${trailerScannedList.length - idx}</td><td style="border:1px solid #000;padding:4px;font-weight:bold;">${escapeHtml(i.code)}</td><td style="border:1px solid #000;padding:4px;">${escapeHtml(i.prefix)}</td><td style="border:1px solid #000;padding:4px;">${escapeHtml(i.trailerId || trl)} / ${escapeHtml(i.seal || seal)}${i.carrier ? ` • ${escapeHtml(i.carrier)}` : ''}</td><td style="border:1px solid #000;padding:4px;">${escapeHtml(i.time || '')}</td></tr>`).join('');
+            win.document.write(`<html><head><title>Trailer Scan Register - ${escapeHtml(trl)}</title><style>body{font-family:monospace;padding:15mm;}table{width:100%;border-collapse:collapse;margin-top:10mm;font-size:10pt;}</style></head><body><h1>OUTBOUND TRAILER SCAN REGISTER</h1><p><b>ACTIVE TRAILER:</b> ${escapeHtml(trl)} | <b>DOCK:</b> ${escapeHtml(bay)} | <b>SEAL:</b> ${escapeHtml(seal)} | <b>CARRIER:</b> ${escapeHtml(carrier)} | <b>LOCAL SCANS:</b> ${trailerScannedList.length}</p><table><thead><tr><th style="border:1px solid #000;padding:5px;text-align:left;">#</th><th style="border:1px solid #000;padding:5px;text-align:left;">LABEL ID</th><th style="border:1px solid #000;padding:5px;text-align:left;">TYPE</th><th style="border:1px solid #000;padding:5px;text-align:left;">TRAILER / SEAL</th><th style="border:1px solid #000;padding:5px;text-align:left;">TIME</th></tr></thead><tbody>${rowsHtml}</tbody></table><div style="margin-top:15mm;display:flex;justify-content:space-between;font-weight:bold;"><span>LOADER SIGN: ___________________</span><span>DRIVER SIGN: ___________________</span></div><script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
             win.document.close();
         }
 
@@ -2858,6 +2937,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // 6. NOTES TAB (PERMANENT TEMPLATES + EDITABLE NC RACK LIST + MARGIN/BORDER OFF)
         // ==========================================
         let a4Orientation = 'landscape', lastFocusedEditable = null, activeSelectedTemplateId = '';
+        let activeNoteDraftHtml = readStoredText('wmsActiveNoteDraftHtmlV1', readStoredText('wmsActiveNoteCanvasDraftV1', ''));
         let savedNoteTemplates = readStoredJson('wmsPermanentNoteTemplatesV1', {});
         if (!isPlainObject(savedNoteTemplates)) savedNoteTemplates = {};
 
@@ -2869,6 +2949,56 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             { key: 'nc_rack', label: 'NC Rack List (Client, Carrier-Date, Barcode, Total)' },
             { key: 'packing', label: 'Packing Station Sheet' }
         ];
+
+        const NOTE_ALLOWED_TAGS = new Set(['DIV', 'SPAN', 'P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U', 'UL', 'OL', 'LI', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'HR', 'INPUT', 'BUTTON', 'CANVAS']);
+        function sanitizeNoteHtml(rawHtml) {
+            const template = document.createElement('template');
+            template.innerHTML = String(rawHtml || '');
+            const scrubChildren = parent => {
+                [...parent.childNodes].forEach(node => {
+                    if (node.nodeType === Node.COMMENT_NODE) { node.remove(); return; }
+                    if (node.nodeType !== Node.ELEMENT_NODE) return;
+                    if (!NOTE_ALLOWED_TAGS.has(node.tagName)) {
+                        const replacement = document.createTextNode(node.textContent || '');
+                        node.replaceWith(replacement);
+                        return;
+                    }
+                    [...node.attributes].forEach(attr => {
+                        const name = attr.name.toLowerCase();
+                        const value = attr.value || '';
+                        const safeAttribute = ['class', 'style', 'title', 'contenteditable', 'data-saved-barcode', 'data-barcode-val', 'colspan', 'rowspan', 'type', 'checked', 'disabled', 'value', 'id', 'aria-label'].includes(name);
+                        if (!safeAttribute || name.startsWith('on') || /javascript:|data:text\/html|url\s*\(|expression\s*\(|@import|behavior\s*:/i.test(value)) node.removeAttribute(attr.name);
+                    });
+                    if (node.tagName === 'INPUT') {
+                        const type = (node.getAttribute('type') || 'text').toLowerCase();
+                        if (type !== 'checkbox') node.remove();
+                    }
+                    scrubChildren(node);
+                });
+            };
+            scrubChildren(template.content);
+            return template.innerHTML;
+        }
+
+        function bindSanitizedNoteControls(root) {
+            if (!root) return;
+            root.querySelectorAll('button').forEach(btn => {
+                const label = (btn.textContent || '').trim().toLowerCase();
+                const title = (btn.getAttribute('title') || '').toLowerCase();
+                if (label === 'edit id' || title.includes('edit barcode')) {
+                    btn.addEventListener('click', () => {
+                        const canvas = btn.parentElement?.querySelector('canvas');
+                        if (canvas) editNoteInlineBarcode(canvas.id);
+                    });
+                } else if (label === '×' || title.includes('remove')) {
+                    btn.addEventListener('click', () => {
+                        btn.parentElement?.remove();
+                        autoFitA4Content();
+                        persistActiveNoteDraft();
+                    });
+                }
+            });
+        }
 
         function renderNoteTemplatesDropdown() {
             const sel = document.getElementById('note-template-library');
@@ -2889,7 +3019,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function restoreSavedNoteTemplateBody(rawHtml) {
             const body = document.getElementById('a4-word-body');
             if (!body) return;
-            body.innerHTML = rawHtml || '';
+            body.innerHTML = sanitizeNoteHtml(rawHtml);
             body.querySelectorAll('[data-saved-barcode]').forEach((el, idx) => {
                 const code = el.getAttribute('data-saved-barcode');
                 const cid = `saved-note-bc-${Date.now()}-${idx}`;
@@ -2901,6 +3031,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 el.replaceWith(cv);
                 try { bwipjs.toCanvas(cv, { bcid: 'code128', text: code, scale: 3, height: 15, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
             });
+            bindSanitizedNoteControls(body);
         }
 
         
@@ -2915,16 +3046,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const dateText = `SHIPPING DATE: ${months[now.getMonth()]} ${day}${suffix}, ${now.getFullYear()}`;
             document.getElementById('a4-word-body').innerHTML = `
                 <div class="relative group w-full">
-                    <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                    <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                     <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 46pt;" class="font-black tracking-tight uppercase outline-none leading-tight">ASENDIA FROM BLECKMANN (FITFLOP)</div>
                 </div>
                 <div class="relative group w-full">
-                    <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                    <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                     <div contenteditable="true" onfocus="lastFocusedEditable=this" id="a4-auto-ship-date" style="font-size: 34pt;" class="font-extrabold uppercase outline-none leading-tight">${dateText}</div>
                 </div>
             `;
             applyNoteBorderThickness();
             autoFitA4Content();
+            if (cloudBootstrapComplete) persistActiveNoteDraft();
         }
 
         function editNoteInlineBarcode(canvasId) {
@@ -2936,6 +3068,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             cv.dataset.barcodeVal = nextVal;
             try { bwipjs.toCanvas(cv, { bcid: 'code128', text: nextVal, scale: 3, height: 15, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
             autoFitA4Content();
+            persistActiveNoteDraft();
         }
 
         function applyDispatchTemplate(tplKey) {
@@ -2961,20 +3094,20 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 body.innerHTML = `
                     <div class="w-full flex flex-col items-center justify-center gap-5 text-center">
                         <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                            <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                             <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 38pt;" class="font-black uppercase outline-none leading-tight">CLIENT: NOBODY'S CHILD (NC)</div>
                         </div>
                         <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                            <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                             <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 32pt;" class="font-extrabold uppercase outline-none leading-tight">RM-${dotDate}</div>
                         </div>
                         <div class="relative group p-2 inline-block">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden" title="Remove Barcode">×</button>
+                            <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden" title="Remove Barcode">×</button>
                             <button onclick="editNoteInlineBarcode('${cid}')" class="hidden group-hover:block absolute -top-2 left-0 px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] font-bold print:hidden" title="Edit Barcode ID">Edit ID</button>
                             <canvas id="${cid}" data-barcode-val="${defaultBarcode}" onclick="editNoteInlineBarcode('${cid}')" class="mx-auto cursor-pointer" title="Click to edit barcode ID"></canvas>
                         </div>
                         <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                            <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                             <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 30pt;" class="font-black uppercase outline-none leading-tight">TOTAL BOXES / ITEMS: 24</div>
                         </div>
                     </div>`;
@@ -2983,32 +3116,36 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 body.innerHTML = `
                     <div class="w-full space-y-4 text-center">
                         <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                            <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                             <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 38pt;" class="font-black uppercase outline-none">PACKING STATION SHEET</div>
                         </div>
                         <div class="relative group w-full">
-                            <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                            <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
                             <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 22pt;" class="font-bold uppercase outline-none">STATION: PACK-01 • DATE: ${todayIso}</div>
                         </div>
                     </div>`;
             }
             applyNoteBorderThickness();
             autoFitA4Content();
+            if (cloudBootstrapComplete && tplKey !== 'asendia') persistActiveNoteDraft();
             showToast(`Loaded template`);
         }
 
-        function importFileIntoNotes(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const lines = ev.target.result.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-                if (!lines.length) return;
+        async function importFileIntoNotes(e) {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            try {
+                const imported = await readUploadedFileAsText(file);
+                const lines = imported.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+                if (!lines.length) return showToast('The selected file contains no note lines.');
                 const body = document.getElementById('a4-word-body');
                 body.innerHTML = lines.map(line => `<div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 20pt;" class="font-bold uppercase outline-none w-full">${escapeHtml(line)}</div>`).join('');
                 autoFitA4Content();
-                showToast(`Imported ${lines.length} line(s) from ${file.name}`);
-            };
-            reader.readAsText(file);
+                persistActiveNoteDraft();
+                const saved = await pushStateToCloud(true);
+                showToast(saved ? `Imported ${lines.length} line(s) and saved to cloud.` : `Imported ${lines.length} line(s); cloud save is not confirmed.`);
+            } catch (error) { showToast(error.message || 'Could not import the selected Notes file.'); }
+            finally { e.target.value = ''; }
         }
 
         function applyNoteBorderThickness() {
@@ -3036,8 +3173,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 if (firstBlock) firstBlock.style.fontSize = `${pt}pt`;
             }
             autoFitA4Content();
+            persistActiveNoteDraft();
         }
-        function applyNoteLineSpacing(val) { document.getElementById('a4-word-body').style.lineHeight = val; autoFitA4Content(); }
+        function applyNoteLineSpacing(val) { document.getElementById('a4-word-body').style.lineHeight = val; autoFitA4Content(); persistActiveNoteDraft(); }
         let a4UserZoomPct = 100;
 
         function setNoteDocZoom(pct) {
@@ -3082,24 +3220,84 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 body.style.transform = `scale(${Math.max(0.35, Math.min(availW / contentW, availH / contentH))})`;
             }
         }
-        function addA4TextBlock() { const div = document.createElement('div'); div.className = "relative group w-full"; div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 24pt;" class="font-bold uppercase outline-none">NEW NOTE LINE</div>`; document.getElementById('a4-word-body').appendChild(div); autoFitA4Content(); }
-        function addA4BarcodeBlock() { const val = prompt("Enter Barcode Value:", "ASD-BLK-261119"); if (!val) return; const div = document.createElement('div'); div.className = "relative group p-2 inline-block"; const cid = 'note-bc-' + Date.now(); div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><canvas id="${cid}" class="mx-auto"></canvas>`; document.getElementById('a4-word-body').appendChild(div); try { bwipjs.toCanvas(document.getElementById(cid), { bcid: 'code128', text: val.trim(), scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {} autoFitA4Content(); }
-        function addA4DividerLine() { const div = document.createElement('div'); div.className = "relative group w-full py-1"; div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-1.5 bg-rose-600 text-white rounded text-[10px] font-bold print:hidden">×</button><div class="border-b-4 border-zinc-900 w-full"></div>`; document.getElementById('a4-word-body').appendChild(div); autoFitA4Content(); }
-        function addA4SignBlock() { const div = document.createElement('div'); div.className = "relative group w-full pt-4 grid grid-cols-2 gap-6 font-mono text-base font-bold"; div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-0 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" class="outline-none">DISPATCHED BY: _______________</div><div contenteditable="true" onfocus="lastFocusedEditable=this" class="outline-none">DRIVER SIGN: _________________</div>`; document.getElementById('a4-word-body').appendChild(div); autoFitA4Content(); }
-        function setOfficeMode(mode) { document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word'); document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel'); document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel'); document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; }
+        function removeA4NoteBlock(button) {
+            button?.parentElement?.remove();
+            autoFitA4Content();
+            persistActiveNoteDraft();
+        }
+        function addA4TextBlock() {
+            const div = document.createElement('div');
+            div.className = 'relative group w-full';
+            div.innerHTML = `<button type="button" title="Remove" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size:24pt" class="font-bold uppercase outline-none">NEW NOTE LINE</div>`;
+            div.querySelector('button').addEventListener('click', function () { removeA4NoteBlock(this); });
+            document.getElementById('a4-word-body').appendChild(div);
+            autoFitA4Content();
+            persistActiveNoteDraft();
+        }
+        function addA4BarcodeBlock() {
+            const val = (prompt('Enter Barcode Value:', 'ASD-BLK-261119') || '').trim();
+            if (!val) return;
+            const div = document.createElement('div');
+            div.className = 'relative group p-2 inline-block';
+            const remove = document.createElement('button');
+            remove.type = 'button'; remove.title = 'Remove Barcode'; remove.textContent = '×';
+            remove.className = 'hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden';
+            remove.addEventListener('click', function () { removeA4NoteBlock(this); });
+            const canvas = document.createElement('canvas');
+            canvas.id = 'note-bc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+            canvas.dataset.barcodeVal = val;
+            canvas.className = 'mx-auto cursor-pointer';
+            canvas.title = 'Click to edit barcode ID';
+            canvas.addEventListener('click', () => editNoteInlineBarcode(canvas.id));
+            div.append(remove, canvas);
+            document.getElementById('a4-word-body').appendChild(div);
+            try { bwipjs.toCanvas(canvas, { bcid: 'code128', text: val, scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
+            autoFitA4Content();
+            persistActiveNoteDraft();
+        }
+        function addA4DividerLine() {
+            const div = document.createElement('div');
+            div.className = 'relative group w-full py-1';
+            const remove = document.createElement('button');
+            remove.type = 'button'; remove.title = 'Remove'; remove.textContent = '×';
+            remove.className = 'hidden group-hover:block absolute -top-2 right-0 px-1.5 bg-rose-600 text-white rounded text-[10px] font-bold print:hidden';
+            remove.addEventListener('click', function () { removeA4NoteBlock(this); });
+            const line = document.createElement('div');
+            line.className = 'border-b-4 border-zinc-900 w-full';
+            div.append(remove, line);
+            document.getElementById('a4-word-body').appendChild(div);
+            autoFitA4Content();
+            persistActiveNoteDraft();
+        }
+        function addA4SignBlock() {
+            const div = document.createElement('div');
+            div.className = 'relative group w-full pt-4 grid grid-cols-2 gap-6 font-mono text-base font-bold';
+            const remove = document.createElement('button');
+            remove.type = 'button'; remove.title = 'Remove'; remove.textContent = '×';
+            remove.className = 'hidden group-hover:block absolute top-0 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden';
+            remove.addEventListener('click', function () { removeA4NoteBlock(this); });
+            const left = document.createElement('div'); left.contentEditable = 'true'; left.className = 'outline-none'; left.textContent = 'DISPATCHED BY: _______________';
+            const right = document.createElement('div'); right.contentEditable = 'true'; right.className = 'outline-none'; right.textContent = 'DRIVER SIGN: _________________';
+            div.append(remove, left, right);
+            document.getElementById('a4-word-body').appendChild(div);
+            autoFitA4Content();
+            persistActiveNoteDraft();
+        }
+        function setOfficeMode(mode) { document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word'); document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel'); document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel'); document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; if (cloudBootstrapComplete) pushStateToCloud(); }
         function setA4Orientation(orient) {
             a4Orientation = orient;
             document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
             document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
             autoFitA4Content();
+            if (cloudBootstrapComplete) pushStateToCloud();
         }
 
         window.addEventListener('resize', () => {
             if (!document.getElementById('view-a4note')?.classList.contains('hidden')) fitA4SheetToViewport();
         });
-        function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); }
-        function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); }
-        function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); }
+        function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); persistActiveNoteDraft(); }
+        function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); pushStateToCloud(); }
+        function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); pushStateToCloud(); }
         function printA4DeliveryNote() {
             const marginOn = document.getElementById('a4-margin-enabled')?.checked ?? true;
             const marginMm = marginOn ? (parseInt(document.getElementById('a4-print-margin-mm')?.value) || 0) : 0;
@@ -3127,7 +3325,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         };
 
         const DEFAULT_CLOUD_SYNC_CONFIG = { ...EMBEDDED_CLOUD_DEFAULTS };
-        const VALID_CLOUD_PROVIDERS = new Set(['none', 'supabase', 'webhook']);
+        const VALID_CLOUD_PROVIDERS = new Set(['supabase']);
 
         function readStoredJson(key, fallback) {
             try {
@@ -3179,20 +3377,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function loadPersistedCloudConfig() {
-            // V1 settings were device-local and could point different browsers at different rooms.
-            // Ignore them. Only settings explicitly saved by this version may override the shared defaults.
-            const parsed = readStoredJson('wmsCloudSyncConfigV2', {});
-            const saved = isPlainObject(parsed) ? parsed : {};
-            const merged = { ...DEFAULT_CLOUD_SYNC_CONFIG, ...saved };
-            if (!VALID_CLOUD_PROVIDERS.has(merged.provider)) merged.provider = DEFAULT_CLOUD_SYNC_CONFIG.provider;
-            merged.sbUrl = typeof merged.sbUrl === 'string' && merged.sbUrl.trim()
-                ? merged.sbUrl.trim() : EMBEDDED_CLOUD_DEFAULTS.sbUrl;
-            merged.sbKey = typeof merged.sbKey === 'string' && merged.sbKey.trim()
-                ? merged.sbKey.trim() : EMBEDDED_CLOUD_DEFAULTS.sbKey;
-            merged.roomId = typeof merged.roomId === 'string' && merged.roomId.trim()
-                ? merged.roomId.trim() : EMBEDDED_CLOUD_DEFAULTS.roomId;
-            merged.webhookUrl = typeof merged.webhookUrl === 'string' ? merged.webhookUrl.trim() : '';
-            return merged;
+            // The project URL, publishable key and room are deployment-wide settings.
+            // Never allow browser-local settings to redirect one tab to a different room.
+            return { ...EMBEDDED_CLOUD_DEFAULTS, provider: 'supabase' };
         }
 
         let cloudSyncConfig = loadPersistedCloudConfig();
@@ -3207,6 +3394,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         let isCloudPushInFlight = false;
         let lastLocalMutationAt = 0;
         let cloudBootstrapComplete = false;
+        let cloudSnapshotApplied = false;
         let cloudSyncLastError = '';
         let cloudLastSyncedSnapshot = null;
         let cloudPreBootstrapLocalSnapshot = null;
@@ -3214,12 +3402,43 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         if (!Array.isArray(offlineSyncQueue)) offlineSyncQueue = [];
         offlineSyncQueue = offlineSyncQueue.filter(item => isPlainObject(item) && typeof item.id === 'string');
 
-        function persistOfflineSyncQueue() {
+        function openQueueDatabase() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) return reject(new Error('IndexedDB unavailable'));
+                const request = indexedDB.open('wms-recovery-queue', 1);
+                request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains('queue')) request.result.createObjectStore('queue'); };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
+            });
+        }
+        async function restoreOfflineSyncQueue() {
             try {
-                localStorage.setItem('wmsOfflineSyncQueueV2', JSON.stringify(offlineSyncQueue));
-            } catch (e) {
-                console.warn('Could not persist the offline sync queue:', e);
-            }
+                const db = await openQueueDatabase();
+                const stored = await new Promise((resolve, reject) => {
+                    const tx = db.transaction('queue', 'readonly');
+                    const req = tx.objectStore('queue').get('pending');
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+                if (Array.isArray(stored)) {
+                    const ids = new Set(offlineSyncQueue.map(item => item.id));
+                    stored.forEach(item => { if (isPlainObject(item) && typeof item.id === 'string' && !ids.has(item.id)) offlineSyncQueue.push(item); });
+                    if (offlineSyncQueue.length > 200) offlineSyncQueue = offlineSyncQueue.slice(-200);
+                    safeLocalCacheWrite('wmsOfflineSyncQueueV2', offlineSyncQueue);
+                }
+                db.close();
+            } catch (e) { console.warn('IndexedDB recovery queue restore unavailable; using localStorage fallback.', e); }
+            updateOfflineQueueBadge();
+        }
+        function persistOfflineSyncQueue() {
+            try { localStorage.setItem('wmsOfflineSyncQueueV2', JSON.stringify(offlineSyncQueue)); }
+            catch (e) { console.warn('Could not persist the offline sync queue to localStorage:', e); }
+            openQueueDatabase().then(db => {
+                const tx = db.transaction('queue', 'readwrite');
+                tx.objectStore('queue').put(offlineSyncQueue, 'pending');
+                tx.oncomplete = () => db.close();
+                tx.onerror = () => { console.warn('IndexedDB queue write failed:', tx.error); db.close(); };
+            }).catch(e => console.warn('IndexedDB queue persistence unavailable; localStorage fallback retained.', e));
             updateOfflineQueueBadge();
         }
 
@@ -3282,7 +3501,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500';
                 dot.className = 'h-2 w-2 rounded-full bg-emerald-500';
                 txt.innerText = 'Synced (0)';
-                badge.title = 'The shared cloud snapshot has been loaded and there are no pending changes.';
+                badge.title = 'The shared cloud snapshot has been loaded and there are no pending changes. Local-only tabs are never queued.';
                 setTemplateBadge('Cloud Saved', 'text-emerald-400');
             }
         }
@@ -3400,10 +3619,14 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     channel.subscribe((status, error) => {
                         if (supabaseRealtimeChannel !== channel) return;
                         if (status === 'SUBSCRIBED') {
-                            updateCloudStatusUI('syncing', 'Realtime Connected');
+                            cloudSyncLastError = '';
+                            updateCloudStatusUI('synced', 'Realtime Live');
+                            updateOfflineQueueBadge();
                         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
                             console.warn('Supabase Realtime subscription status:', status, error || '');
-                            updateCloudStatusUI('error', 'Realtime Unavailable');
+                            cloudSyncLastError = `Realtime ${status.toLowerCase().replace('_',' ')}. Live updates may be delayed; use Force Sync to reconcile.`;
+                            updateCloudStatusUI('error', 'Realtime Warning');
+                            updateOfflineQueueBadge();
                         }
                     });
                 } catch (e) {
@@ -3412,16 +3635,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 }
             }
 
-            // Polling remains as a fallback for webhook endpoints and Realtime outages.
-            cloudPollInterval = setInterval(() => {
-                if (document.visibilityState === 'visible') pullStateFromCloud(false);
-            }, 5000);
+            // No fixed-interval polling: Supabase Realtime is the live update channel.
         }
 
         function initCloudClient() {
             stopCloudSubscriptions();
-            cloudSyncConfig = loadPersistedCloudConfig();
-            try { localStorage.setItem('wmsCloudSyncConfigV2', JSON.stringify(cloudSyncConfig)); } catch (e) {}
             cloudBootstrapComplete = cloudSyncConfig.provider === 'none';
             cloudSyncLastError = '';
             updateOfflineQueueBadge();
@@ -3443,8 +3661,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey, {
                         global: { fetch: (input, options = {}) => fetch(input, { ...options, cache: 'no-store' }) }
                     });
-                    updateCloudStatusUI('syncing', 'Connecting Cloud...');
-                    subscribeToRealtimeCloudSync();
+                    updateCloudStatusUI('syncing', 'Checking Auth...');
+                    refreshCloudAuthSession().then(isSignedIn => {
+                        if (isSignedIn) { subscribeToRealtimeCloudSync(); pullStateFromCloud(false); }
+                        else { cloudBootstrapComplete = false; updateCloudStatusUI('local', 'Sign in Required'); updateOfflineQueueBadge(); }
+                    }).catch(error => { cloudSyncLastError = error.message || String(error); updateCloudStatusUI('error', 'Auth Error'); updateOfflineQueueBadge(); });
                 } catch (e) {
                     console.warn('Supabase setup failed:', e);
                     supabaseClientInstance = null;
@@ -3473,6 +3694,61 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             updateCloudStatusUI('local', 'Local Cache');
         }
 
+        let cloudAuthUser = null;
+        function updateCloudAuthButton() {
+            const button = document.getElementById('btn-cloud-auth');
+            if (button) button.textContent = cloudAuthUser ? `Signed in: ${(cloudAuthUser.email || 'Account').split('@')[0]}` : 'Sign in';
+        }
+        function openCloudAuthModal() {
+            const modal = document.getElementById('cloud-auth-modal');
+            if (modal) modal.classList.remove('hidden');
+            if (cloudAuthUser) {
+                const email = document.getElementById('cloud-auth-email');
+                if (email) email.value = cloudAuthUser.email || '';
+            }
+        }
+        function closeCloudAuthModal() { document.getElementById('cloud-auth-modal')?.classList.add('hidden'); }
+        async function signInToCloud() {
+            const email = (document.getElementById('cloud-auth-email')?.value || '').trim();
+            const password = document.getElementById('cloud-auth-password')?.value || '';
+            const errorBox = document.getElementById('cloud-auth-error');
+            try {
+                if (!supabaseClientInstance) throw new Error('Supabase client is not initialized.');
+                if (!email || !password) throw new Error('Enter your email address and password.');
+                const { data, error } = await supabaseClientInstance.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                cloudAuthUser = data.user || data.session?.user || null;
+                if (!cloudAuthUser) throw new Error('Supabase did not return a signed-in user.');
+                updateCloudAuthButton(); closeCloudAuthModal();
+                cloudBootstrapComplete = false;
+                subscribeToRealtimeCloudSync();
+                const loaded = await pullStateFromCloud(true);
+                if (!loaded) throw new Error(cloudSyncLastError || 'Could not load shared workspace. Check that your account is a workspace member.');
+                showToast('Signed in and connected to the shared workspace.');
+            } catch (e) {
+                if (errorBox) { errorBox.textContent = e.message || String(e); errorBox.classList.remove('hidden'); }
+                cloudAuthUser = null; updateCloudAuthButton();
+            }
+        }
+        async function signOutOfCloud() {
+            try { if (supabaseClientInstance) await supabaseClientInstance.auth.signOut(); } catch (e) { console.warn('Sign out issue:', e); }
+            cloudAuthUser = null; cloudBootstrapComplete = false; stopCloudSubscriptions(); updateCloudAuthButton();
+            closeCloudAuthModal(); updateCloudStatusUI('local', 'Local Only'); updateOfflineQueueBadge();
+        }
+        async function refreshCloudAuthSession() {
+            if (!supabaseClientInstance?.auth) return false;
+            const { data, error } = await supabaseClientInstance.auth.getSession();
+            if (error) throw error;
+            cloudAuthUser = data.session?.user || null;
+            updateCloudAuthButton();
+            supabaseClientInstance.auth.onAuthStateChange((event, session) => {
+                cloudAuthUser = session?.user || null; updateCloudAuthButton();
+                if (event === 'SIGNED_OUT') { cloudBootstrapComplete = false; stopCloudSubscriptions(); updateCloudStatusUI('local', 'Signed Out'); }
+                if (event === 'TOKEN_REFRESHED' && cloudAuthUser) subscribeToRealtimeCloudSync();
+            });
+            return !!cloudAuthUser;
+        }
+
         let cloudAdminPassHash = readStoredText('wmsCloudAdminPassHashV1', '');
 
         async function openCloudSyncModal() {
@@ -3496,89 +3772,30 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
             document.getElementById('btn-cloud-sync')?.classList.remove('hidden');
             document.getElementById('btn-cloud-sync')?.classList.add('flex');
-            document.getElementById('cloud-provider-select').value = cloudSyncConfig.provider || 'none';
+            document.getElementById('cloud-provider-select').value = cloudSyncConfig.provider || 'supabase';
             document.getElementById('cloud-sb-url').value = cloudSyncConfig.sbUrl || '';
             document.getElementById('cloud-sb-key').value = cloudSyncConfig.sbKey || '';
             document.getElementById('cloud-room-id').value = cloudSyncConfig.roomId || 'bleckmann-main';
-            document.getElementById('cloud-webhook-url').value = cloudSyncConfig.webhookUrl || '';
             toggleCloudProviderFields();
             document.getElementById('cloud-sync-modal').classList.remove('hidden');
         }
 
-        function lockCloudSyncButton() {
-            const btn = document.getElementById('btn-cloud-sync');
-            if (btn) {
-                btn.classList.add('hidden');
-                btn.classList.remove('flex');
-            }
-            closeCloudSyncModal();
-        }
+        function lockCloudSyncButton() { closeCloudSyncModal(); }
         function closeCloudSyncModal() { document.getElementById('cloud-sync-modal').classList.add('hidden'); }
         function toggleCloudProviderFields() {
-            const p = document.getElementById('cloud-provider-select').value;
-            document.getElementById('cloud-supabase-fields').classList.toggle('hidden', p !== 'supabase');
-            document.getElementById('cloud-webhook-fields').classList.toggle('hidden', p !== 'webhook');
+            document.getElementById('cloud-supabase-fields')?.classList.remove('hidden');
         }
 
         async function saveCloudSyncSettings() {
-            const chosenProvider = document.getElementById('cloud-provider-select').value;
-            if (!VALID_CLOUD_PROVIDERS.has(chosenProvider)) {
-                showToast('Choose a valid cloud sync provider.');
-                return;
-            }
-            const prevIdentity = currentCloudConfigIdentity();
-            const prev = loadPersistedCloudConfig();
-            const nextConfig = {
-                provider: chosenProvider,
-                sbUrl: document.getElementById('cloud-sb-url').value.trim() || prev.sbUrl,
-                sbKey: document.getElementById('cloud-sb-key').value.trim() || prev.sbKey,
-                roomId: document.getElementById('cloud-room-id').value.trim() || prev.roomId || 'bleckmann-main',
-                webhookUrl: document.getElementById('cloud-webhook-url').value.trim() || prev.webhookUrl || '',
-                autoSync: true
-            };
-
-            try {
-                if (chosenProvider === 'supabase') {
-                    nextConfig.sbUrl = normalizeHttpUrl(nextConfig.sbUrl);
-                    if (!nextConfig.sbKey) throw new Error('Enter the Supabase public key.');
-                } else if (chosenProvider === 'webhook') {
-                    if (!nextConfig.webhookUrl) throw new Error('Enter the JSON REST endpoint URL.');
-                    nextConfig.webhookUrl = normalizeHttpUrl(nextConfig.webhookUrl);
-                }
-            } catch (e) {
-                showToast(e.message || 'Cloud sync settings are invalid.');
-                return;
-            }
-
-            cloudSyncConfig = nextConfig;
-            try { localStorage.setItem('wmsCloudSyncConfigV2', JSON.stringify(cloudSyncConfig)); }
-            catch (e) { showToast('Could not save cloud settings in this browser.'); return; }
-
-            const nextIdentity = currentCloudConfigIdentity();
-            const changedRoom = stableCloudJson(prevIdentity) !== stableCloudJson(nextIdentity);
-            if (changedRoom) {
-                cloudLastSyncedSnapshot = null;
-                cloudPreBootstrapLocalSnapshot = null;
-                offlineSyncQueue = [];
-                cloudPushRequested = false;
-                try {
-                    localStorage.removeItem('wmsCloudBaseSnapshotV2');
-                    localStorage.removeItem('wmsCloudBaseIdentityV2');
-                } catch (e) {}
-                persistOfflineSyncQueue();
-            }
-
+            // All browsers must use the same project and room. Change EMBEDDED_CLOUD_DEFAULTS
+            // in the deployed HTML when intentionally moving the whole workspace.
+            cloudSyncConfig = { ...EMBEDDED_CLOUD_DEFAULTS, provider: 'supabase' };
             initCloudClient();
             restoreCloudBaseForCurrentConfig();
             closeCloudSyncModal();
-            if (cloudSyncConfig.provider !== 'none') {
-                // The newly selected room is authoritative. Do not upload the previous room's cache.
-                const loaded = await pullStateFromCloud(true);
-                if (!loaded) showToast('Settings saved, but cloud access is not ready. Check the database setup and permissions.');
-            } else {
-                cloudBootstrapComplete = true;
-                showToast('Local-only mode enabled.');
-            }
+            const loaded = await pullStateFromCloud(true);
+            if (loaded) showToast('Connected to the shared cloud workspace.');
+            else showToast('Cloud connection failed. Check Supabase access and Realtime setup.');
         }
 
         function buildSharedStateSnapshot() {
@@ -3587,15 +3804,31 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const persistedMutationTs = Number(readStoredJson('wmsLastLocalMutationAtV1', 0)) || 0;
             const localMutationTs = Math.max(Number(lastLocalMutationAt) || 0, persistedMutationTs);
             return {
+                schemaVersion: 4,
                 todoStoreByUser,
                 userPasswordsMap,
                 savedTodoBatchesByUser,
                 iphoneNotesByUser,
                 customUserShiftBatches,
-                savedNoteTemplates,
+                savedNoteTemplates: Object.fromEntries(Object.entries(savedNoteTemplates).map(([key, value]) => [key, sanitizeNoteHtml(value)])),
                 hiddenBuiltinNoteTemplates,
                 activeNoteIdByUser,
                 allShiftPresets,
+                activeShiftPresetKey,
+                activeNoteDraftHtml: sanitizeNoteHtml(activeNoteDraftHtml),
+                activeSelectedTemplateId,
+                activeNoteExcelHtml: sanitizeNoteHtml(document.getElementById('a4-excel-body')?.innerHTML || ''),
+                noteLayout: {
+                    orientation: a4Orientation,
+                    officeMode: document.getElementById('a4-excel-body')?.classList.contains('hidden') ? 'word' : 'excel',
+                    lineSpacing: document.getElementById('a4-word-body')?.style.lineHeight || '1.2',
+                    borderWidth: document.getElementById('a4-border-width')?.value || '4px',
+                    printMarginMm: document.getElementById('a4-print-margin-mm')?.value || '8',
+                    marginEnabled: document.getElementById('a4-margin-enabled')?.checked ?? true
+                },
+                feedbackList: Array.isArray(feedbackList) ? feedbackList.map((item, index) => ({
+                    ...item, id: item.id || `feedback:${item.createdAt || item.comment || index}`
+                })) : [],
                 updatedAt: localMutationTs ? new Date(localMutationTs).toISOString() : new Date(0).toISOString()
             };
         }
@@ -3742,7 +3975,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 && savedIdentity.roomId === current.roomId
                 && savedIdentity.endpoint === current.endpoint;
             cloudLastSyncedSnapshot = identityMatches
-                ? readStoredJson('wmsCloudBaseSnapshotV2', null) : null;
+                ? stripLocalOnlyCloudFields(readStoredJson('wmsCloudBaseSnapshotV2', null)) : null;
             if (!identityMatches) {
                 try {
                     localStorage.removeItem('wmsCloudBaseSnapshotV2');
@@ -3752,23 +3985,32 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function persistCloudBaseSnapshot(snapshot) {
-            cloudLastSyncedSnapshot = cloneCloudJson(snapshot);
+            cloudLastSyncedSnapshot = stripLocalOnlyCloudFields(snapshot);
             try {
                 localStorage.setItem('wmsCloudBaseSnapshotV2', JSON.stringify(cloudLastSyncedSnapshot));
                 localStorage.setItem('wmsCloudBaseIdentityV2', JSON.stringify(currentCloudConfigIdentity()));
             } catch (e) { console.warn('Could not persist cloud sync baseline:', e); }
         }
 
+        function stripLocalOnlyCloudFields(snapshot) {
+            if (!isPlainObject(snapshot)) return snapshot;
+            const clean = cloneCloudJson(snapshot);
+            ['savedClients','savedCarriers','carrierUsageLedger','trailerScannedList','trailerContext',
+             'workspace','bulkInput','bulkSettings','bulkScannedKeys'].forEach(key => { delete clean[key]; });
+            return clean;
+        }
+
         async function readCloudSnapshotFromProvider() {
             if (cloudSyncConfig.provider === 'supabase') {
                 if (!supabaseClientInstance) throw new Error('Supabase client is not ready. Check the project URL and publishable key.');
+                if (!cloudAuthUser) throw new Error('Sign in to Supabase before accessing shared cloud data.');
                 const { data, error } = await supabaseClientInstance
                     .from('wms_shared_state')
                     .select('payload,updated_at')
                     .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
                     .maybeSingle();
                 if (error) throw error;
-                return data ? { payload: data.payload, updatedAt: data.updated_at, row: data } : null;
+                return data ? { payload: stripLocalOnlyCloudFields(data.payload), updatedAt: data.updated_at, row: data } : null;
             }
 
             if (cloudSyncConfig.provider === 'webhook') {
@@ -3780,13 +4022,59 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 if (!response.ok) throw new Error('Cloud GET failed: HTTP ' + response.status);
                 const json = await response.json();
                 const payload = isPlainObject(json) && Object.prototype.hasOwnProperty.call(json, 'payload') ? json.payload : json;
-                return payload ? { payload, updatedAt: json?.updated_at || payload?.updatedAt || null, row: json } : null;
+                return payload ? { payload: stripLocalOnlyCloudFields(payload), updatedAt: json?.updated_at || payload?.updatedAt || null, row: json } : null;
             }
             return null;
         }
 
+        // Carrier Labels are deliberately device-local. Serial reservations are checked
+        // against this browser's local ledger only; they are not sent to Supabase.
+        async function reserveCarrierBatchInCloud(batch) {
+            const reservations = new Map();
+            (batch || []).forEach(item => {
+                const key = `${item.client}-${item.carrier}-${item.yymmdd}`;
+                if (!reservations.has(key)) reservations.set(key, new Set());
+                reservations.get(key).add(Number(item.serialNum));
+            });
+            for (const [key, serials] of reservations.entries()) {
+                const used = new Set((Array.isArray(carrierUsageLedger[key]) ? carrierUsageLedger[key] : []).map(Number));
+                for (const serial of serials) {
+                    if (used.has(serial)) {
+                        showToast(`Serial ${serial} already exists in this browser's local history. Refresh the preview and generate again.`);
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Trailer Shipping is deliberately device-local. Scans and duplicate checks
+        // operate only on this browser's saved manifest.
+        async function commitTrailerScansToCloud(codes, blockDuplicates = true) {
+            const existing = new Set((Array.isArray(trailerScannedList) ? trailerScannedList : []).map(item => String(item.code || '').toUpperCase()));
+            let addedCount = 0, dupCount = 0;
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-GB', { hour12: false });
+            const trailerContext = {
+                trailerId: document.getElementById('tr-trailer-id')?.value || 'TRL-01',
+                bay: document.getElementById('tr-dock-door')?.value || 'BAY-01',
+                seal: document.getElementById('tr-seal-num')?.value || 'NONE',
+                carrier: document.getElementById('tr-carrier-name')?.value || ''
+            };
+            (codes || []).forEach(code => {
+                const normalized = String(code || '').trim().toUpperCase();
+                if (!normalized) return;
+                if (blockDuplicates && existing.has(normalized)) { dupCount++; return; }
+                trailerScannedList.unshift({ id: `scan:${now.getTime()}:${Math.random().toString(36).slice(2, 8)}`, code: normalized, prefix: extractGroupPrefix(normalized), time, ...trailerContext });
+                existing.add(normalized); addedCount++;
+            });
+            safeLocalCacheWrite('wmsTrailerScannedV1', trailerScannedList);
+            return { addedCount, dupCount };
+        }
+
         function applySharedStateSnapshot(snap) {
             if (!isPlainObject(snap)) return false;
+            cloudSnapshotApplied = true;
             let applied = false;
 
             if (isPlainObject(snap.todoStoreByUser)) {
@@ -3815,21 +4103,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 applied = true;
             }
             if (isPlainObject(snap.savedNoteTemplates)) {
-                savedNoteTemplates = snap.savedNoteTemplates;
+                savedNoteTemplates = Object.fromEntries(Object.entries(snap.savedNoteTemplates).map(([key, value]) => [key, sanitizeNoteHtml(value)]));
                 safeLocalCacheWrite('wmsPermanentNoteTemplatesV1', savedNoteTemplates);
                 renderNoteTemplatesDropdown();
-                const activeTemplateIsCustom = activeSelectedTemplateId && activeSelectedTemplateId.startsWith('custom:');
-                const activeTemplateIsBuiltin = ['asendia', 'nc_rack', 'packing'].includes(activeSelectedTemplateId);
-                const noteBody = document.getElementById('a4-word-body');
-                const userIsEditingNote = noteBody && noteBody.contains(document.activeElement);
-                const customKey = activeTemplateIsCustom ? activeSelectedTemplateId.slice(7) : null;
-                const builtinOverrideKey = activeTemplateIsBuiltin ? `__builtin__:${activeSelectedTemplateId}` : null;
-                const hasActiveSavedVersion = (customKey && Object.prototype.hasOwnProperty.call(savedNoteTemplates, customKey))
-                    || (builtinOverrideKey && Object.prototype.hasOwnProperty.call(savedNoteTemplates, builtinOverrideKey));
-                if (hasActiveSavedVersion && !userIsEditingNote) {
-                    applyDispatchTemplate(activeSelectedTemplateId);
-                    autoFitA4Content();
-                }
+                // The activeNoteDraftHtml field below contains the exact shared editor state.
+                // Do not regenerate a template here: that would create an unnecessary local edit
+                // while handling a remote update and could echo stale content back to the cloud.
                 applied = true;
             }
             if (Array.isArray(snap.hiddenBuiltinNoteTemplates)) {
@@ -3847,6 +4126,35 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 allShiftPresets = snap.allShiftPresets;
                 safeLocalCacheWrite('wmsAllShiftPresetsV1', allShiftPresets);
                 shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF || shiftBatchConfig;
+                renderShiftBatchPills();
+                applied = true;
+            }
+            if (typeof snap.activeNoteDraftHtml === 'string') {
+                const noteBody = document.getElementById('a4-word-body');
+                const userIsEditingNote = noteBody && noteBody.contains(document.activeElement);
+                if (userIsEditingNote) {
+                    activeNoteDraftHtml = serializeNoteBodyHtml();
+                } else {
+                    activeNoteDraftHtml = sanitizeNoteHtml(snap.activeNoteDraftHtml);
+                    safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', activeNoteDraftHtml);
+                    safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeNoteDraftHtml);
+                    if (noteBody) {
+                        hydrateNoteBodyHtml(activeNoteDraftHtml);
+                        applyNoteBorderThickness();
+                        autoFitA4Content();
+                    }
+                }
+                applied = true;
+            } else {
+                // Old cloud schemas did not contain a shared draft. Do not revive a stale browser draft.
+                activeNoteDraftHtml = '';
+                safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', '');
+                safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', '');
+            }
+            if (typeof snap.activeShiftPresetKey === 'string' && allShiftPresets[snap.activeShiftPresetKey]) {
+                activeShiftPresetKey = snap.activeShiftPresetKey;
+                safeLocalCacheWrite('wmsActiveShiftPresetKeyV1', activeShiftPresetKey);
+                shiftBatchConfig = allShiftPresets[activeShiftPresetKey];
                 renderShiftBatchPills();
                 applied = true;
             }
@@ -3986,9 +4294,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function pushStateToCloud(immediate = false) {
+            if (['bulk', 'carrier', 'trailer'].includes(currentActiveTab) && offlineSyncQueue.length === 0) return Promise.resolve(true);
             if (cloudSyncConfig.provider === 'none') return Promise.resolve(true);
-
             lastLocalMutationAt = Date.now();
+            try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
+            if (cloudSyncConfig.provider === 'supabase' && !cloudAuthUser) {
+                enqueueOfflineSyncChange('Waiting for sign-in');
+                updateCloudStatusUI('local', 'Sign in to Sync');
+                return Promise.resolve(false);
+            }
+
             try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
             enqueueOfflineSyncChange('State Change');
             cloudPushRequested = true;
@@ -4014,6 +4329,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         async function pullStateFromCloud(notify = false) {
+            if (cloudSyncConfig.provider === 'supabase' && !cloudAuthUser) {
+                cloudBootstrapComplete = false;
+                updateCloudStatusUI('local', 'Sign in Required');
+                if (notify) openCloudAuthModal();
+                updateOfflineQueueBadge();
+                return false;
+            }
             if (cloudSyncConfig.provider === 'none') {
                 cloudBootstrapComplete = true;
                 return true;
@@ -4051,6 +4373,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         applySharedStateSnapshot(reconciled);
                         cloudBootstrapComplete = true;
                         cloudPreBootstrapLocalSnapshot = null;
+                        safeLocalCacheRemove('wmsCloudPreAuthBaselineV1');
                         if (!cloudSnapshotDataEqual(reconciled, remoteSnapshot)) shouldPushMergedLocal = true;
                     } else {
                         // First use of this shared room: create its row once. An INSERT (not upsert)
@@ -4104,6 +4427,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         }
                         cloudBootstrapComplete = true;
                         cloudPreBootstrapLocalSnapshot = null;
+                        safeLocalCacheRemove('wmsCloudPreAuthBaselineV1');
                     }
 
                     cloudSyncLastError = '';
@@ -4128,6 +4452,37 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 }
             })();
             return cloudPullPromise;
+        }
+
+        async function showNotesVersionHistory() {
+            try {
+                if (!cloudAuthUser) { openCloudAuthModal(); showToast('Sign in to view shared Notes version history.'); return; }
+                const { data, error } = await supabaseClientInstance.from('wms_shared_state_versions')
+                    .select('revision,created_at,payload').eq('room_id', cloudSyncConfig.roomId || 'bleckmann-main')
+                    .order('revision', { ascending: false }).limit(30);
+                if (error) throw error;
+                const versions = (data || []).filter(row => row.payload && (row.payload.activeNoteDraftHtml || row.payload.savedNoteTemplates));
+                if (!versions.length) { showToast('No saved Notes versions are available yet.'); return; }
+                const menu = versions.map((row, i) => `${i + 1}. Revision ${row.revision} — ${new Date(row.created_at).toLocaleString()}`).join('\n');
+                const choice = prompt(`Notes version history (newest first):\n${menu}\n\nEnter a version number to restore, or Cancel:`, '1');
+                if (choice === null) return;
+                const index = Number(choice) - 1;
+                if (!Number.isInteger(index) || index < 0 || index >= versions.length) return showToast('Invalid version selection.');
+                if (!confirm('Restore this Notes version? The current state will remain in version history.')) return;
+                const payload = versions[index].payload;
+                if (typeof payload.activeNoteDraftHtml === 'string') {
+                    activeNoteDraftHtml = sanitizeNoteHtml(payload.activeNoteDraftHtml);
+                    safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', activeNoteDraftHtml);
+                    hydrateNoteBodyHtml(activeNoteDraftHtml);
+                }
+                if (isPlainObject(payload.savedNoteTemplates)) {
+                    savedNoteTemplates = Object.fromEntries(Object.entries(payload.savedNoteTemplates).map(([k,v]) => [k, sanitizeNoteHtml(v)]));
+                    safeLocalCacheWrite('wmsPermanentNoteTemplatesV1', savedNoteTemplates);
+                    renderNoteTemplatesDropdown();
+                }
+                await pushStateToCloud(true);
+                showToast(`Restored Notes revision ${versions[index].revision}.`);
+            } catch (e) { showToast(`Notes history unavailable: ${e.message || e}`); }
         }
 
         async function hashPasswordText(raw) {
@@ -4544,9 +4899,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         async function saveCurrentNotePermanently() {
             persistIphoneNote();
-            await pushStateToCloud(true);
-            playTone('success');
-            showToast("Note saved permanently (Local + Cloud)!");
+            const saved = await pushStateToCloud(true);
+            playTone(saved ? 'success' : 'error');
+            showToast(saved && offlineSyncQueue.length === 0
+                ? 'Note saved to the shared cloud.'
+                : 'Note kept on this device; cloud save is not confirmed.');
         }
 
         function deleteCurrentUserNoteItem() {
@@ -4840,6 +5197,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('nav-todo-count').innerText = openCount;
             document.getElementById('todo-big-counter').innerText = openCount;
             document.getElementById('todo-progress-text').innerText = `${activeTodoUser}: ${openCount} remaining • ${currentTodos.length - openCount} completed`;
+            const overdueCount = currentTodos.filter(t => !t.done && isTodoTimeOverdue(t.time)).length;
+            const pinnedCount = currentTodos.filter(t => !t.done && t.pinned).length;
+            const dashOpen = document.getElementById('todo-dash-open'); if (dashOpen) dashOpen.innerText = openCount;
+            const dashOverdue = document.getElementById('todo-dash-overdue'); if (dashOverdue) dashOverdue.innerText = overdueCount;
+            const dashPinned = document.getElementById('todo-dash-pinned'); if (dashPinned) dashPinned.innerText = pinnedCount;
 
             const searchQ = (document.getElementById('todo-search-input')?.value || '').trim().toLowerCase();
             const listCat = document.getElementById('todo-list-filter')?.value || 'ALL';
@@ -4936,7 +5298,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             lucide.createIcons();
         }
 
+        let currentActiveTab = 'bulk';
         function switchTab(tab) {
+            currentActiveTab = tab;
             ['bulk', 'carrier', 'trailer', 'a4note', 'todo'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all"; });
             document.getElementById(`view-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
             if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'trailer') { generateTrailerSingleMasterCode(); renderTrailerManifest(); setTimeout(() => document.getElementById('tr-rdt-input').focus(), 100); } if (tab === 'a4note') autoFitA4Content(); if (tab === 'todo') { pullStateFromCloud(false); saveAndRenderTodos(true); alertOverdueRemindersOnTabOpen(); }
@@ -4944,20 +5308,121 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         let workspace = readStoredJson('wmsWorkspaceFilesV1', { folders: ['Default Shift', 'Carrier Runs'], activeFolder: 'Default Shift', files: [] });
         if (!isPlainObject(workspace) || !Array.isArray(workspace.folders) || !Array.isArray(workspace.files)) workspace = { folders: ['Default Shift', 'Carrier Runs'], activeFolder: 'Default Shift', files: [] };
-        function saveWorkspaceState() { safeLocalCacheWrite('wmsWorkspaceFilesV1', workspace); document.getElementById('nav-file-count').innerText = workspace.files.length; }
+        function saveWorkspaceState(skipCloudPush = false) { safeLocalCacheWrite('wmsWorkspaceFilesV1', workspace); document.getElementById('nav-file-count').innerText = workspace.files.length; /* File Manager contents stay local with the operational tabs. */ }
         function toggleFileManager() { const d = document.getElementById('file-manager-drawer'), b = document.getElementById('file-manager-backdrop'); const open = !d.classList.contains('-translate-x-full'); d.classList.toggle('-translate-x-full', open); b.classList.toggle('hidden', open); if (!open) { renderFolderDropdown(); renderFileManager(); } }
         function renderFolderDropdown() { document.getElementById('fm-folder-select').innerHTML = workspace.folders.map(f => `<option value="${escapeHtml(f)}" ${f === workspace.activeFolder ? 'selected' : ''}>📁 ${escapeHtml(f)}</option>`).join(''); }
-        function createNewFolder() { const n = prompt("New folder name:"); if (n?.trim()) { workspace.folders.push(n.trim()); workspace.activeFolder = n.trim(); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); } }
-        function deleteCurrentFolder() { const f = document.getElementById('fm-folder-select').value; if (workspace.folders.length > 1) { workspace.folders = workspace.folders.filter(x => x !== f); workspace.activeFolder = workspace.folders[0]; saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); } }
-        function saveCurrentTaskToFile() { const f = document.getElementById('fm-folder-select').value, t = document.getElementById('fm-task-type').value, n = document.getElementById('fm-task-name').value.trim() || `Task-${Date.now()}`; workspace.files.unshift({ id: 't-'+Date.now(), folder: f, name: n, type: t, updated: new Date().toLocaleTimeString(), content: t === 'bulk' ? document.getElementById('batch-input').value : document.getElementById('a4-word-body').innerHTML }); saveWorkspaceState(); renderFileManager(); }
-        function saveActiveTaskToLocalDisk() { const link = document.createElement('a'); link.download = `wms-export-${Date.now()}.csv`; link.href = URL.createObjectURL(new Blob([document.getElementById('batch-input').value], { type: 'text/plain' })); link.click(); }
-        function openLocalFileIntoFolder(e) { const file = e.target.files[0]; if (!file) return; const r = new FileReader(); r.onload = ev => { workspace.files.unshift({ id: 't-'+Date.now(), folder: workspace.activeFolder, name: file.name, type: 'bulk', updated: 'Now', content: ev.target.result }); saveWorkspaceState(); renderFileManager(); }; r.readAsText(file); }
-        function loadTaskFile(id) { const f = workspace.files.find(x => x.id === id); if (!f) return; if (f.type === 'bulk') { document.getElementById('batch-input').value = f.content; switchTab('bulk'); loadBulkDeck(false); } toggleFileManager(); }
-        function deleteTaskFile(id) { workspace.files = workspace.files.filter(x => x.id !== id); saveWorkspaceState(); renderFileManager(); }
+        function createNewFolder() {
+            const name = (prompt('New folder name:') || '').trim();
+            if (!name) return;
+            if (workspace.folders.some(folder => String(folder).toLowerCase() === name.toLowerCase())) return showToast('A folder with that name already exists.');
+            workspace.folders.push(name); workspace.activeFolder = name;
+            saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
+        }
+        function deleteCurrentFolder() {
+            const folder = document.getElementById('fm-folder-select').value;
+            if (workspace.folders.length <= 1) return showToast('Keep at least one workspace folder.');
+            const fileCount = workspace.files.filter(file => file.folder === folder).length;
+            if (!confirm(`Delete folder "${folder}" and ${fileCount} saved file(s) inside it?`)) return;
+            workspace.folders = workspace.folders.filter(item => item !== folder);
+            workspace.files = workspace.files.filter(file => file.folder !== folder);
+            workspace.activeFolder = workspace.folders[0];
+            saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
+        }
+        function saveCurrentTaskToFile() {
+            const folder = document.getElementById('fm-folder-select').value;
+            const type = document.getElementById('fm-task-type').value;
+            const name = document.getElementById('fm-task-name').value.trim() || `Task-${Date.now()}`;
+            const content = type === 'bulk' ? document.getElementById('batch-input').value : sanitizeNoteHtml(serializeNoteBodyHtml());
+            workspace.files.unshift({ id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), folder, name, type, updated: new Date().toISOString(), content });
+            saveWorkspaceState(); renderFileManager();
+        }
+        function saveActiveTaskToLocalDisk() {
+            const type = document.getElementById('fm-task-type')?.value || 'bulk';
+            const isNote = type === 'a4note';
+            const content = isNote ? serializeNoteBodyHtml() : document.getElementById('batch-input')?.value || '';
+            const extension = isNote ? 'html' : 'csv';
+            const mimeType = isNote ? 'text/html;charset=utf-8' : 'text/csv;charset=utf-8';
+            const link = document.createElement('a');
+            link.download = `wms-export-${Date.now()}.${extension}`;
+            link.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        }
+        async function openLocalFileIntoFolder(e) {
+            const file = e.target.files?.[0]; if (!file) return;
+            try {
+                const content = await readUploadedFileAsText(file);
+                workspace.files.unshift({ id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), folder: workspace.activeFolder, name: file.name, type: 'bulk', updated: new Date().toISOString(), content });
+                saveWorkspaceState(); renderFileManager();
+                showToast(`Added ${file.name} to the shared workspace.`);
+            } catch (error) { showToast(error.message || 'Could not import that file.'); }
+            finally { e.target.value = ''; }
+        }
+        function loadTaskFile(id) {
+            const file = workspace.files.find(item => item.id === id); if (!file) return;
+            if (file.type === 'bulk') {
+                document.getElementById('batch-input').value = String(file.content || '');
+                switchTab('bulk'); loadBulkDeck(false); pushStateToCloud(true);
+            } else if (file.type === 'a4note') {
+                activeSelectedTemplateId = '';
+                activeNoteDraftHtml = sanitizeNoteHtml(file.content || '');
+                hydrateNoteBodyHtml(activeNoteDraftHtml);
+                switchTab('a4note');
+                applyNoteBorderThickness(); autoFitA4Content();
+                persistActiveNoteDraft();
+            }
+            toggleFileManager();
+        }
+        function deleteTaskFile(id) { workspace.files = workspace.files.filter(file => file.id !== id); saveWorkspaceState(); renderFileManager(); }
         function renderFileManager() { const f = document.getElementById('fm-folder-select').value; workspace.activeFolder = f; document.getElementById('fm-file-list').innerHTML = workspace.files.filter(x => x.folder === f).map(x => `<div class="p-2.5 rounded border theme-input flex justify-between items-center text-xs"><span class="truncate font-semibold">${escapeHtml(x.name)}</span><div class="flex gap-1"><button onclick="loadTaskFile('${x.id}')" class="px-2 py-0.5 bg-emerald-600 text-white rounded">Open</button><button onclick="deleteTaskFile('${x.id}')" class="px-1.5 text-rose-400">×</button></div></div>`).join(''); }
         function exportWorkspaceJSON() { const l = document.createElement('a'); l.download = `workspace.json`; l.href = URL.createObjectURL(new Blob([JSON.stringify(workspace)], { type: 'application/json' })); l.click(); updateJsonBackupTimestampUI(new Date().toLocaleTimeString('en-GB', { hour12: false })); }
-        function importWorkspaceJSON(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { workspace = JSON.parse(ev.target.result); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); }; r.readAsText(f); }
+        function importWorkspaceJSON(e) {
+            const file = e.target.files?.[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onerror = () => showToast('Could not read the workspace backup.');
+            reader.onload = event => {
+                try {
+                    const data = JSON.parse(String(event.target.result || ''));
+                    if (!isPlainObject(data) || !Array.isArray(data.folders) || !Array.isArray(data.files) || data.folders.length === 0) throw new Error('The backup does not contain a valid workspace structure.');
+                    const validFolders = [...new Set(data.folders.filter(folder => typeof folder === 'string' && folder.trim()).map(folder => folder.trim()))];
+                    if (!validFolders.length) throw new Error('The backup has no valid folders.');
+                    const validFiles = data.files.filter(item => isPlainObject(item) && typeof item.name === 'string' && typeof item.content === 'string')
+                        .map(item => ({
+                            ...item,
+                            id: typeof item.id === 'string' && /^[A-Za-z0-9:_-]{1,100}$/.test(item.id) ? item.id : `t-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                            type: item.type === 'a4note' ? 'a4note' : 'bulk',
+                            folder: validFolders.includes(item.folder) ? item.folder : validFolders[0]
+                        }));
+                    workspace = { folders: validFolders, activeFolder: validFolders.includes(data.activeFolder) ? data.activeFolder : validFolders[0], files: validFiles };
+                    saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
+                    showToast('Workspace backup imported and shared to cloud.');
+                } catch (error) { showToast(error.message || 'Invalid workspace backup.'); }
+            };
+            reader.readAsText(file); e.target.value = '';
+        }
+
         function quickSavePrompt() { const n = prompt("Save task as:"); if (n) { document.getElementById('fm-task-name').value = n; saveCurrentTaskToFile(); } }
+
+        async function readUploadedFileAsText(file) {
+            if (!file) throw new Error('No file was selected.');
+            const isWorkbook = /\.(xlsx|xls)$/i.test(file.name || '');
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('The selected file could not be read.'));
+                reader.onload = event => {
+                    try {
+                        if (isWorkbook) {
+                            if (!window.XLSX || typeof window.XLSX.read !== 'function') throw new Error('The spreadsheet library did not load.');
+                            const workbook = window.XLSX.read(event.target.result, { type: 'array' });
+                            const firstSheetName = workbook.SheetNames && workbook.SheetNames[0];
+                            if (!firstSheetName) throw new Error('The workbook contains no worksheets.');
+                            resolve(window.XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheetName]));
+                        } else resolve(String(event.target.result || ''));
+                    } catch (error) { reject(error); }
+                };
+                if (isWorkbook) reader.readAsArrayBuffer(file); else reader.readAsText(file);
+            });
+        }
 
         function formatPayloadWithSuffix(raw, suf) { let t = raw.replace(/\\t/g, '^009').replace(/\\r/g, '^013'); return suf === 'enter' ? t + '^013' : (suf === 'tab' ? t + '^009' : t); }
         function exportCurrentPNG() { const l = document.createElement('a'); l.download = `barcode.png`; l.href = document.getElementById('deck-canvas').toDataURL('image/png'); l.click(); }
@@ -4972,13 +5437,24 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             win.document.write(`<html><head><style>@page{size:150mm 100mm;margin:0;}body{margin:0;}</style></head><body>${ren.map(r => `<div style="width:150mm;height:100mm;padding:5mm;box-sizing:border-box;page-break-after:always;display:flex;justify-content:center;align-items:center;font-family:monospace;"><div style="border:2px solid #000;padding:12px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;text-align:center;"><div>${escapeHtml(r.cols.slice(1).filter(Boolean).join(' | '))}</div><img src="${r.dataUrl}" style="max-width:100%;margin:auto;"/><div style="font-weight:bold;">${escapeHtml(r.id)}</div></div></div>`).join('')}<script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
             win.document.close();
         }
-        function importSpreadsheet(e, id) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { document.getElementById(id).value = ev.target.result.trim(); loadBulkDeck(false); }; r.readAsText(f); }
-        async function decodeImageIntoBulk(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); const ta = document.getElementById('batch-input'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t; loadBulkDeck(true); playTone('success'); showToast(`Decoded & Added: ${t}`); } catch (err) { playTone('error'); } }
+        async function importSpreadsheet(e, id) {
+            const file = e.target.files?.[0]; if (!file) return;
+            try {
+                const text = await readUploadedFileAsText(file);
+                document.getElementById(id).value = text.trim();
+                scannedSet.clear(); loadBulkDeck(false);
+                const saved = await pushStateToCloud(true);
+                showToast(saved ? `Imported ${file.name} and saved to shared cloud.` : `Imported ${file.name}; cloud save is not confirmed.`);
+            } catch (error) { showToast(error.message || 'Could not import the selected file.'); }
+            finally { e.target.value = ''; }
+        }
+
+        async function decodeImageIntoBulk(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); const ta = document.getElementById('batch-input'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t; loadBulkDeck(true); const saved = await pushStateToCloud(true); playTone(saved ? 'success' : 'error'); showToast(saved ? `Decoded, added & cloud-saved: ${t}` : 'Decoded, but cloud save is not confirmed.'); } catch (err) { playTone('error'); } }
         function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
 
         let feedbackList = readStoredJson('wmsFeedbackBoardV1', []);
         if (!Array.isArray(feedbackList)) feedbackList = [];
-        function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); localStorage.setItem('wmsFeedbackBoardV1', JSON.stringify(feedbackList)); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); }
+        async function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ id: `feedback:${Date.now()}:${Math.random().toString(36).slice(2,7)}`, createdAt: new Date().toISOString(), name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); safeLocalCacheWrite('wmsFeedbackBoardV1', feedbackList); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); const saved = await pushStateToCloud(true); showToast(saved ? 'Feedback shared to cloud.' : 'Feedback is not yet confirmed in cloud.'); }
         function submitFeedbackToGitHub() { window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=Feedback&body=${encodeURIComponent(document.getElementById('fb-comment').value)}`, '_blank'); }
         function renderFeedbackBoard() { document.getElementById('fb-comments-list').innerHTML = feedbackList.map(f => `<div class="p-3 rounded-lg border theme-input text-xs"><b>${escapeHtml(f.name)}</b> [${escapeHtml(f.cat)}]: ${escapeHtml(f.comment)}</div>`).join(''); }
 
@@ -4997,8 +5473,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
             safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
             safeLocalCacheWrite('wmsActiveNoteTemplateIdV1', activeSelectedTemplateId || '');
-            const activeDraftHtml = serializeNoteBodyHtml();
-            if (activeDraftHtml) safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeDraftHtml);
+            const activeDraftHtml = sanitizeNoteHtml(serializeNoteBodyHtml());
+            if (activeDraftHtml) { activeNoteDraftHtml = activeDraftHtml; safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', activeDraftHtml); safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeDraftHtml); }
         }
 
         function serializeNoteBodyHtml() {
@@ -5017,7 +5493,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function hydrateNoteBodyHtml(rawHtml) {
             const body = document.getElementById('a4-word-body');
             if (!body) return;
-            body.innerHTML = rawHtml || '';
+            body.innerHTML = sanitizeNoteHtml(rawHtml);
             body.querySelectorAll('[data-saved-barcode]').forEach((el, idx) => {
                 const code = el.getAttribute('data-saved-barcode');
                 const cid = `custom-bc-${Date.now()}-${idx}`;
@@ -5029,10 +5505,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 el.replaceWith(cv);
                 try { bwipjs.toCanvas(cv, { bcid: 'code128', text: code, scale: 3, height: 15, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
             });
+            bindSanitizedNoteControls(body);
         }
 
         function persistActiveNoteDraft() {
-            const serialized = serializeNoteBodyHtml();
+            const serialized = sanitizeNoteHtml(serializeNoteBodyHtml());
+            activeNoteDraftHtml = serialized;
+            safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', serialized);
             safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', serialized);
             if (activeSelectedTemplateId && activeSelectedTemplateId.startsWith('custom:')) {
                 const tplName = activeSelectedTemplateId.slice(7);
@@ -5040,8 +5519,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             } else if (['asendia', 'nc_rack', 'packing'].includes(activeSelectedTemplateId)) {
                 // Persist edits to built-in templates as shared overrides, not as browser-only drafts.
                 savedNoteTemplates[`__builtin__:${activeSelectedTemplateId}`] = serialized;
-            } else {
-                return;
             }
             markLocalStateDirty();
             pushStateToCloud(false);
@@ -5062,7 +5539,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 26pt;" class="font-bold uppercase outline-none leading-tight">CLICK TO EDIT DETAILS</div>
                     </div>
                 </div>`;
-            savedNoteTemplates[name] = serializeNoteBodyHtml();
+            savedNoteTemplates[name] = sanitizeNoteHtml(serializeNoteBodyHtml());
             activeSelectedTemplateId = `custom:${name}`;
             markLocalStateDirty();
             renderNoteTemplatesDropdown();
@@ -5078,7 +5555,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const defaultName = activeSelectedTemplateId.startsWith('custom:') ? activeSelectedTemplateId.replace('custom:', '') : '';
             const name = prompt("Save permanent template name (existing name updates it):", defaultName)?.trim();
             if (!name) return;
-            savedNoteTemplates[name] = serializeNoteBodyHtml();
+            savedNoteTemplates[name] = sanitizeNoteHtml(serializeNoteBodyHtml());
             activeSelectedTemplateId = `custom:${name}`;
             markLocalStateDirty();
             renderNoteTemplatesDropdown();
@@ -5223,28 +5700,33 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             makeElementDraggable('chess-floating-window', 'chess-drag-header');
             makeElementDraggable('sudoku-floating-window', 'sudoku-drag-header');
             updateJsonBackupTimestampUI();
+            await restoreOfflineSyncQueue();
             initCloudClient();
             restoreCloudBaseForCurrentConfig();
             updateOfflineQueueBadge();
             // Capture this tab's starting cache only as a base for edits made during a temporary
             // first-load outage. It is never uploaded wholesale over an existing server row.
-            cloudPreBootstrapLocalSnapshot = buildSharedStateSnapshot();
+            const persistedPreAuthBaseline = readStoredJson('wmsCloudPreAuthBaselineV1', null);
+            cloudPreBootstrapLocalSnapshot = isPlainObject(persistedPreAuthBaseline)
+                ? stripLocalOnlyCloudFields(persistedPreAuthBaseline) : buildSharedStateSnapshot();
+            if (!isPlainObject(persistedPreAuthBaseline) && !isPlainObject(cloudLastSyncedSnapshot)) {
+                safeLocalCacheWrite('wmsCloudPreAuthBaselineV1', cloudPreBootstrapLocalSnapshot);
+            }
             if (cloudSyncConfig.provider !== 'none') {
-                // V1 queue entries contained no snapshot and could cause a stale cache to overwrite
-                // the server. Discard that legacy queue; V2 changes are reconciled against a baseline.
-                if (!cloudLastSyncedSnapshot) {
-                    try { localStorage.removeItem('wmsOfflineSyncQueueV1'); } catch (e) {}
-                }
-                const cloudLoaded = await pullStateFromCloud(false);
-                if (!cloudLoaded) {
-                    console.warn('Cloud startup was not completed. Local edits will not be uploaded until a successful cloud load.');
+                if (!cloudLastSyncedSnapshot) { try { localStorage.removeItem('wmsOfflineSyncQueueV1'); } catch (e) {} }
+                if (cloudAuthUser) {
+                    const cloudLoaded = await pullStateFromCloud(false);
+                    if (!cloudLoaded) console.warn('Cloud startup was not completed. Local edits will not be uploaded until a successful cloud load.');
+                } else {
+                    cloudBootstrapComplete = false;
+                    updateCloudStatusUI('local', 'Sign in Required');
                 }
             } else {
                 cloudBootstrapComplete = true;
             }
-            saveWorkspaceState();
+            saveWorkspaceState(true);
             refreshTodoUserDropdown();
-            switchShiftBatchPreset(activeShiftPresetKey);
+            switchShiftBatchPreset(activeShiftPresetKey, true);
             renderBulkColumnEditor();
             renderClientCarrierPresets();
             renderShiftBatchPills();
@@ -5254,13 +5736,24 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
             const savedTplId = readStoredText('wmsActiveNoteTemplateIdV1', '');
-            const savedDraftHtml = readStoredText('wmsActiveNoteCanvasDraftV1', '');
+            const savedDraftHtml = readStoredText('wmsActiveNoteDraftHtmlV1', readStoredText('wmsActiveNoteCanvasDraftV1', ''));
             renderNoteTemplatesDropdown();
-            if (savedTplId && savedTplId.startsWith('custom:') && Object.prototype.hasOwnProperty.call(savedNoteTemplates, savedTplId.slice(7))) {
+            if (cloudSnapshotApplied) {
+                if (activeNoteDraftHtml) {
+                    hydrateNoteBodyHtml(activeNoteDraftHtml);
+                    applyNoteBorderThickness();
+                    autoFitA4Content();
+                } else if (activeSelectedTemplateId && (activeSelectedTemplateId.startsWith('custom:') || ['asendia', 'nc_rack', 'packing'].includes(activeSelectedTemplateId))) {
+                    applyDispatchTemplate(activeSelectedTemplateId);
+                } else {
+                    resetSimpleTwoLineNote();
+                }
+            } else if (savedTplId && savedTplId.startsWith('custom:') && Object.prototype.hasOwnProperty.call(savedNoteTemplates, savedTplId.slice(7))) {
                 applyDispatchTemplate(savedTplId);
             } else if (savedTplId && ['asendia', 'nc_rack', 'packing'].includes(savedTplId)) {
                 applyDispatchTemplate(savedTplId);
-            } else if (!savedTplId && savedDraftHtml.trim()) {
+            } else if (savedDraftHtml.trim()) {
+                activeNoteDraftHtml = savedDraftHtml;
                 hydrateNoteBodyHtml(savedDraftHtml);
                 applyNoteBorderThickness();
                 autoFitA4Content();

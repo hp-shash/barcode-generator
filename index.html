@@ -3220,6 +3220,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 userPasswordsMap,
                 savedTodoBatchesByUser,
                 iphoneNotesByUser,
+                customUserShiftBatches,
                 savedNoteTemplates,
                 allShiftPresets,
                 updatedAt: new Date().toISOString()
@@ -3244,6 +3245,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 iphoneNotesByUser = snap.iphoneNotesByUser;
                 localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
             }
+            if (snap.customUserShiftBatches && typeof snap.customUserShiftBatches === 'object') {
+                customUserShiftBatches = snap.customUserShiftBatches;
+                localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
+            }
             if (snap.savedNoteTemplates && typeof snap.savedNoteTemplates === 'object') {
                 savedNoteTemplates = snap.savedNoteTemplates;
                 localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
@@ -3260,7 +3265,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function pushStateToCloud(immediate = false) {
-            if (cloudSyncConfig.provider === 'none') return;
+            if (cloudSyncConfig.provider === 'none') return Promise.resolve();
             clearTimeout(cloudSyncTimer);
             const run = async () => {
                 try {
@@ -3286,8 +3291,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     updateCloudStatusUI('error', 'Offline Cache');
                 }
             };
-            if (immediate) run();
-            else cloudSyncTimer = setTimeout(run, 600);
+            if (immediate) return run();
+            return new Promise(resolve => {
+                cloudSyncTimer = setTimeout(async () => { await run(); resolve(); }, 600);
+            });
         }
 
         async function pullStateFromCloud(notify = false) {
@@ -3607,14 +3614,14 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast(`Applied shift batch for ${activeTodoUser}!`);
         }
 
-        function saveCurrentUserBatch() {
+        async function saveCurrentUserBatch() {
             savedTodoBatchesByUser[activeTodoUser] = JSON.parse(JSON.stringify(getCurrentUserTodos()));
             localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
             localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
             persistIphoneNote();
-            pushStateToCloud(true);
+            await pushStateToCloud(true);
             playTone('success');
-            showToast(`Saved batch & notes for ${activeTodoUser}!`);
+            showToast(`Saved batch & notes for ${activeTodoUser} (Local + Cloud)!`);
         }
 
         function updateJsonBackupTimestampUI(tsStr) {
@@ -3724,11 +3731,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast(`Created note "${title}"`);
         }
 
-        function saveCurrentNotePermanently() {
+        async function saveCurrentNotePermanently() {
             persistIphoneNote();
-            pushStateToCloud(true);
+            await pushStateToCloud(true);
             playTone('success');
-            showToast("Note saved permanently!");
+            showToast("Note saved permanently (Local + Cloud)!");
         }
 
         function deleteCurrentUserNoteItem() {
@@ -4133,7 +4140,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             makeElementDraggable('calc-popover', 'calc-drag-header');
             makeElementDraggable('chess-floating-window', 'chess-drag-header');
             makeElementDraggable('sudoku-floating-window', 'sudoku-drag-header');
-            updateJsonBackupTimestampUI(); initCloudClient(); pullStateFromCloud(false); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(); generateTrailerSingleMasterCode(); renderTrailerManifest();
+            updateJsonBackupTimestampUI(); initCloudClient(); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(true);
+            pullStateFromCloud(false).then(() => { refreshTodoUserDropdown(); saveAndRenderTodos(true); }); generateTrailerSingleMasterCode(); renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
             renderNoteTemplatesDropdown();
             resetSimpleTwoLineNote();

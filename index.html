@@ -3103,23 +3103,47 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         };
 
         const DEFAULT_CLOUD_SYNC_CONFIG = { ...EMBEDDED_CLOUD_DEFAULTS };
+        const VALID_CLOUD_PROVIDERS = new Set(['none', 'supabase', 'webhook']);
+
+        function readStoredJson(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw === null ? fallback : JSON.parse(raw);
+            } catch (e) {
+                console.warn(`Could not read saved setting "${key}"; using its default.`, e);
+                return fallback;
+            }
+        }
+
+        function isPlainObject(value) {
+            return value !== null && typeof value === 'object' && !Array.isArray(value);
+        }
+
+        function normalizeHttpUrl(value) {
+            const parsed = new URL(String(value || '').trim());
+            if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+                throw new Error('Only HTTP or HTTPS URLs are supported.');
+            }
+            const normalized = parsed.toString();
+            return parsed.pathname === '/' && !parsed.search && !parsed.hash
+                ? normalized.replace(/\/$/, '') : normalized;
+        }
 
         function loadPersistedCloudConfig() {
-            try {
-                const raw = localStorage.getItem('wmsCloudSyncConfigV1');
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (parsed && typeof parsed === 'object') {
-                        const merged = { ...DEFAULT_CLOUD_SYNC_CONFIG, ...parsed };
-                        if (!merged.sbUrl) merged.sbUrl = EMBEDDED_CLOUD_DEFAULTS.sbUrl;
-                        if (!merged.sbKey) merged.sbKey = EMBEDDED_CLOUD_DEFAULTS.sbKey;
-                        if (!merged.roomId) merged.roomId = EMBEDDED_CLOUD_DEFAULTS.roomId;
-                        merged.provider = 'supabase';
-                        return merged;
-                    }
-                }
-            } catch (e) {}
-            return { ...DEFAULT_CLOUD_SYNC_CONFIG };
+            const parsed = readStoredJson('wmsCloudSyncConfigV1', {});
+            const saved = isPlainObject(parsed) ? parsed : {};
+            const merged = { ...DEFAULT_CLOUD_SYNC_CONFIG, ...saved };
+            if (!VALID_CLOUD_PROVIDERS.has(merged.provider)) {
+                merged.provider = DEFAULT_CLOUD_SYNC_CONFIG.provider;
+            }
+            merged.sbUrl = typeof merged.sbUrl === 'string' && merged.sbUrl.trim()
+                ? merged.sbUrl.trim() : EMBEDDED_CLOUD_DEFAULTS.sbUrl;
+            merged.sbKey = typeof merged.sbKey === 'string' && merged.sbKey.trim()
+                ? merged.sbKey.trim() : EMBEDDED_CLOUD_DEFAULTS.sbKey;
+            merged.roomId = typeof merged.roomId === 'string' && merged.roomId.trim()
+                ? merged.roomId.trim() : EMBEDDED_CLOUD_DEFAULTS.roomId;
+            merged.webhookUrl = typeof merged.webhookUrl === 'string' ? merged.webhookUrl.trim() : '';
+            return merged;
         }
 
         let cloudSyncConfig = loadPersistedCloudConfig();
@@ -3127,15 +3151,31 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         let supabaseRealtimeChannel = null;
         let cloudPollInterval = null;
         let cloudSyncTimer = null;
-        let offlineSyncQueue = JSON.parse(localStorage.getItem('wmsOfflineSyncQueueV1') || '[]');
+        let cloudPushPromise = null;
+        let cloudPullPromise = null;
+        let cloudPushRequested = false;
+        let cloudPushWaiters = [];
+        let isCloudPushInFlight = false;
+        let lastLocalMutationAt = 0;
+        let offlineSyncQueue = readStoredJson('wmsOfflineSyncQueueV1', []);
+        if (!Array.isArray(offlineSyncQueue)) offlineSyncQueue = [];
+        offlineSyncQueue = offlineSyncQueue.filter(item => isPlainObject(item) && typeof item.id === 'string');
 
         function persistOfflineSyncQueue() {
-            localStorage.setItem('wmsOfflineSyncQueueV1', JSON.stringify(offlineSyncQueue));
+            try {
+                localStorage.setItem('wmsOfflineSyncQueueV1', JSON.stringify(offlineSyncQueue));
+            } catch (e) {
+                console.warn('Could not persist the offline sync queue:', e);
+            }
             updateOfflineQueueBadge();
         }
 
         function enqueueOfflineSyncChange(reason = 'Update') {
-            offlineSyncQueue.push({ id: 'q-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), reason, ts: new Date().toISOString() });
+            offlineSyncQueue.push({
+                id: 'q-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                reason: String(reason || 'Update'),
+                ts: new Date().toISOString()
+            });
             if (offlineSyncQueue.length > 200) offlineSyncQueue = offlineSyncQueue.slice(-200);
             persistOfflineSyncQueue();
         }
@@ -3171,8 +3211,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     showToast(`Device offline — ${offlineSyncQueue.length} change(s) queued safely.`);
                     return;
                 }
+                if (cloudSyncConfig.provider === 'none') {
+                    updateCloudStatusUI('local', 'Local Cache');
+                    showToast('Cloud sync is disabled. Local data remains saved on this device.');
+                    return;
+                }
                 if (offlineSyncQueue.length > 0) {
-                    await pushStateToCloud(true);
+                    const pushed = await pushStateToCloud(true);
+                    if (!pushed || offlineSyncQueue.length > 0) {
+                        showToast('Local changes are still queued. Cloud data was not pulled to protect them.');
+                        return;
+                    }
                 }
                 await pullStateFromCloud(true);
                 updateOfflineQueueBadge();
@@ -3202,77 +3251,127 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 dot.className = state === 'synced' ? 'h-2 w-2 rounded-full bg-emerald-500' : (state === 'syncing' ? 'h-2 w-2 rounded-full bg-blue-400 animate-pulse' : (state === 'error' ? 'h-2 w-2 rounded-full bg-rose-500' : 'h-2 w-2 rounded-full bg-amber-400'));
                 lbl.innerText = label;
             }
-            if (tsEl && (state === 'synced' || state === 'local')) {
+            if (tsEl && state === 'synced') {
                 const nowStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
-                localStorage.setItem('wmsLastCloudSyncTsV1', nowStr);
+                try { localStorage.setItem('wmsLastCloudSyncTsV1', nowStr); } catch (e) {}
                 tsEl.innerText = `Cloud (${label}): ${nowStr}`;
             } else if (tsEl) {
                 const prevTs = localStorage.getItem('wmsLastCloudSyncTsV1');
                 if (prevTs) tsEl.innerText = `Cloud (${label}): ${prevTs}`;
+                else tsEl.innerText = `Cloud (${label})`;
             }
         }
 
-        function subscribeToRealtimeCloudSync() {
-            if (cloudRealtimeChannel && supabaseClientInstance) {
-                try { supabaseClientInstance.removeChannel(cloudRealtimeChannel); } catch (e) {}
-                cloudRealtimeChannel = null;
-            }
+        function escapeRealtimeFilterValue(value) {
+            const text = String(value);
+            if (/^[A-Za-z0-9_-]+$/.test(text)) return text;
+            return `"${text.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+        }
+
+        function stopCloudSubscriptions() {
             if (cloudPollInterval) {
                 clearInterval(cloudPollInterval);
                 cloudPollInterval = null;
             }
+            if (supabaseRealtimeChannel && supabaseClientInstance) {
+                try {
+                    const removal = supabaseClientInstance.removeChannel(supabaseRealtimeChannel);
+                    if (removal && typeof removal.catch === 'function') removal.catch(() => {});
+                } catch (e) {
+                    console.warn('Could not close the previous Realtime channel:', e);
+                }
+            }
+            supabaseRealtimeChannel = null;
+        }
+
+        function subscribeToRealtimeCloudSync() {
+            stopCloudSubscriptions();
             if (cloudSyncConfig.provider === 'none') return;
 
             if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
                 try {
                     const room = cloudSyncConfig.roomId || 'bleckmann-main';
-                    cloudRealtimeChannel = supabaseClientInstance
-                        .channel(`wms-room-${room}`)
+                    const channelName = `wms-room-${room.replace(/[^A-Za-z0-9_-]/g, '-')}`;
+                    const channel = supabaseClientInstance
+                        .channel(channelName)
                         .on('postgres_changes', {
                             event: '*',
                             schema: 'public',
                             table: 'wms_shared_state',
-                            filter: `id=eq.${room}`
+                            filter: `id=eq.${escapeRealtimeFilterValue(room)}`
                         }, (payload) => {
-                            const nextRow = payload.new;
-                            if (nextRow && nextRow.payload) {
-                                applySharedStateSnapshot(nextRow.payload);
-                                updateCloudStatusUI('synced', 'Cloud Synced');
-                            }
-                        })
-                        .subscribe();
-                } catch (e) {}
+                            const nextRow = payload && payload.new;
+                            if (!nextRow || !nextRow.payload) return;
+                            if (isCloudPushInFlight || cloudPullPromise || offlineSyncQueue.length > 0 || (Date.now() - lastLocalMutationAt) < 4000) return;
+                            applySharedStateSnapshot(nextRow.payload);
+                            updateCloudStatusUI('synced', 'Cloud Synced');
+                        });
+                    supabaseRealtimeChannel = channel;
+                    channel.subscribe((status, error) => {
+                        if (supabaseRealtimeChannel !== channel) return;
+                        if (status === 'SUBSCRIBED') {
+                            updateCloudStatusUI('synced', 'Cloud Synced');
+                        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                            console.warn('Supabase Realtime subscription status:', status, error || '');
+                            updateCloudStatusUI('error', 'Realtime Unavailable');
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Could not start Supabase Realtime:', e);
+                    updateCloudStatusUI('error', 'Realtime Unavailable');
+                }
             }
 
+            // Polling remains as a fallback for webhook endpoints and Realtime outages.
             cloudPollInterval = setInterval(() => {
-                if (document.visibilityState === 'visible') {
-                    pullStateFromCloud(false);
-                }
-            }, 5000);
+                if (document.visibilityState === 'visible') pullStateFromCloud(false);
+            }, 10000);
         }
 
         function initCloudClient() {
+            stopCloudSubscriptions();
             cloudSyncConfig = loadPersistedCloudConfig();
-            if (!cloudSyncConfig.sbUrl) cloudSyncConfig.sbUrl = 'https://khkrwvyabygtdiyeoqbd.supabase.co';
-            if (!cloudSyncConfig.sbKey) cloudSyncConfig.sbKey = 'sb_publishable_Z6ZY4PJ5yEIw4cLudVUTdQ_jl6tFPjh';
-            if (!cloudSyncConfig.roomId) cloudSyncConfig.roomId = 'bleckmann-main';
-            cloudSyncConfig.provider = 'supabase';
-            localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig));
-            if (cloudSyncConfig.provider === 'supabase' && cloudSyncConfig.sbUrl && cloudSyncConfig.sbKey && window.supabase) {
+            try { localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig)); } catch (e) {}
+            supabaseClientInstance = null;
+
+            if (cloudSyncConfig.provider === 'none') {
+                updateCloudStatusUI('local', 'Local Cache');
+                updateOfflineQueueBadge();
+                return;
+            }
+
+            if (cloudSyncConfig.provider === 'supabase') {
                 try {
+                    cloudSyncConfig.sbUrl = normalizeHttpUrl(cloudSyncConfig.sbUrl);
+                    if (!cloudSyncConfig.sbKey) throw new Error('A Supabase public key is required.');
+                    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+                        throw new Error('The Supabase client library did not load.');
+                    }
                     supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey);
-                    updateCloudStatusUI('synced', 'Cloud Synced');
+                    updateCloudStatusUI('syncing', 'Connecting Cloud...');
                     subscribeToRealtimeCloudSync();
                 } catch (e) {
-                    updateCloudStatusUI('error', 'Cloud Error');
+                    console.warn('Supabase setup failed:', e);
+                    supabaseClientInstance = null;
+                    updateCloudStatusUI('error', 'Cloud Setup Error');
                 }
-            } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
-                updateCloudStatusUI('synced', 'API Synced');
-                subscribeToRealtimeCloudSync();
-            } else {
-                supabaseClientInstance = null;
-                updateCloudStatusUI('local', 'Local Cache');
+                return;
             }
+
+            if (cloudSyncConfig.provider === 'webhook') {
+                try {
+                    if (!cloudSyncConfig.webhookUrl) throw new Error('A JSON REST endpoint URL is required.');
+                    cloudSyncConfig.webhookUrl = normalizeHttpUrl(cloudSyncConfig.webhookUrl);
+                    updateCloudStatusUI('syncing', 'Connecting API...');
+                    subscribeToRealtimeCloudSync();
+                } catch (e) {
+                    console.warn('Webhook setup failed:', e);
+                    updateCloudStatusUI('error', 'API Setup Error');
+                }
+                return;
+            }
+
+            updateCloudStatusUI('local', 'Local Cache');
         }
 
         let cloudAdminPassHash = localStorage.getItem('wmsCloudAdminPassHashV1') || '';
@@ -3321,23 +3420,52 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('cloud-supabase-fields').classList.toggle('hidden', p !== 'supabase');
             document.getElementById('cloud-webhook-fields').classList.toggle('hidden', p !== 'webhook');
         }
+
         async function saveCloudSyncSettings() {
             const chosenProvider = document.getElementById('cloud-provider-select').value;
+            if (!VALID_CLOUD_PROVIDERS.has(chosenProvider)) {
+                showToast('Choose a valid cloud sync provider.');
+                return;
+            }
             const prev = loadPersistedCloudConfig();
-            cloudSyncConfig = {
+            const nextConfig = {
                 provider: chosenProvider,
-                sbUrl: document.getElementById('cloud-sb-url').value.trim() || prev.sbUrl || '',
-                sbKey: document.getElementById('cloud-sb-key').value.trim() || prev.sbKey || '',
+                sbUrl: document.getElementById('cloud-sb-url').value.trim() || prev.sbUrl,
+                sbKey: document.getElementById('cloud-sb-key').value.trim() || prev.sbKey,
                 roomId: document.getElementById('cloud-room-id').value.trim() || prev.roomId || 'bleckmann-main',
                 webhookUrl: document.getElementById('cloud-webhook-url').value.trim() || prev.webhookUrl || '',
                 autoSync: true
             };
-            localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig));
+
+            try {
+                if (chosenProvider === 'supabase') {
+                    nextConfig.sbUrl = normalizeHttpUrl(nextConfig.sbUrl);
+                    if (!nextConfig.sbKey) throw new Error('Enter the Supabase public key.');
+                } else if (chosenProvider === 'webhook') {
+                    if (!nextConfig.webhookUrl) throw new Error('Enter the JSON REST endpoint URL.');
+                    nextConfig.webhookUrl = normalizeHttpUrl(nextConfig.webhookUrl);
+                }
+            } catch (e) {
+                showToast(e.message || 'Cloud sync settings are invalid.');
+                return;
+            }
+
+            cloudSyncConfig = nextConfig;
+            try { localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig)); }
+            catch (e) { showToast('Could not save cloud settings in this browser.'); return; }
             initCloudClient();
             closeCloudSyncModal();
+
             if (cloudSyncConfig.provider !== 'none') {
-                await pullStateFromCloud(true);
-                await pushStateToCloud(true);
+                if (offlineSyncQueue.length > 0) {
+                    const pushed = await pushStateToCloud(true);
+                    if (!pushed) {
+                        showToast('Settings saved. Local changes remain queued until cloud access is restored.');
+                        return;
+                    }
+                }
+                const pulled = await pullStateFromCloud(true);
+                if (pulled) await pushStateToCloud(true);
             }
         }
 
@@ -3349,127 +3477,230 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 iphoneNotesByUser,
                 customUserShiftBatches,
                 savedNoteTemplates,
+                hiddenBuiltinNoteTemplates,
+                activeNoteIdByUser,
                 allShiftPresets,
                 updatedAt: new Date().toISOString()
             };
         }
 
         function applySharedStateSnapshot(snap) {
-            if (!snap || typeof snap !== 'object') return;
-            if (snap.todoStoreByUser && typeof snap.todoStoreByUser === 'object') {
+            if (!isPlainObject(snap)) return false;
+            let applied = false;
+
+            if (isPlainObject(snap.todoStoreByUser)) {
                 todoStoreByUser = snap.todoStoreByUser;
                 localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+                applied = true;
             }
-            if (snap.userPasswordsMap && typeof snap.userPasswordsMap === 'object') {
+            if (isPlainObject(snap.userPasswordsMap)) {
                 userPasswordsMap = snap.userPasswordsMap;
                 localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                applied = true;
             }
-            if (snap.savedTodoBatchesByUser && typeof snap.savedTodoBatchesByUser === 'object') {
+            if (isPlainObject(snap.savedTodoBatchesByUser)) {
                 savedTodoBatchesByUser = snap.savedTodoBatchesByUser;
                 localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
+                applied = true;
             }
-            if (snap.iphoneNotesByUser && typeof snap.iphoneNotesByUser === 'object') {
+            if (isPlainObject(snap.iphoneNotesByUser)) {
                 iphoneNotesByUser = snap.iphoneNotesByUser;
                 localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+                applied = true;
             }
-            if (snap.customUserShiftBatches && typeof snap.customUserShiftBatches === 'object') {
+            if (isPlainObject(snap.customUserShiftBatches)) {
                 customUserShiftBatches = snap.customUserShiftBatches;
                 localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
+                applied = true;
             }
-            if (snap.savedNoteTemplates && typeof snap.savedNoteTemplates === 'object') {
+            if (isPlainObject(snap.savedNoteTemplates)) {
                 savedNoteTemplates = snap.savedNoteTemplates;
-                localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
+                localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
                 renderNoteTemplatesDropdown();
+                applied = true;
             }
-            if (snap.allShiftPresets && typeof snap.allShiftPresets === 'object') {
+            if (Array.isArray(snap.hiddenBuiltinNoteTemplates)) {
+                hiddenBuiltinNoteTemplates = snap.hiddenBuiltinNoteTemplates.filter(key => typeof key === 'string');
+                localStorage.setItem('wmsHiddenBuiltinNoteTemplatesV1', JSON.stringify(hiddenBuiltinNoteTemplates));
+                renderNoteTemplatesDropdown();
+                applied = true;
+            }
+            if (isPlainObject(snap.activeNoteIdByUser)) {
+                activeNoteIdByUser = snap.activeNoteIdByUser;
+                localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+                applied = true;
+            }
+            if (isPlainObject(snap.allShiftPresets)) {
                 allShiftPresets = snap.allShiftPresets;
                 localStorage.setItem('wmsAllShiftPresetsV1', JSON.stringify(allShiftPresets));
                 shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF || shiftBatchConfig;
                 renderShiftBatchPills();
+                applied = true;
             }
-            refreshTodoUserDropdown();
-            saveAndRenderTodos(true);
+
+            if (applied) {
+                refreshTodoUserDropdown();
+                saveAndRenderTodos(true);
+            }
+            return applied;
         }
 
-        function pushStateToCloud(immediate = false) {
-            if (cloudSyncConfig.provider === 'none') return Promise.resolve();
-            enqueueOfflineSyncChange('State Change');
-            clearTimeout(cloudSyncTimer);
-            const run = async () => {
+        async function flushCloudPushQueue() {
+            if (cloudPushPromise) return cloudPushPromise;
+
+            cloudPushPromise = (async () => {
+                // Yield once so the shared promise is assigned before any fast failure path runs.
+                await Promise.resolve();
+                let succeeded = true;
                 isCloudPushInFlight = true;
-                if (navigator.onLine === false) {
-                    isCloudPushInFlight = false;
-                    updateCloudStatusUI('error', 'Offline Cache');
-                    updateOfflineQueueBadge();
-                    return;
-                }
                 try {
-                    updateCloudStatusUI('syncing', 'Syncing...');
-                    const payload = buildSharedStateSnapshot();
-                    if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
-                        const { error } = await supabaseClientInstance
-                            .from('wms_shared_state')
-                            .upsert({ id: cloudSyncConfig.roomId || 'bleckmann-main', payload, updated_at: new Date().toISOString() });
-                        if (error) throw error;
-                        offlineSyncQueue = [];
+                    while (cloudPushRequested) {
+                        cloudPushRequested = false;
+                        if (navigator.onLine === false) {
+                            succeeded = false;
+                            updateCloudStatusUI('error', 'Offline Cache');
+                            updateOfflineQueueBadge();
+                            break;
+                        }
+
+                        const queuedBatch = offlineSyncQueue.slice();
+                        const payload = buildSharedStateSnapshot();
+                        updateCloudStatusUI('syncing', 'Syncing...');
+
+                        if (cloudSyncConfig.provider === 'supabase') {
+                            if (!supabaseClientInstance) throw new Error('Supabase is not configured or the client failed to initialize.');
+                            const { error } = await supabaseClientInstance
+                                .from('wms_shared_state')
+                                .upsert({
+                                    id: cloudSyncConfig.roomId || 'bleckmann-main',
+                                    payload,
+                                    updated_at: new Date().toISOString()
+                                });
+                            if (error) throw error;
+                        } else if (cloudSyncConfig.provider === 'webhook') {
+                            if (!cloudSyncConfig.webhookUrl) throw new Error('The JSON REST endpoint URL is missing.');
+                            const response = await fetch(cloudSyncConfig.webhookUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                cache: 'no-store',
+                                body: JSON.stringify({
+                                    roomId: cloudSyncConfig.roomId || 'bleckmann-main',
+                                    payload
+                                })
+                            });
+                            if (!response.ok) throw new Error('HTTP ' + response.status);
+                        } else {
+                            throw new Error('Cloud sync is not enabled for the selected provider.');
+                        }
+
+                        const sentIds = new Set(queuedBatch.map(item => item.id));
+                        offlineSyncQueue = offlineSyncQueue.filter(item => !sentIds.has(item.id));
                         persistOfflineSyncQueue();
-                        updateCloudStatusUI('synced', 'Cloud Synced');
-                    } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
-                        const res = await fetch(cloudSyncConfig.webhookUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ roomId: cloudSyncConfig.roomId || 'bleckmann-main', payload })
-                        });
-                        if (!res.ok) throw new Error('HTTP ' + res.status);
-                        offlineSyncQueue = [];
-                        persistOfflineSyncQueue();
-                        updateCloudStatusUI('synced', 'API Synced');
+                        updateCloudStatusUI('synced', cloudSyncConfig.provider === 'webhook' ? 'API Synced' : 'Cloud Synced');
                     }
                 } catch (e) {
-                    console.warn('Cloud push fell back to local cache:', e);
+                    succeeded = false;
+                    cloudPushRequested = false;
+                    console.warn('Cloud push failed; local changes remain queued:', e);
                     updateCloudStatusUI('error', 'Offline Cache');
                     updateOfflineQueueBadge();
                 } finally {
                     isCloudPushInFlight = false;
+                    cloudPushPromise = null;
+                    const waiters = cloudPushWaiters.splice(0);
+                    waiters.forEach(resolve => resolve(succeeded));
                 }
-            };
-            if (immediate) return run();
-            return new Promise(resolve => {
-                cloudSyncTimer = setTimeout(async () => { await run(); resolve(); }, 600);
-            });
+                return succeeded;
+            })();
+
+            return cloudPushPromise;
+        }
+
+        function pushStateToCloud(immediate = false) {
+            if (cloudSyncConfig.provider === 'none') return Promise.resolve(true);
+
+            lastLocalMutationAt = Date.now();
+            enqueueOfflineSyncChange('State Change');
+            cloudPushRequested = true;
+            clearTimeout(cloudSyncTimer);
+            cloudSyncTimer = null;
+
+            const completion = new Promise(resolve => cloudPushWaiters.push(resolve));
+            if (cloudPushPromise) return completion;
+            if (immediate) {
+                flushCloudPushQueue();
+            } else {
+                cloudSyncTimer = setTimeout(() => {
+                    cloudSyncTimer = null;
+                    flushCloudPushQueue();
+                }, 600);
+            }
+            return completion;
         }
 
         async function pullStateFromCloud(notify = false) {
-            if (cloudSyncConfig.provider === 'none') return;
-            try {
-                if (!notify && (isCloudPushInFlight || (Date.now() - lastLocalMutationAt) < 4000)) return;
-                updateCloudStatusUI('syncing', 'Pulling...');
-                if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
-                    const { data, error } = await supabaseClientInstance
-                        .from('wms_shared_state')
-                        .select('payload')
-                        .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
-                        .maybeSingle();
-                    if (error) throw error;
-                    if (data && data.payload) applySharedStateSnapshot(data.payload);
-                    updateCloudStatusUI('synced', 'Cloud Synced');
-                    if (notify) showToast('Synced latest shared data from Cloud!');
-                } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
-                    const url = new URL(cloudSyncConfig.webhookUrl);
-                    url.searchParams.set('roomId', cloudSyncConfig.roomId || 'bleckmann-main');
-                    const res = await fetch(url.toString());
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    const json = await res.json();
-                    const snap = json.payload || json;
-                    if (snap) applySharedStateSnapshot(snap);
-                    updateCloudStatusUI('synced', 'API Synced');
-                    if (notify) showToast('Synced latest shared data from API!');
-                }
-            } catch (e) {
-                console.warn('Cloud pull failed, using local cache:', e);
+            if (cloudSyncConfig.provider === 'none') return true;
+            if (navigator.onLine === false) {
                 updateCloudStatusUI('error', 'Offline Cache');
-                if (notify) showToast('Using local offline cache.');
+                if (notify) showToast('Device offline. Local data is unchanged.');
+                return false;
             }
+            if (isCloudPushInFlight || offlineSyncQueue.length > 0) {
+                if (notify) showToast('Pending local changes must sync before pulling cloud data.');
+                return false;
+            }
+            if (!notify && (Date.now() - lastLocalMutationAt) < 4000) return false;
+            if (cloudPullPromise) return cloudPullPromise;
+
+            const mutationAtStart = lastLocalMutationAt;
+            cloudPullPromise = (async () => {
+                // Yield once so concurrent pulls share the same promise, even on setup errors.
+                await Promise.resolve();
+                try {
+                    updateCloudStatusUI('syncing', 'Pulling...');
+                    let snapshot = null;
+                    if (cloudSyncConfig.provider === 'supabase') {
+                        if (!supabaseClientInstance) throw new Error('Supabase is not configured or the client failed to initialize.');
+                        const { data, error } = await supabaseClientInstance
+                            .from('wms_shared_state')
+                            .select('payload')
+                            .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
+                            .maybeSingle();
+                        if (error) throw error;
+                        snapshot = data && data.payload ? data.payload : null;
+                    } else if (cloudSyncConfig.provider === 'webhook') {
+                        if (!cloudSyncConfig.webhookUrl) throw new Error('The JSON REST endpoint URL is missing.');
+                        const url = new URL(cloudSyncConfig.webhookUrl);
+                        url.searchParams.set('roomId', cloudSyncConfig.roomId || 'bleckmann-main');
+                        const response = await fetch(url.toString(), { method: 'GET', cache: 'no-store' });
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        const json = await response.json();
+                        snapshot = json && isPlainObject(json) && Object.prototype.hasOwnProperty.call(json, 'payload')
+                            ? json.payload : json;
+                    } else {
+                        throw new Error('Unknown cloud sync provider.');
+                    }
+
+                    // Do not let a response overwrite edits made while the request was in flight.
+                    if (isCloudPushInFlight || offlineSyncQueue.length > 0 || lastLocalMutationAt !== mutationAtStart) {
+                        updateOfflineQueueBadge();
+                        return false;
+                    }
+                    if (snapshot) applySharedStateSnapshot(snapshot);
+                    updateCloudStatusUI('synced', cloudSyncConfig.provider === 'webhook' ? 'API Synced' : 'Cloud Synced');
+                    if (notify) showToast(cloudSyncConfig.provider === 'webhook'
+                        ? 'Synced latest shared data from API!' : 'Synced latest shared data from Cloud!');
+                    return true;
+                } catch (e) {
+                    console.warn('Cloud pull failed; local cache was kept:', e);
+                    updateCloudStatusUI('error', 'Offline Cache');
+                    if (notify) showToast('Cloud pull failed. Local data was kept.');
+                    return false;
+                } finally {
+                    cloudPullPromise = null;
+                }
+            })();
+            return cloudPullPromise;
         }
 
         async function hashPasswordText(raw) {
@@ -3858,6 +4089,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             activeNoteIdByUser[activeTodoUser] = noteId;
             localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
             loadIphoneNoteForUser();
+            pushStateToCloud();
         }
 
         function createNewUserNoteItem() {
@@ -4316,8 +4548,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function copyTextValue(txt) { if (txt) { navigator.clipboard.writeText(txt); showToast(`Copied: ${txt}`); } }
         function escapeHtml(s) { return String(s||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-                let isCloudPushInFlight = false;
-        let lastLocalMutationAt = 0;
 
         function markLocalStateDirty() {
             lastLocalMutationAt = Date.now();

@@ -1423,7 +1423,15 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 <div class="lg:col-span-5 theme-card border rounded-3xl p-5 shadow-xl space-y-3">
                     <div class="flex items-center justify-between border-b theme-border pb-2.5">
                         <div>
-                            <h3 class="text-lg font-extrabold text-amber-400">iPhone Notes</h3>
+                            <h3 class="text-lg font-extrabold text-amber-400">Notes</h3>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <select id="user-note-selector" onchange="selectUserNoteItem(this.value)" class="theme-input border rounded-xl px-2 py-1 text-xs font-bold outline-none" title="Select Saved Note"></select>
+                            <button onclick="createNewUserNoteItem()" class="px-2 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black">+ Note</button>
+                            <button onclick="saveCurrentNotePermanently()" class="px-2 py-1 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold hover:bg-emerald-600 hover:text-white">Save</button>
+                            <button onclick="deleteCurrentUserNoteItem()" class="px-2 py-1 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Delete Note">×</button>
+                        </div>
+                        <div class="hidden">
                             <p class="text-[11px] theme-text-dim font-mono" id="iphone-note-saved-lbl">Synced</p>
                         </div>
                         <button onclick="insertIphoneChecklistItem()" class="px-2.5 py-1 rounded-xl theme-elevated border text-xs font-bold hover:border-amber-400">☑ Checklist</button>
@@ -2984,8 +2992,32 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         // 7. CLOUD-FIRST + LOCAL CACHE SYNC, PASSWORDS, @USER ROUTING & IPHONE NOTES
         // ==========================================
-        let cloudSyncConfig = JSON.parse(localStorage.getItem('wmsCloudSyncConfigV1') || '{"provider":"none","sbUrl":"","sbKey":"","roomId":"bleckmann-main","webhookUrl":""}');
+        const DEFAULT_CLOUD_SYNC_CONFIG = {
+            provider: 'none',
+            sbUrl: '',
+            sbKey: '',
+            roomId: 'bleckmann-main',
+            webhookUrl: '',
+            autoSync: true
+        };
+
+        function loadPersistedCloudConfig() {
+            try {
+                const raw = localStorage.getItem('wmsCloudSyncConfigV1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === 'object') {
+                        return { ...DEFAULT_CLOUD_SYNC_CONFIG, ...parsed };
+                    }
+                }
+            } catch (e) {}
+            return { ...DEFAULT_CLOUD_SYNC_CONFIG };
+        }
+
+        let cloudSyncConfig = loadPersistedCloudConfig();
         let supabaseClientInstance = null;
+        let supabaseRealtimeChannel = null;
+        let cloudPollInterval = null;
         let cloudSyncTimer = null;
 
         function updateCloudStatusUI(state, label) {
@@ -2996,16 +3028,58 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             lbl.innerText = label;
         }
 
+        function subscribeToRealtimeCloudSync() {
+            if (cloudRealtimeChannel && supabaseClientInstance) {
+                try { supabaseClientInstance.removeChannel(cloudRealtimeChannel); } catch (e) {}
+                cloudRealtimeChannel = null;
+            }
+            if (cloudPollInterval) {
+                clearInterval(cloudPollInterval);
+                cloudPollInterval = null;
+            }
+            if (cloudSyncConfig.provider === 'none') return;
+
+            if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
+                try {
+                    const room = cloudSyncConfig.roomId || 'bleckmann-main';
+                    cloudRealtimeChannel = supabaseClientInstance
+                        .channel(`wms-room-${room}`)
+                        .on('postgres_changes', {
+                            event: '*',
+                            schema: 'public',
+                            table: 'wms_shared_state',
+                            filter: `id=eq.${room}`
+                        }, (payload) => {
+                            const nextRow = payload.new;
+                            if (nextRow && nextRow.payload) {
+                                applySharedStateSnapshot(nextRow.payload);
+                                updateCloudStatusUI('synced', 'Cloud Synced');
+                            }
+                        })
+                        .subscribe();
+                } catch (e) {}
+            }
+
+            cloudPollInterval = setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    pullStateFromCloud(false);
+                }
+            }, 5000);
+        }
+
         function initCloudClient() {
+            cloudSyncConfig = loadPersistedCloudConfig();
             if (cloudSyncConfig.provider === 'supabase' && cloudSyncConfig.sbUrl && cloudSyncConfig.sbKey && window.supabase) {
                 try {
                     supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey);
-                    updateCloudStatusUI('synced', 'Cloud + Cache');
+                    updateCloudStatusUI('synced', 'Cloud Synced');
+                    subscribeToRealtimeCloudSync();
                 } catch (e) {
                     updateCloudStatusUI('error', 'Cloud Error');
                 }
             } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
-                updateCloudStatusUI('synced', 'API + Cache');
+                updateCloudStatusUI('synced', 'API Synced');
+                subscribeToRealtimeCloudSync();
             } else {
                 supabaseClientInstance = null;
                 updateCloudStatusUI('local', 'Local Cache');
@@ -3028,12 +3102,15 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('cloud-webhook-fields').classList.toggle('hidden', p !== 'webhook');
         }
         async function saveCloudSyncSettings() {
+            const chosenProvider = document.getElementById('cloud-provider-select').value;
+            const prev = loadPersistedCloudConfig();
             cloudSyncConfig = {
-                provider: document.getElementById('cloud-provider-select').value,
-                sbUrl: document.getElementById('cloud-sb-url').value.trim(),
-                sbKey: document.getElementById('cloud-sb-key').value.trim(),
-                roomId: document.getElementById('cloud-room-id').value.trim() || 'bleckmann-main',
-                webhookUrl: document.getElementById('cloud-webhook-url').value.trim()
+                provider: chosenProvider,
+                sbUrl: document.getElementById('cloud-sb-url').value.trim() || prev.sbUrl || '',
+                sbKey: document.getElementById('cloud-sb-key').value.trim() || prev.sbKey || '',
+                roomId: document.getElementById('cloud-room-id').value.trim() || prev.roomId || 'bleckmann-main',
+                webhookUrl: document.getElementById('cloud-webhook-url').value.trim() || prev.webhookUrl || '',
+                autoSync: true
             };
             localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig));
             initCloudClient();
@@ -3303,20 +3380,101 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast(`Saved batch & notes for ${activeTodoUser}!`);
         }
 
+        let activeNoteIdByUser = JSON.parse(localStorage.getItem('wmsActiveNoteIdByUserV1') || '{}');
+
+        function getUserNotesCollection(userName = activeTodoUser) {
+            const raw = iphoneNotesByUser[userName];
+            if (!raw) {
+                const initial = [{ id: 'note-' + Date.now(), title: `${userName} Shift Notes`, html: '<div>Tap to write notes, checklists, or shift logs...</div>' }];
+                iphoneNotesByUser[userName] = initial;
+                return initial;
+            }
+            if (Array.isArray(raw)) return raw;
+            const migrated = [{ id: 'note-' + Date.now(), title: raw.title || `${userName} Shift Notes`, html: raw.html || '' }];
+            iphoneNotesByUser[userName] = migrated;
+            return migrated;
+        }
+
+        function getActiveNoteObj(userName = activeTodoUser) {
+            const notesArr = getUserNotesCollection(userName);
+            const activeId = activeNoteIdByUser[userName];
+            let found = notesArr.find(n => n.id === activeId);
+            if (!found) {
+                found = notesArr[0];
+                activeNoteIdByUser[userName] = found.id;
+            }
+            return found;
+        }
+
+        function refreshUserNotesDropdown() {
+            const sel = document.getElementById('user-note-selector');
+            if (!sel) return;
+            const notesArr = getUserNotesCollection(activeTodoUser);
+            const cur = getActiveNoteObj(activeTodoUser);
+            sel.innerHTML = notesArr.map(n => `<option value="${escapeHtml(n.id)}" ${n.id === cur.id ? 'selected' : ''}>📝 ${escapeHtml(n.title || 'Untitled Note')}</option>`).join('');
+        }
+
+        function selectUserNoteItem(noteId) {
+            activeNoteIdByUser[activeTodoUser] = noteId;
+            localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+            loadIphoneNoteForUser();
+        }
+
+        function createNewUserNoteItem() {
+            const title = (prompt("New note title:") || 'Untitled Note').trim();
+            const notesArr = getUserNotesCollection(activeTodoUser);
+            const created = { id: 'note-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), title, html: '<div></div>' };
+            notesArr.unshift(created);
+            activeNoteIdByUser[activeTodoUser] = created.id;
+            localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+            localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            refreshUserNotesDropdown();
+            loadIphoneNoteForUser();
+            pushStateToCloud(true);
+            showToast(`Created note "${title}"`);
+        }
+
+        function saveCurrentNotePermanently() {
+            persistIphoneNote();
+            pushStateToCloud(true);
+            playTone('success');
+            showToast("Note saved permanently!");
+        }
+
+        function deleteCurrentUserNoteItem() {
+            const notesArr = getUserNotesCollection(activeTodoUser);
+            if (notesArr.length <= 1) return showToast("Keep at least one note for this user.");
+            const cur = getActiveNoteObj(activeTodoUser);
+            if (!confirm(`Delete note "${cur.title || 'Untitled'}"?`)) return;
+            const filtered = notesArr.filter(n => n.id !== cur.id);
+            iphoneNotesByUser[activeTodoUser] = filtered;
+            activeNoteIdByUser[activeTodoUser] = filtered[0].id;
+            localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+            localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            refreshUserNotesDropdown();
+            loadIphoneNoteForUser();
+            pushStateToCloud(true);
+            showToast("Deleted note");
+        }
+
         function loadIphoneNoteForUser() {
-            const saved = iphoneNotesByUser[activeTodoUser] || { title: `${activeTodoUser} Shift Notes`, html: '<div>Tap to write notes, checklists, or shift logs...</div>' };
+            refreshUserNotesDropdown();
+            const cur = getActiveNoteObj(activeTodoUser);
             const tInp = document.getElementById('iphone-note-title');
             const ed = document.getElementById('iphone-note-editor');
-            if (tInp) tInp.value = saved.title || '';
-            if (ed) ed.innerHTML = saved.html || '';
+            if (tInp) tInp.value = cur.title || '';
+            if (ed) ed.innerHTML = cur.html || '';
         }
 
         function persistIphoneNote() {
             const tInp = document.getElementById('iphone-note-title');
             const ed = document.getElementById('iphone-note-editor');
             if (!tInp || !ed) return;
-            iphoneNotesByUser[activeTodoUser] = { title: tInp.value, html: ed.innerHTML };
+            const cur = getActiveNoteObj(activeTodoUser);
+            cur.title = tInp.value;
+            cur.html = ed.innerHTML;
             localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            refreshUserNotesDropdown();
             pushStateToCloud();
             const lbl = document.getElementById('iphone-note-saved-lbl');
             if (lbl) lbl.innerText = `Saved ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
@@ -3380,10 +3538,15 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const mentionMatches = [...rawText.matchAll(/@([A-Za-z0-9_-]+)/g)].map(m => m[1]);
             const cleanText = rawText.replace(/\s*@[A-Za-z0-9_-]+/g, '').trim() || rawText;
 
+            const linkGroupId = 'lnk-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+            const authorUser = activeTodoUser;
             const newTask = {
                 id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+                linkGroupId,
+                authorUser,
+                assignedToUsers: mentionMatches,
                 text: cleanText,
-                notes: mentionMatches.length ? `${notes ? notes + ' • ' : ''}From ${activeTodoUser} (@${mentionMatches.join(', @')})` : notes,
+                notes: mentionMatches.length ? `${notes ? notes + ' • ' : ''}From ${authorUser} (@${mentionMatches.join(', @')})` : notes,
                 time, list, priority, recur, flagged: newTodoFlagged, done: false
             };
 
@@ -3396,7 +3559,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 todoStoreByUser[destUser].unshift({
                     ...newTask,
                     id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-                    notes: `${notes ? notes + ' • ' : ''}Assigned by ${activeTodoUser}`
+                    linkGroupId,
+                    authorUser,
+                    notes: `${notes ? notes + ' • ' : ''}Assigned by ${authorUser}`
                 });
                 refreshTodoUserDropdown();
             });
@@ -3412,12 +3577,27 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const listArr = getCurrentUserTodos();
             const item = listArr.find(t => t.id === id);
             if (item) {
-                item.done = !item.done;
-                if (item.done && item.recur && item.recur !== 'none') {
+                const nextDoneState = !item.done;
+                item.done = nextDoneState;
+
+                if (item.linkGroupId) {
+                    Object.keys(todoStoreByUser).forEach(uKey => {
+                        (todoStoreByUser[uKey] || []).forEach(otherTask => {
+                            if (otherTask.linkGroupId === item.linkGroupId && otherTask.id !== item.id) {
+                                otherTask.done = nextDoneState;
+                                if (nextDoneState) {
+                                    otherTask.notes = `${otherTask.notes ? otherTask.notes + ' • ' : ''}Completed by ${activeTodoUser}`;
+                                }
+                            }
+                        });
+                    });
+                }
+
+                if (nextDoneState && item.recur && item.recur !== 'none') {
                     listArr.push({ ...item, id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), done: false });
                 }
                 saveAndRenderTodos();
-                if (item.done) playTone('success');
+                if (nextDoneState) playTone('success');
             }
         }
         function toggleTodoFlag(id) { pushTodoUndoSnapshot(); const item = getCurrentUserTodos().find(t => t.id === id); if (item) { item.flagged = !item.flagged; saveAndRenderTodos(); } }
@@ -3429,7 +3609,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 user: activeTodoUser,
                 todos: getCurrentUserTodos(),
                 savedBatch: savedTodoBatchesByUser[activeTodoUser] || [],
-                note: iphoneNotesByUser[activeTodoUser] || null
+                note: getActiveNoteObj(activeTodoUser)
             };
             const a = document.createElement('a');
             a.download = `${activeTodoUser.toLowerCase()}-todo-notes.json`;
@@ -3447,7 +3627,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     const targetUser = data.user || activeTodoUser;
                     if (Array.isArray(data.todos)) todoStoreByUser[targetUser] = data.todos;
                     if (Array.isArray(data.savedBatch)) savedTodoBatchesByUser[targetUser] = data.savedBatch;
-                    if (data.note) iphoneNotesByUser[targetUser] = data.note;
+                    if (data.note) { const arr = getUserNotesCollection(targetUser); arr.unshift({ id: 'note-' + Date.now(), title: data.note.title || 'Imported Note', html: data.note.html || '' }); activeNoteIdByUser[targetUser] = arr[0].id; }
                     activeTodoUser = targetUser;
                     localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
                     refreshTodoUserDropdown();

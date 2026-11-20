@@ -19,6 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         tailwind.config = {
@@ -175,6 +176,11 @@
 
             <!-- Right Utilities: Calc, Reflow Zoom %, Arcade, Sound ON/OFF & Multi-Gradient Theme Bar -->
             <div class="flex flex-wrap items-center gap-1.5">
+                <button onclick="openCloudSyncModal()" id="btn-cloud-sync" title="Cloud Sync Settings (Supabase / Shared Endpoint) + Local Cache" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+                    <span id="cloud-sync-dot" class="h-2 w-2 rounded-full bg-amber-400"></span>
+                    <span id="cloud-sync-lbl" class="text-[11px] font-mono">Local Cache</span>
+                </button>
+
                 <button onclick="toggleCalculator()" title="Open Draggable Shift Calculator" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                     <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-500"></i>
                     <span class="hidden sm:inline text-[11px]">Calc</span>
@@ -283,6 +289,58 @@
                 <button onclick="calcInput('0')" class="col-span-2 p-2.5 rounded theme-input border">0</button>
                 <button onclick="calcInput('.')" class="p-2.5 rounded theme-input border">.</button>
                 <button onclick="calcEval()" class="p-2.5 rounded bg-emerald-600 text-white">=</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLOUD SYNC CONFIGURATION MODAL (SUPABASE OR CUSTOM FETCH ENDPOINT) -->
+    <div id="cloud-sync-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="w-full max-w-lg theme-card border-2 border-emerald-500/40 rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-4 py-3 theme-elevated border-b theme-border flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="cloud" class="w-4 h-4 text-emerald-500"></i> Cloud-First Sync + Local Cache
+                </span>
+                <button onclick="closeCloudSyncModal()" class="text-base font-bold theme-text-dim hover:text-rose-400 px-1">×</button>
+            </div>
+            <div class="p-4 space-y-3 text-xs">
+                <p class="theme-text-muted leading-relaxed">
+                    Connect a shared <b>Supabase</b> table (<code>wms_shared_state</code> with columns <code>id text primary key, payload jsonb, updated_at timestamptz</code>) or a custom JSON REST endpoint so all users &amp; devices sync <code>@user</code> reminders, notes, templates, and presets in real time while keeping a local offline cache.
+                </p>
+                <div>
+                    <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Sync Provider</label>
+                    <select id="cloud-provider-select" onchange="toggleCloudProviderFields()" class="w-full theme-input border rounded-lg px-2.5 py-2 text-xs outline-none">
+                        <option value="none">Offline Local Cache Only</option>
+                        <option value="supabase">Supabase (Recommended — Cloud + Cache)</option>
+                        <option value="webhook">Custom JSON REST Endpoint (GET / POST)</option>
+                    </select>
+                </div>
+                <div id="cloud-supabase-fields" class="hidden space-y-2">
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Supabase Project URL</label>
+                        <input type="text" id="cloud-sb-url" placeholder="https://xyzcompany.supabase.co" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Supabase Anon Public Key</label>
+                        <input type="password" id="cloud-sb-key" placeholder="eyJhbGciOiJIUzI1NiIs..." class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Workspace Room / Warehouse ID</label>
+                        <input type="text" id="cloud-room-id" value="bleckmann-main" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                    </div>
+                </div>
+                <div id="cloud-webhook-fields" class="hidden space-y-2">
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Shared JSON Endpoint URL (Supports GET &amp; POST)</label>
+                        <input type="text" id="cloud-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono outline-none">
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t theme-border">
+                    <button onclick="pullStateFromCloud(true)" class="px-3 py-1.5 rounded-lg theme-elevated border font-semibold hover:border-emerald-500">Pull Now</button>
+                    <div class="flex gap-2">
+                        <button onclick="closeCloudSyncModal()" class="px-3 py-1.5 rounded-lg theme-input border font-medium">Cancel</button>
+                        <button onclick="saveCloudSyncSettings()" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow">Save &amp; Sync</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -891,11 +949,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                 <!-- 1-CLICK SHIFT PRESET BATCH -->
                 <div class="theme-card border-2 border-emerald-500/40 rounded-xl p-4 space-y-3 shadow-sm">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
                         <span class="text-xs font-bold uppercase tracking-wider text-emerald-500 flex items-center gap-1.5">
                             <i data-lucide="zap" class="w-4 h-4"></i> 1-Click Shift Preset Batch
                         </span>
-                        <button onclick="toggleShiftBatchEditor()" class="text-[11px] text-emerald-500 hover:underline font-semibold">Edit / Add Rules</button>
+                        <div class="flex items-center gap-1.5">
+                            <div class="flex theme-input p-0.5 rounded-lg border text-[11px] font-mono">
+                                <button onclick="switchShiftBatchPreset('FF')" id="btn-shift-preset-FF" class="px-2 py-0.5 rounded font-bold bg-emerald-600 text-white">FF</button>
+                                <button onclick="switchShiftBatchPreset('NC')" id="btn-shift-preset-NC" class="px-2 py-0.5 rounded font-bold theme-text-muted">NC</button>
+                            </div>
+                            <button onclick="toggleShiftBatchEditor()" class="text-[11px] text-emerald-500 hover:underline font-semibold">Edit</button>
+                        </div>
                     </div>
 
                     <div id="shift-batch-summary-pills" class="flex flex-wrap gap-1.5 text-[11px] font-mono"></div>
@@ -1275,82 +1339,107 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         <!-- ==========================================
              TAB 5: IPHONE-STYLE REMINDERS TO-DO LIST (OVERDUE RED HIGHLIGHT + 5 NEW FEATURES)
              ========================================== -->
-        <section id="view-todo" class="hidden max-w-2xl mx-auto space-y-4">
-            <div class="theme-card border rounded-3xl p-6 shadow-xl space-y-4">
-                
-                <!-- iOS Reminders Header -->
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-2xl font-extrabold tracking-tight text-blue-500">Reminders</h2>
-                        <p class="text-xs theme-text-dim font-medium" id="todo-progress-text">0 remaining</p>
+        <section id="view-todo" class="hidden max-w-6xl mx-auto space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <!-- Left 7 Cols: iOS Reminders + Password Protection + @User Routing -->
+                <div class="lg:col-span-7 theme-card border rounded-3xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                            <h2 class="text-2xl font-extrabold tracking-tight text-blue-500">Reminders</h2>
+                            <p class="text-xs theme-text-dim font-medium" id="todo-progress-text">0 remaining</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <select id="todo-user-profile" onchange="switchTodoUserProfile(this.value)" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none" title="Select User To-Do List">
+                                <option value="Shash" selected>👤 Shash</option>
+                            </select>
+                            <button onclick="setOrChangeUserPassword()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Set / Change / Remove User Password">🔒 Pass</button>
+                            <button onclick="addNewTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Add New User">+ User</button>
+                            <button onclick="removeCurrentTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Remove Selected User">- User</button>
+                            <button onclick="saveCurrentUserBatch()" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-bold hover:bg-blue-600 hover:text-white" title="Save User Shift Batch">Save Batch</button>
+                            <button onclick="exportUserProfileData()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Export User Profile (.JSON)">Export</button>
+                            <label class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500 cursor-pointer" title="Import User Profile (.JSON)">
+                                Import <input type="file" accept=".json" onchange="importUserProfileData(event)" class="hidden">
+                            </label>
+                            <button onclick="undoTodoAction()" id="btn-todo-undo" class="hidden px-2 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black" title="Undo Last To-Do Change">Undo</button>
+                            <span class="text-xl font-black font-mono text-blue-500 ml-1" id="todo-big-counter">0</span>
+                            <button onclick="clearCompletedTodos()" class="text-xs text-rose-400 hover:underline font-medium">Clear Done</button>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="todo-user-profile" onchange="switchTodoUserProfile(this.value)" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none" title="Select User To-Do List">
-                            <option value="Shash" selected>👤 Shash</option>
-                        </select>
-                        <button onclick="addNewTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Add New User">+ User</button>
-                        <button onclick="removeCurrentTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Remove Selected User">- User</button>
-                        <button onclick="saveCurrentUserBatch()" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-bold hover:bg-blue-600 hover:text-white" title="Permanently Save User's Shift Batch">Save Batch</button>
-                        <button onclick="undoTodoAction()" id="btn-todo-undo" class="hidden px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black" title="Undo Last To-Do Change">Undo</button>
-                        <span class="text-2xl font-black font-mono text-blue-500 ml-1" id="todo-big-counter">0</span>
-                        <button onclick="clearCompletedTodos()" class="text-xs text-rose-400 hover:underline font-medium">Clear Done</button>
-                    </div>
-                </div>
 
-                <!-- Feature 1: Search Bar & Feature 2: List Category Filter -->
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <div class="relative flex-grow">
-                        <i data-lucide="search" class="w-3.5 h-3.5 theme-text-dim absolute left-3 top-2.5"></i>
-                        <input type="text" id="todo-search-input" oninput="saveAndRenderTodos()" placeholder="Search reminders..." class="w-full theme-input border rounded-xl pl-8 pr-3 py-1.5 text-xs outline-none focus:border-blue-500">
-                    </div>
-                    <select id="todo-list-filter" onchange="saveAndRenderTodos()" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-medium outline-none">
-                        <option value="ALL">All Lists</option>
-                        <option value="Dispatch">📦 Dispatch</option>
-                        <option value="Inventory">📊 Inventory</option>
-                        <option value="General">📝 General</option>
-                    </select>
-                </div>
-
-                <!-- iOS Segmented Filter Pills (Including Overdue) -->
-                <div class="grid grid-cols-4 gap-1 theme-input p-1 rounded-xl border text-xs font-semibold">
-                    <button onclick="setTodoFilter('all')" id="td-filter-all" class="py-1.5 rounded-lg bg-blue-600 text-white transition">All</button>
-                    <button onclick="setTodoFilter('today')" id="td-filter-today" class="py-1.5 rounded-lg theme-text-muted transition">Scheduled</button>
-                    <button onclick="setTodoFilter('overdue')" id="td-filter-overdue" class="py-1.5 rounded-lg theme-text-muted transition">Overdue</button>
-                    <button onclick="setTodoFilter('flagged')" id="td-filter-flagged" class="py-1.5 rounded-lg theme-text-muted transition">Flagged</button>
-                </div>
-
-                <!-- iOS Reminders Task List (Overdue tasks highlighted in Red) -->
-                <div id="todo-list-container" class="divide-y theme-border rounded-2xl border theme-input overflow-hidden"></div>
-
-                <!-- iOS "+ New Reminder" Composer with Category, Priority (!/!!/!!!), Due Time & Repeat -->
-                <div class="pt-1 space-y-2">
-                    <div class="flex items-center gap-2 theme-input border rounded-2xl px-3.5 py-2.5 focus-within:border-blue-500">
-                        <button onclick="addTodoItem()" class="h-6 w-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">+</button>
-                        <input type="text" id="todo-input-text" placeholder="New Reminder..." onkeydown="if(event.key==='Enter') addTodoItem()" class="flex-grow bg-transparent text-sm outline-none">
-                        <input type="time" id="todo-due-time" title="Due Time (Highlights Red if Past)" class="bg-transparent text-xs font-mono theme-text-muted outline-none">
-                        <button onclick="toggleNewTodoFlag()" id="btn-new-todo-flag" title="Flag Reminder" class="p-1 rounded theme-text-dim hover:text-amber-500">
-                            <i data-lucide="flag" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-12 gap-2">
-                        <input type="text" id="todo-input-notes" placeholder="Notes / Sub-details..." onkeydown="if(event.key==='Enter') addTodoItem()" class="col-span-6 theme-input border rounded-xl px-3 py-1.5 text-xs theme-text-muted outline-none">
-                        <select id="todo-new-list" class="col-span-3 theme-input border rounded-xl px-2 py-1.5 text-xs outline-none" title="Feature 2: List Category">
-                            <option value="Dispatch" selected>📦 Dispatch</option>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="relative flex-grow">
+                            <i data-lucide="search" class="w-3.5 h-3.5 theme-text-dim absolute left-3 top-2.5"></i>
+                            <input type="text" id="todo-search-input" oninput="saveAndRenderTodos()" placeholder="Search reminders..." class="w-full theme-input border rounded-xl pl-8 pr-3 py-1.5 text-xs outline-none focus:border-blue-500">
+                        </div>
+                        <select id="todo-list-filter" onchange="saveAndRenderTodos()" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-medium outline-none">
+                            <option value="ALL">All Lists</option>
+                            <option value="Dispatch">📦 Dispatch</option>
                             <option value="Inventory">📊 Inventory</option>
                             <option value="General">📝 General</option>
                         </select>
-                        <select id="todo-new-priority" class="col-span-2 theme-input border rounded-xl px-1.5 py-1.5 text-xs font-mono outline-none" title="Priority Level">
-                            <option value="0" selected>None</option>
-                            <option value="1">! Low</option>
-                            <option value="2">!! Med</option>
-                            <option value="3">!!! High</option>
-                        </select>
-                        <select id="todo-new-recur" class="col-span-1 theme-input border rounded-xl px-1 py-1.5 text-[10px] font-mono outline-none" title="Recurring Shift Reminder">
-                            <option value="none" selected>1x</option>
-                            <option value="daily">Daily</option>
-                            <option value="shift">Shift</option>
-                        </select>
                     </div>
+
+                    <div class="grid grid-cols-4 gap-1 theme-input p-1 rounded-xl border text-xs font-semibold">
+                        <button onclick="setTodoFilter('all')" id="td-filter-all" class="py-1.5 rounded-lg bg-blue-600 text-white transition">All</button>
+                        <button onclick="setTodoFilter('today')" id="td-filter-today" class="py-1.5 rounded-lg theme-text-muted transition">Scheduled</button>
+                        <button onclick="setTodoFilter('overdue')" id="td-filter-overdue" class="py-1.5 rounded-lg theme-text-muted transition">Overdue</button>
+                        <button onclick="setTodoFilter('flagged')" id="td-filter-flagged" class="py-1.5 rounded-lg theme-text-muted transition">Flagged</button>
+                    </div>
+
+                    <div id="todo-list-container" class="divide-y theme-border rounded-2xl border theme-input overflow-hidden"></div>
+
+                    <div class="pt-1 space-y-2">
+                        <div class="flex items-center gap-2 theme-input border rounded-2xl px-3.5 py-2.5 focus-within:border-blue-500">
+                            <button onclick="addTodoItem()" class="h-6 w-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">+</button>
+                            <input type="text" id="todo-input-text" placeholder="New reminder or 'send sod at 4pm @user2'..." onkeydown="if(event.key==='Enter') addTodoItem()" class="flex-grow bg-transparent text-sm outline-none">
+                            <input type="time" id="todo-due-time" title="Due Time (Highlights Red if Past)" class="bg-transparent text-xs font-mono theme-text-muted outline-none">
+                            <button onclick="toggleNewTodoFlag()" id="btn-new-todo-flag" title="Flag Reminder" class="p-1 rounded theme-text-dim hover:text-amber-500">
+                                <i data-lucide="flag" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-12 gap-2">
+                            <input type="text" id="todo-input-notes" placeholder="Notes / Sub-details..." onkeydown="if(event.key==='Enter') addTodoItem()" class="col-span-6 theme-input border rounded-xl px-3 py-1.5 text-xs theme-text-muted outline-none">
+                            <select id="todo-new-list" class="col-span-3 theme-input border rounded-xl px-2 py-1.5 text-xs outline-none" title="List Category">
+                                <option value="Dispatch" selected>📦 Dispatch</option>
+                                <option value="Inventory">📊 Inventory</option>
+                                <option value="General">📝 General</option>
+                            </select>
+                            <select id="todo-new-priority" class="col-span-2 theme-input border rounded-xl px-1.5 py-1.5 text-xs font-mono outline-none" title="Priority Level">
+                                <option value="0" selected>None</option>
+                                <option value="1">! Low</option>
+                                <option value="2">!! Med</option>
+                                <option value="3">!!! High</option>
+                            </select>
+                            <select id="todo-new-recur" class="col-span-1 theme-input border rounded-xl px-1 py-1.5 text-[10px] font-mono outline-none" title="Recurring Shift Reminder">
+                                <option value="none" selected>1x</option>
+                                <option value="daily">Daily</option>
+                                <option value="shift">Shift</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right 5 Cols: iPhone-Style Notes Next to Reminders -->
+                <div class="lg:col-span-5 theme-card border rounded-3xl p-5 shadow-xl space-y-3">
+                    <div class="flex items-center justify-between border-b theme-border pb-2.5">
+                        <div>
+                            <h3 class="text-lg font-extrabold text-amber-400">iPhone Notes</h3>
+                            <p class="text-[11px] theme-text-dim font-mono" id="iphone-note-saved-lbl">Synced</p>
+                        </div>
+                        <button onclick="insertIphoneChecklistItem()" class="px-2.5 py-1 rounded-xl theme-elevated border text-xs font-bold hover:border-amber-400">☑ Checklist</button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-1 text-xs">
+                        <button onclick="execIphoneNoteCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
+                        <button onclick="execIphoneNoteCmd('italic')" class="px-2 py-1 rounded theme-elevated border italic">I</button>
+                        <button onclick="execIphoneNoteCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
+                        <button onclick="execIphoneNoteCmd('insertUnorderedList')" class="px-2 py-1 rounded theme-elevated border">• List</button>
+                        <button onclick="execIphoneNoteCmd('hiliteColor','#fef08a')" class="px-2 py-1 rounded bg-yellow-200 text-zinc-900 font-bold text-[11px]">Highlight</button>
+                        <input type="color" value="#f59e0b" onchange="execIphoneNoteCmd('foreColor', this.value)" class="w-5 h-5 bg-transparent border-0 cursor-pointer" title="Text Colour">
+                    </div>
+
+                    <input type="text" id="iphone-note-title" oninput="persistIphoneNote()" placeholder="Note Title..." class="w-full theme-input border rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-amber-400">
+                    <div id="iphone-note-editor" contenteditable="true" oninput="persistIphoneNote()" class="min-h-[260px] max-h-[380px] overflow-y-auto theme-input border rounded-2xl p-3.5 text-xs leading-relaxed outline-none focus:border-amber-400"></div>
                 </div>
             </div>
         </section>
@@ -2232,16 +2321,24 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         const DEFAULT_CLIENTS = [{ code: 'FF', name: 'FitFlop (Default)' }, { code: 'NC', name: "Nobody's Child" }, { code: 'OD', name: 'Oodie' }, { code: 'BLK', name: 'Bleckmann' }];
         const DEFAULT_CARRIERS = [{ code: 'RM', name: 'Royal Mail (Default)' }, { code: 'RMX', name: 'Royal Mail Express' }, { code: 'ASD', name: 'Asendia' }, { code: 'DPD', name: 'DPD UK' }, { code: 'DHL', name: 'DHL' }, { code: 'PF', name: 'Parcelforce' }, { code: 'EVR', name: 'Evri' }, { code: 'AMZ', name: 'Amazon' }];
-        const DEFAULT_SHIFT_BATCH = [
-            { client: 'FF', carrier: 'DPD', qty: 5, start: 0, date: '' },
-            { client: 'FF', carrier: 'RMX', qty: 5, start: 0, date: '' },
-            { client: 'FF', carrier: 'ASD', qty: 5, start: 0, date: '' },
-            { client: 'FF', carrier: 'RM', qty: 25, start: 0, date: '' }
-        ];
+        const SHIFT_BATCH_PRESETS = {
+            FF: [
+                { client: 'FF', carrier: 'DPD', qty: 5, start: 0, date: '' },
+                { client: 'FF', carrier: 'RMX', qty: 5, start: 0, date: '' },
+                { client: 'FF', carrier: 'ASD', qty: 5, start: 0, date: '' },
+                { client: 'FF', carrier: 'RM', qty: 25, start: 0, date: '' }
+            ],
+            NC: [
+                { client: 'NC', carrier: 'RM', qty: 10, start: 0, date: '' },
+                { client: 'NC', carrier: 'DPD', qty: 5, start: 0, date: '' }
+            ]
+        };
 
+        let activeShiftPresetKey = localStorage.getItem('wmsActiveShiftPresetKeyV1') || 'FF';
         let savedClients = JSON.parse(localStorage.getItem('wmsCustomClientsV2') || JSON.stringify(DEFAULT_CLIENTS));
         let savedCarriers = JSON.parse(localStorage.getItem('wmsCustomCarriersV2') || JSON.stringify(DEFAULT_CARRIERS));
-        let shiftBatchConfig = JSON.parse(localStorage.getItem('wmsDefaultShiftBatchV2') || JSON.stringify(DEFAULT_SHIFT_BATCH));
+        let allShiftPresets = JSON.parse(localStorage.getItem('wmsAllShiftPresetsV1') || 'null') || JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS));
+        let shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF;
         let carrierUsageLedger = JSON.parse(localStorage.getItem('wmsCarrierDailyUsageV1') || '{}');
         let carrierOrientation = 'landscape', carrierViewMode = 'single', currentCarrierBatch = [], previewCarrierIndex = 0;
 
@@ -2267,7 +2364,24 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             `).join('');
         }
         function addShiftBatchRuleRow() { shiftBatchConfig.push({ client: 'FF', carrier: 'RM', qty: 5, start: 0, date: getTodayIsoDate() }); renderShiftBatchEditorRows(); }
-        function saveShiftBatchRules() { localStorage.setItem('wmsDefaultShiftBatchV2', JSON.stringify(shiftBatchConfig)); renderShiftBatchPills(); toggleShiftBatchEditor(); showToast("Saved shift batch rules!"); }
+        function switchShiftBatchPreset(key) {
+            activeShiftPresetKey = key;
+            localStorage.setItem('wmsActiveShiftPresetKeyV1', key);
+            if (!allShiftPresets[key]) allShiftPresets[key] = JSON.parse(JSON.stringify(SHIFT_BATCH_PRESETS[key] || []));
+            shiftBatchConfig = allShiftPresets[key];
+            document.getElementById('btn-shift-preset-FF').className = key === 'FF' ? "px-2 py-0.5 rounded font-bold bg-emerald-600 text-white" : "px-2 py-0.5 rounded font-bold theme-text-muted";
+            document.getElementById('btn-shift-preset-NC').className = key === 'NC' ? "px-2 py-0.5 rounded font-bold bg-emerald-600 text-white" : "px-2 py-0.5 rounded font-bold theme-text-muted";
+            renderShiftBatchPills();
+            if (!document.getElementById('shift-batch-editor').classList.contains('hidden')) renderShiftBatchEditorRows();
+        }
+        function saveShiftBatchRules() {
+            allShiftPresets[activeShiftPresetKey] = JSON.parse(JSON.stringify(shiftBatchConfig));
+            localStorage.setItem('wmsAllShiftPresetsV1', JSON.stringify(allShiftPresets));
+            pushStateToCloud();
+            renderShiftBatchPills();
+            toggleShiftBatchEditor();
+            showToast(`Saved ${activeShiftPresetKey} shift batch!`);
+        }
 
         function executeOneClickShiftBatch() {
             const defaultDateIso = document.getElementById('cl-date').value || getTodayIsoDate(), dateStyle = document.getElementById('cl-date-style').value, digits = parseInt(document.getElementById('cl-digits').value) || 2, copies = Math.max(1, parseInt(document.getElementById('cl-copies-per-label').value) || 2);
@@ -2661,7 +2775,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
                 </div>`;
             savedNoteTemplates[name] = body.innerHTML;
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
+            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
             activeSelectedTemplateId = `custom:${name}`;
             renderNoteTemplatesDropdown();
             autoFitA4Content();
@@ -2682,7 +2796,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 cv.replaceWith(placeholder);
             });
             savedNoteTemplates[name] = bodyClone.innerHTML;
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
+            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
             activeSelectedTemplateId = `custom:${name}`;
             renderNoteTemplatesDropdown();
             playTone('success');
@@ -2697,7 +2811,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const name = selVal.replace('custom:', '');
             if (!confirm(`Permanently delete template "${name}"?`)) return;
             delete savedNoteTemplates[name];
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
+            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
             activeSelectedTemplateId = '';
             renderNoteTemplatesDropdown();
             showToast(`Removed template "${name}"`);
@@ -2868,8 +2982,186 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         // ==========================================
-        // 7. IPHONE REMINDERS TO-DO LIST (OVERDUE ALERT + RECURRING + MULTI-USER BATCHES)
+        // 7. CLOUD-FIRST + LOCAL CACHE SYNC, PASSWORDS, @USER ROUTING & IPHONE NOTES
         // ==========================================
+        let cloudSyncConfig = JSON.parse(localStorage.getItem('wmsCloudSyncConfigV1') || '{"provider":"none","sbUrl":"","sbKey":"","roomId":"bleckmann-main","webhookUrl":""}');
+        let supabaseClientInstance = null;
+        let cloudSyncTimer = null;
+
+        function updateCloudStatusUI(state, label) {
+            const dot = document.getElementById('cloud-sync-dot');
+            const lbl = document.getElementById('cloud-sync-lbl');
+            if (!dot || !lbl) return;
+            dot.className = state === 'synced' ? 'h-2 w-2 rounded-full bg-emerald-500' : (state === 'syncing' ? 'h-2 w-2 rounded-full bg-blue-400 animate-pulse' : (state === 'error' ? 'h-2 w-2 rounded-full bg-rose-500' : 'h-2 w-2 rounded-full bg-amber-400'));
+            lbl.innerText = label;
+        }
+
+        function initCloudClient() {
+            if (cloudSyncConfig.provider === 'supabase' && cloudSyncConfig.sbUrl && cloudSyncConfig.sbKey && window.supabase) {
+                try {
+                    supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey);
+                    updateCloudStatusUI('synced', 'Cloud + Cache');
+                } catch (e) {
+                    updateCloudStatusUI('error', 'Cloud Error');
+                }
+            } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
+                updateCloudStatusUI('synced', 'API + Cache');
+            } else {
+                supabaseClientInstance = null;
+                updateCloudStatusUI('local', 'Local Cache');
+            }
+        }
+
+        function openCloudSyncModal() {
+            document.getElementById('cloud-provider-select').value = cloudSyncConfig.provider || 'none';
+            document.getElementById('cloud-sb-url').value = cloudSyncConfig.sbUrl || '';
+            document.getElementById('cloud-sb-key').value = cloudSyncConfig.sbKey || '';
+            document.getElementById('cloud-room-id').value = cloudSyncConfig.roomId || 'bleckmann-main';
+            document.getElementById('cloud-webhook-url').value = cloudSyncConfig.webhookUrl || '';
+            toggleCloudProviderFields();
+            document.getElementById('cloud-sync-modal').classList.remove('hidden');
+        }
+        function closeCloudSyncModal() { document.getElementById('cloud-sync-modal').classList.add('hidden'); }
+        function toggleCloudProviderFields() {
+            const p = document.getElementById('cloud-provider-select').value;
+            document.getElementById('cloud-supabase-fields').classList.toggle('hidden', p !== 'supabase');
+            document.getElementById('cloud-webhook-fields').classList.toggle('hidden', p !== 'webhook');
+        }
+        async function saveCloudSyncSettings() {
+            cloudSyncConfig = {
+                provider: document.getElementById('cloud-provider-select').value,
+                sbUrl: document.getElementById('cloud-sb-url').value.trim(),
+                sbKey: document.getElementById('cloud-sb-key').value.trim(),
+                roomId: document.getElementById('cloud-room-id').value.trim() || 'bleckmann-main',
+                webhookUrl: document.getElementById('cloud-webhook-url').value.trim()
+            };
+            localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig));
+            initCloudClient();
+            closeCloudSyncModal();
+            if (cloudSyncConfig.provider !== 'none') {
+                await pullStateFromCloud(true);
+                await pushStateToCloud(true);
+            }
+        }
+
+        function buildSharedStateSnapshot() {
+            return {
+                todoStoreByUser,
+                userPasswordsMap,
+                savedTodoBatchesByUser,
+                iphoneNotesByUser,
+                savedNoteTemplates,
+                allShiftPresets,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
+        function applySharedStateSnapshot(snap) {
+            if (!snap || typeof snap !== 'object') return;
+            if (snap.todoStoreByUser && typeof snap.todoStoreByUser === 'object') {
+                todoStoreByUser = snap.todoStoreByUser;
+                localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+            }
+            if (snap.userPasswordsMap && typeof snap.userPasswordsMap === 'object') {
+                userPasswordsMap = snap.userPasswordsMap;
+                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+            }
+            if (snap.savedTodoBatchesByUser && typeof snap.savedTodoBatchesByUser === 'object') {
+                savedTodoBatchesByUser = snap.savedTodoBatchesByUser;
+                localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
+            }
+            if (snap.iphoneNotesByUser && typeof snap.iphoneNotesByUser === 'object') {
+                iphoneNotesByUser = snap.iphoneNotesByUser;
+                localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            }
+            if (snap.savedNoteTemplates && typeof snap.savedNoteTemplates === 'object') {
+                savedNoteTemplates = snap.savedNoteTemplates;
+                localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
+                renderNoteTemplatesDropdown();
+            }
+            if (snap.allShiftPresets && typeof snap.allShiftPresets === 'object') {
+                allShiftPresets = snap.allShiftPresets;
+                localStorage.setItem('wmsAllShiftPresetsV1', JSON.stringify(allShiftPresets));
+                shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF || shiftBatchConfig;
+                renderShiftBatchPills();
+            }
+            refreshTodoUserDropdown();
+            saveAndRenderTodos(true);
+        }
+
+        function pushStateToCloud(immediate = false) {
+            if (cloudSyncConfig.provider === 'none') return;
+            clearTimeout(cloudSyncTimer);
+            const run = async () => {
+                try {
+                    updateCloudStatusUI('syncing', 'Syncing...');
+                    const payload = buildSharedStateSnapshot();
+                    if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
+                        const { error } = await supabaseClientInstance
+                            .from('wms_shared_state')
+                            .upsert({ id: cloudSyncConfig.roomId || 'bleckmann-main', payload, updated_at: new Date().toISOString() });
+                        if (error) throw error;
+                        updateCloudStatusUI('synced', 'Cloud Synced');
+                    } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
+                        const res = await fetch(cloudSyncConfig.webhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ roomId: cloudSyncConfig.roomId || 'bleckmann-main', payload })
+                        });
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        updateCloudStatusUI('synced', 'API Synced');
+                    }
+                } catch (e) {
+                    console.warn('Cloud push fell back to local cache:', e);
+                    updateCloudStatusUI('error', 'Offline Cache');
+                }
+            };
+            if (immediate) run();
+            else cloudSyncTimer = setTimeout(run, 600);
+        }
+
+        async function pullStateFromCloud(notify = false) {
+            if (cloudSyncConfig.provider === 'none') return;
+            try {
+                updateCloudStatusUI('syncing', 'Pulling...');
+                if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
+                    const { data, error } = await supabaseClientInstance
+                        .from('wms_shared_state')
+                        .select('payload')
+                        .eq('id', cloudSyncConfig.roomId || 'bleckmann-main')
+                        .maybeSingle();
+                    if (error) throw error;
+                    if (data && data.payload) applySharedStateSnapshot(data.payload);
+                    updateCloudStatusUI('synced', 'Cloud Synced');
+                    if (notify) showToast('Synced latest shared data from Cloud!');
+                } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
+                    const url = new URL(cloudSyncConfig.webhookUrl);
+                    url.searchParams.set('roomId', cloudSyncConfig.roomId || 'bleckmann-main');
+                    const res = await fetch(url.toString());
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const json = await res.json();
+                    const snap = json.payload || json;
+                    if (snap) applySharedStateSnapshot(snap);
+                    updateCloudStatusUI('synced', 'API Synced');
+                    if (notify) showToast('Synced latest shared data from API!');
+                }
+            } catch (e) {
+                console.warn('Cloud pull failed, using local cache:', e);
+                updateCloudStatusUI('error', 'Offline Cache');
+                if (notify) showToast('Using local offline cache.');
+            }
+        }
+
+        async function hashPasswordText(raw) {
+            try {
+                if (window.crypto && window.crypto.subtle) {
+                    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+                    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                }
+            } catch (e) {}
+            return 'plain:' + raw;
+        }
+
         let todoStoreByUser = JSON.parse(localStorage.getItem('wmsShiftTodosByUserV2') || 'null');
         if (!todoStoreByUser) {
             todoStoreByUser = {
@@ -2879,10 +3171,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 ]
             };
         }
+        let userPasswordsMap = JSON.parse(localStorage.getItem('wmsTodoUserPasswordsV1') || '{}');
         let savedTodoBatchesByUser = JSON.parse(localStorage.getItem('wmsSavedTodoBatchesV1') || '{}');
         if (!savedTodoBatchesByUser.Shash) {
             savedTodoBatchesByUser.Shash = JSON.parse(JSON.stringify(todoStoreByUser.Shash));
         }
+        let iphoneNotesByUser = JSON.parse(localStorage.getItem('wmsIphoneNotesByUserV1') || '{}');
         let todoUndoStack = [];
 
         function pushTodoUndoSnapshot() {
@@ -2906,20 +3200,62 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             return todoStoreByUser[activeTodoUser];
         }
 
+        async function verifyUserPassword(userName, actionLabel) {
+            const stored = userPasswordsMap[userName];
+            if (!stored) return true;
+            const entered = prompt(`Enter password for ${userName} (${actionLabel}):`);
+            if (entered === null) return false;
+            const hashed = await hashPasswordText(entered.trim());
+            if (hashed === stored || entered.trim() === stored) return true;
+            showToast("Incorrect password!");
+            return false;
+        }
+
+        async function setOrChangeUserPassword() {
+            if (userPasswordsMap[activeTodoUser]) {
+                const ok = await verifyUserPassword(activeTodoUser, 'change password');
+                if (!ok) return;
+            }
+            const nextPass = prompt(`Set new password for ${activeTodoUser} (leave empty to remove password):`);
+            if (nextPass === null) return;
+            if (nextPass.trim()) {
+                userPasswordsMap[activeTodoUser] = await hashPasswordText(nextPass.trim());
+                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                pushStateToCloud();
+                refreshTodoUserDropdown();
+                showToast(`Password protected for ${activeTodoUser}!`);
+            } else {
+                delete userPasswordsMap[activeTodoUser];
+                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                pushStateToCloud();
+                refreshTodoUserDropdown();
+                showToast(`Password removed for ${activeTodoUser}`);
+            }
+        }
+
         function refreshTodoUserDropdown() {
             const sel = document.getElementById('todo-user-profile');
             if (!sel) return;
             const users = Object.keys(todoStoreByUser);
             if (!users.length) { todoStoreByUser = { Shash: [] }; }
             if (!todoStoreByUser[activeTodoUser]) activeTodoUser = Object.keys(todoStoreByUser)[0];
-            sel.innerHTML = Object.keys(todoStoreByUser).map(u => `<option value="${escapeHtml(u)}" ${u === activeTodoUser ? 'selected' : ''}>👤 ${escapeHtml(u)}</option>`).join('');
+            sel.innerHTML = Object.keys(todoStoreByUser).map(u => {
+                const lockIcon = userPasswordsMap[u] ? '🔒 ' : '👤 ';
+                return `<option value="${escapeHtml(u)}" ${u === activeTodoUser ? 'selected' : ''}>${lockIcon}${escapeHtml(u)}</option>`;
+            }).join('');
+            loadIphoneNoteForUser();
         }
 
-        function addNewTodoUser() {
+        async function addNewTodoUser() {
             const name = prompt("Enter user name:")?.trim();
             if (!name) return;
+            const pass = prompt(`Optional password for ${name} (leave empty for none):`)?.trim();
             pushTodoUndoSnapshot();
             if (!todoStoreByUser[name]) todoStoreByUser[name] = savedTodoBatchesByUser[name] ? JSON.parse(JSON.stringify(savedTodoBatchesByUser[name])) : [];
+            if (pass) {
+                userPasswordsMap[name] = await hashPasswordText(pass);
+                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+            }
             activeTodoUser = name;
             localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
             refreshTodoUserDropdown();
@@ -2927,11 +3263,15 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast(`Added & switched to ${name}`);
         }
 
-        function removeCurrentTodoUser() {
+        async function removeCurrentTodoUser() {
             if (Object.keys(todoStoreByUser).length <= 1) return showToast("At least one user must remain.");
+            const ok = await verifyUserPassword(activeTodoUser, 'remove user');
+            if (!ok) return;
             if (!confirm(`Remove user "${activeTodoUser}"?`)) return;
             pushTodoUndoSnapshot();
             delete todoStoreByUser[activeTodoUser];
+            delete userPasswordsMap[activeTodoUser];
+            localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
             activeTodoUser = Object.keys(todoStoreByUser)[0];
             localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
             refreshTodoUserDropdown();
@@ -2939,18 +3279,63 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast(`Removed user; active: ${activeTodoUser}`);
         }
 
-        function switchTodoUserProfile(userName) {
+        async function switchTodoUserProfile(userName) {
+            if (userName !== activeTodoUser && userPasswordsMap[userName]) {
+                const ok = await verifyUserPassword(userName, 'unlock profile');
+                if (!ok) {
+                    refreshTodoUserDropdown();
+                    return;
+                }
+            }
             activeTodoUser = userName;
             localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
-            saveAndRenderTodos();
+            loadIphoneNoteForUser();
+            saveAndRenderTodos(true);
         }
 
         function saveCurrentUserBatch() {
             savedTodoBatchesByUser[activeTodoUser] = JSON.parse(JSON.stringify(getCurrentUserTodos()));
             localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
             localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+            persistIphoneNote();
+            pushStateToCloud(true);
             playTone('success');
-            showToast(`Permanently saved batch for ${activeTodoUser}!`);
+            showToast(`Saved batch & notes for ${activeTodoUser}!`);
+        }
+
+        function loadIphoneNoteForUser() {
+            const saved = iphoneNotesByUser[activeTodoUser] || { title: `${activeTodoUser} Shift Notes`, html: '<div>Tap to write notes, checklists, or shift logs...</div>' };
+            const tInp = document.getElementById('iphone-note-title');
+            const ed = document.getElementById('iphone-note-editor');
+            if (tInp) tInp.value = saved.title || '';
+            if (ed) ed.innerHTML = saved.html || '';
+        }
+
+        function persistIphoneNote() {
+            const tInp = document.getElementById('iphone-note-title');
+            const ed = document.getElementById('iphone-note-editor');
+            if (!tInp || !ed) return;
+            iphoneNotesByUser[activeTodoUser] = { title: tInp.value, html: ed.innerHTML };
+            localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+            pushStateToCloud();
+            const lbl = document.getElementById('iphone-note-saved-lbl');
+            if (lbl) lbl.innerText = `Saved ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
+        }
+
+        function execIphoneNoteCmd(cmd, val = null) {
+            document.getElementById('iphone-note-editor')?.focus();
+            document.execCommand(cmd, false, val);
+            persistIphoneNote();
+        }
+
+        function insertIphoneChecklistItem() {
+            const ed = document.getElementById('iphone-note-editor');
+            if (!ed) return;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 py-0.5';
+            row.innerHTML = `<input type="checkbox" class="accent-amber-400"> <span contenteditable="true" class="outline-none">Checklist item</span>`;
+            ed.appendChild(row);
+            persistIphoneNote();
         }
 
         function alertOverdueRemindersOnTabOpen() {
@@ -2978,27 +3363,56 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             ['all', 'today', 'overdue', 'flagged'].forEach(k => {
                 document.getElementById(`td-filter-${k}`).className = k === f ? "py-1.5 rounded-lg bg-blue-600 text-white transition" : "py-1.5 rounded-lg theme-text-muted transition";
             });
-            saveAndRenderTodos();
+            saveAndRenderTodos(true);
         }
+
         function addTodoItem() {
-            const inp = document.getElementById('todo-input-text'), text = inp.value.trim();
-            if (!text) return;
+            const inp = document.getElementById('todo-input-text'), rawText = inp.value.trim();
+            if (!rawText) return;
+            pushTodoUndoSnapshot();
             const notes = document.getElementById('todo-input-notes').value.trim();
             const time = document.getElementById('todo-due-time').value || '';
             const list = document.getElementById('todo-new-list').value || 'Dispatch';
             const priority = parseInt(document.getElementById('todo-new-priority').value) || 0;
             const recur = document.getElementById('todo-new-recur').value || 'none';
-            getCurrentUserTodos().unshift({ id: 'td-' + Date.now(), text, notes, time, list, priority, recur, flagged: newTodoFlagged, done: false });
+
+            // Parse "@user2" mentions so reminders like "send sod at 4pm @user2" also appear in user2's reminders
+            const mentionMatches = [...rawText.matchAll(/@([A-Za-z0-9_-]+)/g)].map(m => m[1]);
+            const cleanText = rawText.replace(/\s*@[A-Za-z0-9_-]+/g, '').trim() || rawText;
+
+            const newTask = {
+                id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+                text: cleanText,
+                notes: mentionMatches.length ? `${notes ? notes + ' • ' : ''}From ${activeTodoUser} (@${mentionMatches.join(', @')})` : notes,
+                time, list, priority, recur, flagged: newTodoFlagged, done: false
+            };
+
+            getCurrentUserTodos().unshift(newTask);
+
+            mentionMatches.forEach(targetName => {
+                const matchedKey = Object.keys(todoStoreByUser).find(k => k.toLowerCase() === targetName.toLowerCase());
+                const destUser = matchedKey || targetName;
+                if (!todoStoreByUser[destUser]) todoStoreByUser[destUser] = [];
+                todoStoreByUser[destUser].unshift({
+                    ...newTask,
+                    id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                    notes: `${notes ? notes + ' • ' : ''}Assigned by ${activeTodoUser}`
+                });
+                refreshTodoUserDropdown();
+            });
+
             inp.value = ''; document.getElementById('todo-input-notes').value = '';
             newTodoFlagged = false; document.getElementById('btn-new-todo-flag').className = "p-1 rounded theme-text-dim hover:text-amber-500";
             saveAndRenderTodos(); playTone('success');
+            if (mentionMatches.length) showToast(`Reminder sent to @${mentionMatches.join(', @')}!`);
         }
+
         function toggleTodoDone(id) {
+            pushTodoUndoSnapshot();
             const listArr = getCurrentUserTodos();
             const item = listArr.find(t => t.id === id);
             if (item) {
                 item.done = !item.done;
-                // If recurring (Daily/Shift) and marked done, spawn fresh recurring reminder copy
                 if (item.done && item.recur && item.recur !== 'none') {
                     listArr.push({ ...item, id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), done: false });
                 }
@@ -3006,12 +3420,51 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 if (item.done) playTone('success');
             }
         }
-        function toggleTodoFlag(id) { const item = getCurrentUserTodos().find(t => t.id === id); if (item) { item.flagged = !item.flagged; saveAndRenderTodos(); } }
-        function deleteTodoItem(id) { todoStoreByUser[activeTodoUser] = getCurrentUserTodos().filter(t => t.id !== id); saveAndRenderTodos(); }
-        function clearCompletedTodos() { todoStoreByUser[activeTodoUser] = getCurrentUserTodos().filter(t => !t.done); saveAndRenderTodos(); }
+        function toggleTodoFlag(id) { pushTodoUndoSnapshot(); const item = getCurrentUserTodos().find(t => t.id === id); if (item) { item.flagged = !item.flagged; saveAndRenderTodos(); } }
+        function deleteTodoItem(id) { pushTodoUndoSnapshot(); todoStoreByUser[activeTodoUser] = getCurrentUserTodos().filter(t => t.id !== id); saveAndRenderTodos(); }
+        function clearCompletedTodos() { pushTodoUndoSnapshot(); todoStoreByUser[activeTodoUser] = getCurrentUserTodos().filter(t => !t.done); saveAndRenderTodos(); }
 
-        function saveAndRenderTodos() {
-            localStorage.setItem('wmsShiftTodosByUserV1', JSON.stringify(todoStoreByUser));
+        function exportUserProfileData() {
+            const payload = {
+                user: activeTodoUser,
+                todos: getCurrentUserTodos(),
+                savedBatch: savedTodoBatchesByUser[activeTodoUser] || [],
+                note: iphoneNotesByUser[activeTodoUser] || null
+            };
+            const a = document.createElement('a');
+            a.download = `${activeTodoUser.toLowerCase()}-todo-notes.json`;
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+            a.click();
+            showToast(`Exported ${activeTodoUser}'s data!`);
+        }
+
+        function importUserProfileData(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    const targetUser = data.user || activeTodoUser;
+                    if (Array.isArray(data.todos)) todoStoreByUser[targetUser] = data.todos;
+                    if (Array.isArray(data.savedBatch)) savedTodoBatchesByUser[targetUser] = data.savedBatch;
+                    if (data.note) iphoneNotesByUser[targetUser] = data.note;
+                    activeTodoUser = targetUser;
+                    localStorage.setItem('wmsActiveTodoUserV1', activeTodoUser);
+                    refreshTodoUserDropdown();
+                    saveAndRenderTodos();
+                    showToast(`Imported data for ${targetUser}!`);
+                } catch (err) {
+                    showToast("Invalid JSON profile file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function saveAndRenderTodos(skipCloudPush = false) {
+            localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+            localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
+            if (!skipCloudPush) pushStateToCloud();
+
             const currentTodos = getCurrentUserTodos();
             const openCount = currentTodos.filter(t => !t.done).length;
             document.getElementById('nav-todo-count').innerText = openCount;
@@ -3113,7 +3566,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function switchTab(tab) {
             ['bulk', 'carrier', 'trailer', 'a4note', 'todo'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all"; });
             document.getElementById(`view-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-            if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'trailer') { generateTrailerSingleMasterCode(); renderTrailerManifest(); setTimeout(() => document.getElementById('tr-rdt-input').focus(), 100); } if (tab === 'a4note') autoFitA4Content(); if (tab === 'todo') { saveAndRenderTodos(); alertOverdueRemindersOnTabOpen(); }
+            if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'trailer') { generateTrailerSingleMasterCode(); renderTrailerManifest(); setTimeout(() => document.getElementById('tr-rdt-input').focus(), 100); } if (tab === 'a4note') autoFitA4Content(); if (tab === 'todo') { pullStateFromCloud(false); saveAndRenderTodos(true); alertOverdueRemindersOnTabOpen(); }
         }
 
         let workspace = JSON.parse(localStorage.getItem('wmsWorkspaceFilesV1') || '{"folders":["Default Shift","Carrier Runs"],"activeFolder":"Default Shift","files":[]}');
@@ -3165,7 +3618,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             makeElementDraggable('calc-popover', 'calc-drag-header');
             makeElementDraggable('chess-floating-window', 'chess-drag-header');
             makeElementDraggable('sudoku-floating-window', 'sudoku-drag-header');
-            saveWorkspaceState(); refreshTodoUserDropdown(); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(); generateTrailerSingleMasterCode(); renderTrailerManifest();
+            initCloudClient(); pullStateFromCloud(false); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(); generateTrailerSingleMasterCode(); renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
             renderNoteTemplatesDropdown();
             resetSimpleTwoLineNote();

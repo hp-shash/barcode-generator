@@ -176,7 +176,7 @@
 
             <!-- Right Utilities: Calc, Reflow Zoom %, Arcade, Sound ON/OFF & Multi-Gradient Theme Bar -->
             <div class="flex flex-wrap items-center gap-1.5">
-                <button onclick="openCloudSyncModal()" id="btn-cloud-sync" title="Cloud Sync Settings (Supabase / Shared Endpoint) + Local Cache" class="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
+                <button onclick="openCloudSyncModal()" id="btn-cloud-sync" title="Cloud Sync Settings (Password Protected)" class="hidden items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                     <span id="cloud-sync-dot" class="h-2 w-2 rounded-full bg-amber-400"></span>
                     <span id="cloud-sync-lbl" class="text-[11px] font-mono">Local Cache</span>
                 </button>
@@ -337,7 +337,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t theme-border">
                     <button onclick="pullStateFromCloud(true)" class="px-3 py-1.5 rounded-lg theme-elevated border font-semibold hover:border-emerald-500">Pull Now</button>
                     <div class="flex gap-2">
-                        <button onclick="closeCloudSyncModal()" class="px-3 py-1.5 rounded-lg theme-input border font-medium">Cancel</button>
+                        <button onclick="lockCloudSyncButton()" class="px-3 py-1.5 rounded-lg theme-input border font-medium text-amber-400">Lock &amp; Hide</button><button onclick="closeCloudSyncModal()" class="px-3 py-1.5 rounded-lg theme-input border font-medium">Cancel</button>
                         <button onclick="saveCloudSyncSettings()" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow">Save &amp; Sync</button>
                     </div>
                 </div>
@@ -1339,10 +1339,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         <!-- ==========================================
              TAB 5: IPHONE-STYLE REMINDERS TO-DO LIST (OVERDUE RED HIGHLIGHT + 5 NEW FEATURES)
              ========================================== -->
-        <section id="view-todo" class="hidden max-w-6xl mx-auto space-y-4">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                <!-- Left 7 Cols: iOS Reminders + Password Protection + @User Routing -->
-                <div class="lg:col-span-7 theme-card border rounded-3xl p-6 shadow-xl space-y-4">
+        <section id="view-todo" class="hidden max-w-7xl mx-auto space-y-4">
+            <div id="todo-split-container" class="flex flex-col lg:flex-row gap-5 items-start">
+                <!-- Left Panel: Resizable iOS Reminders + Password Protection + @User Routing -->
+                <div id="todo-reminders-panel" style="width: 58%;" class="w-full lg:w-[58%] min-w-[320px] resize-x overflow-auto theme-card border rounded-3xl p-6 shadow-xl space-y-4 shrink-0">
                     <div class="flex items-center justify-between gap-2 flex-wrap">
                         <div>
                             <h2 class="text-2xl font-extrabold tracking-tight text-blue-500">Reminders</h2>
@@ -1352,10 +1352,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             <select id="todo-user-profile" onchange="switchTodoUserProfile(this.value)" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none" title="Select User To-Do List">
                                 <option value="Shash" selected>👤 Shash</option>
                             </select>
-                            <button onclick="setOrChangeUserPassword()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Set / Change / Remove User Password">🔒 Pass</button>
+                            <button onclick="setOrChangeUserPassword()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Set / Change / Remove User Password (Protects Reminders & Notes)">🔒 Pass</button>
                             <button onclick="addNewTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Add New User">+ User</button>
                             <button onclick="removeCurrentTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Remove Selected User">- User</button>
                             <button onclick="saveCurrentUserBatch()" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-bold hover:bg-blue-600 hover:text-white" title="Save User Shift Batch">Save Batch</button>
+                            <button onclick="applyUserShiftBatchTemplate()" class="px-2.5 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold hover:bg-emerald-600 hover:text-white" title="Load Current User's Saved Shift Batch Reminders & Notes">Load Shift Batch</button>
+                            <button onclick="toggleUserShiftBatchEditor()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Edit / Save User Shift Batch Reminders & Notes">Edit Batch</button>
                             <button onclick="exportUserProfileData()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Export User Profile (.JSON)">Export</button>
                             <label class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500 cursor-pointer" title="Import User Profile (.JSON)">
                                 Import <input type="file" accept=".json" onchange="importUserProfileData(event)" class="hidden">
@@ -1384,6 +1386,39 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         <button onclick="setTodoFilter('today')" id="td-filter-today" class="py-1.5 rounded-lg theme-text-muted transition">Scheduled</button>
                         <button onclick="setTodoFilter('overdue')" id="td-filter-overdue" class="py-1.5 rounded-lg theme-text-muted transition">Overdue</button>
                         <button onclick="setTodoFilter('flagged')" id="td-filter-flagged" class="py-1.5 rounded-lg theme-text-muted transition">Flagged</button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 text-[10px] font-mono theme-text-dim">
+                        <span>Quick Time:</span>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="applyQuickDueTime('09:00')" class="px-2 py-0.5 rounded theme-elevated border hover:border-blue-500">09:00</button>
+                            <button type="button" onclick="applyQuickDueTime('16:00')" class="px-2 py-0.5 rounded theme-elevated border hover:border-blue-500">16:00 SOD</button>
+                            <button type="button" onclick="applyQuickDueTime('23:55')" class="px-2 py-0.5 rounded theme-elevated border hover:border-blue-500">23:55 Close</button>
+                            <button type="button" onclick="applyQuickDueTime('')" class="px-2 py-0.5 rounded theme-input border">Clear</button>
+                        </div>
+                    </div>
+
+                    <div id="user-shift-batch-editor" class="hidden p-3.5 rounded-2xl border-2 border-emerald-500/40 theme-elevated space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold uppercase tracking-wider text-emerald-400" id="user-shift-batch-title">User Shift Batch Preset</span>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="addShiftBatchReminderRow()" class="px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-400 font-bold hover:bg-emerald-600 hover:text-white">+ Add Reminder</button>
+                                <button type="button" onclick="toggleUserShiftBatchEditor()" class="text-[11px] theme-text-dim hover:text-rose-400">Close</button>
+                            </div>
+                        </div>
+                        <div id="user-shift-batch-rows" class="space-y-1.5"></div>
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Shift Note Title</label>
+                            <input type="text" id="user-shift-batch-note-title" class="w-full theme-input border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Shift Note Body</label>
+                            <textarea id="user-shift-batch-note-body" rows="2" class="w-full theme-input border rounded-xl p-2 text-xs font-mono outline-none focus:border-emerald-500"></textarea>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-1">
+                            <button type="button" onclick="saveUserShiftBatchPreset()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Save Shift Batch</button>
+                            <button type="button" onclick="applyUserShiftBatchTemplate()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold">Save &amp; Apply Now</button>
+                        </div>
                     </div>
 
                     <div id="todo-list-container" class="divide-y theme-border rounded-2xl border theme-input overflow-hidden"></div>
@@ -1419,35 +1454,39 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
                 </div>
 
-                <!-- Right 5 Cols: iPhone-Style Notes Next to Reminders -->
-                <div class="lg:col-span-5 theme-card border rounded-3xl p-5 shadow-xl space-y-3">
-                    <div class="flex items-center justify-between border-b theme-border pb-2.5">
+                <!-- Right Panel: Resizable Multi-Note Pad Next to Reminders (Password Protected per User) -->
+                <div id="todo-notes-panel" class="flex-1 w-full min-w-[300px] resize overflow-auto theme-card border rounded-3xl p-5 shadow-xl space-y-3">
+                    <div class="flex items-center justify-between gap-2 border-b theme-border pb-2.5 flex-wrap">
                         <div>
                             <h3 class="text-lg font-extrabold text-amber-400">Notes</h3>
+                            <p class="text-[11px] theme-text-dim font-mono" id="iphone-note-saved-lbl">Synced</p>
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <select id="user-note-selector" onchange="selectUserNoteItem(this.value)" class="theme-input border rounded-xl px-2 py-1 text-xs font-bold outline-none" title="Select Saved Note"></select>
                             <button onclick="createNewUserNoteItem()" class="px-2 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black">+ Note</button>
                             <button onclick="saveCurrentNotePermanently()" class="px-2 py-1 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold hover:bg-emerald-600 hover:text-white">Save</button>
                             <button onclick="deleteCurrentUserNoteItem()" class="px-2 py-1 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Delete Note">×</button>
+                            <button onclick="insertIphoneChecklistItem()" class="px-2.5 py-1 rounded-xl theme-elevated border text-xs font-bold hover:border-amber-400">☑ Checklist</button>
                         </div>
-                        <div class="hidden">
-                            <p class="text-[11px] theme-text-dim font-mono" id="iphone-note-saved-lbl">Synced</p>
-                        </div>
-                        <button onclick="insertIphoneChecklistItem()" class="px-2.5 py-1 rounded-xl theme-elevated border text-xs font-bold hover:border-amber-400">☑ Checklist</button>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-1 text-xs">
-                        <button onclick="execIphoneNoteCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
-                        <button onclick="execIphoneNoteCmd('italic')" class="px-2 py-1 rounded theme-elevated border italic">I</button>
-                        <button onclick="execIphoneNoteCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
-                        <button onclick="execIphoneNoteCmd('insertUnorderedList')" class="px-2 py-1 rounded theme-elevated border">• List</button>
-                        <button onclick="execIphoneNoteCmd('hiliteColor','#fef08a')" class="px-2 py-1 rounded bg-yellow-200 text-zinc-900 font-bold text-[11px]">Highlight</button>
-                        <input type="color" value="#f59e0b" onchange="execIphoneNoteCmd('foreColor', this.value)" class="w-5 h-5 bg-transparent border-0 cursor-pointer" title="Text Colour">
+                    <div class="flex flex-wrap items-center justify-between gap-1 text-xs">
+                        <div class="flex flex-wrap items-center gap-1">
+                            <button onclick="execIphoneNoteCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
+                            <button onclick="execIphoneNoteCmd('italic')" class="px-2.5 py-1 rounded theme-elevated border italic">I</button>
+                            <button onclick="execIphoneNoteCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
+                            <button onclick="execIphoneNoteCmd('insertUnorderedList')" class="px-2 py-1 rounded theme-elevated border">• List</button>
+                            <button onclick="execIphoneNoteCmd('hiliteColor','#fef08a')" class="px-2 py-1 rounded bg-yellow-200 text-zinc-900 font-bold text-[11px]">Highlight</button>
+                            <input type="color" value="#f59e0b" onchange="execIphoneNoteCmd('foreColor', this.value)" class="w-5 h-5 bg-transparent border-0 cursor-pointer" title="Text Colour">
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] font-mono theme-text-dim">
+                            <span id="note-word-stats">0 words</span>
+                            <button type="button" onclick="clearCurrentNoteBody()" class="text-rose-400 hover:underline">Clear</button>
+                        </div>
                     </div>
 
                     <input type="text" id="iphone-note-title" oninput="persistIphoneNote()" placeholder="Note Title..." class="w-full theme-input border rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-amber-400">
-                    <div id="iphone-note-editor" contenteditable="true" oninput="persistIphoneNote()" class="min-h-[260px] max-h-[380px] overflow-y-auto theme-input border rounded-2xl p-3.5 text-xs leading-relaxed outline-none focus:border-amber-400"></div>
+                    <div id="iphone-note-editor" contenteditable="true" oninput="persistIphoneNote()" class="min-h-[260px] max-h-[420px] overflow-y-auto theme-input border rounded-2xl p-3.5 text-xs leading-relaxed outline-none focus:border-amber-400"></div>
                 </div>
             </div>
         </section>
@@ -1477,9 +1516,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
     </main>
 
-    <footer class="border-t theme-border py-4 px-6 text-center text-[11px] font-mono theme-text-dim flex justify-between max-w-[1440px] w-full mx-auto">
+    <footer class="border-t theme-border py-4 px-6 text-center text-[11px] font-mono theme-text-dim flex flex-wrap justify-between gap-2 max-w-[1440px] w-full mx-auto">
         <span>BARCODE GENERATOR // SHASH</span>
-        <span>Offline-Ready PWA</span>
+        <span id="ui-cloud-timestamp">Cloud: —</span>
+        <span id="ui-json-backup-timestamp">JSON Backup: —</span>
     </footer>
 
     <canvas id="offscreen-canvas" class="hidden"></canvas>
@@ -2783,7 +2823,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     </div>
                 </div>`;
             savedNoteTemplates[name] = body.innerHTML;
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
+            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
             activeSelectedTemplateId = `custom:${name}`;
             renderNoteTemplatesDropdown();
             autoFitA4Content();
@@ -2992,14 +3032,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         // 7. CLOUD-FIRST + LOCAL CACHE SYNC, PASSWORDS, @USER ROUTING & IPHONE NOTES
         // ==========================================
-        const DEFAULT_CLOUD_SYNC_CONFIG = {
-            provider: 'none',
-            sbUrl: '',
-            sbKey: '',
+        const EMBEDDED_CLOUD_DEFAULTS = {
+            provider: 'supabase',
+            sbUrl: 'https://khkrwvyabygtdiyeoqbd.supabase.co',
+            sbKey: 'sb_publishable_Z6ZY4PJ5yEIw4cLudVUTdQ_jl6tFPjh',
             roomId: 'bleckmann-main',
             webhookUrl: '',
             autoSync: true
         };
+
+        const DEFAULT_CLOUD_SYNC_CONFIG = { ...EMBEDDED_CLOUD_DEFAULTS };
 
         function loadPersistedCloudConfig() {
             try {
@@ -3007,7 +3049,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 if (raw) {
                     const parsed = JSON.parse(raw);
                     if (parsed && typeof parsed === 'object') {
-                        return { ...DEFAULT_CLOUD_SYNC_CONFIG, ...parsed };
+                        const merged = { ...DEFAULT_CLOUD_SYNC_CONFIG, ...parsed };
+                        if (!merged.sbUrl) merged.sbUrl = EMBEDDED_CLOUD_DEFAULTS.sbUrl;
+                        if (!merged.sbKey) merged.sbKey = EMBEDDED_CLOUD_DEFAULTS.sbKey;
+                        if (!merged.roomId) merged.roomId = EMBEDDED_CLOUD_DEFAULTS.roomId;
+                        merged.provider = 'supabase';
+                        return merged;
                     }
                 }
             } catch (e) {}
@@ -3023,9 +3070,19 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function updateCloudStatusUI(state, label) {
             const dot = document.getElementById('cloud-sync-dot');
             const lbl = document.getElementById('cloud-sync-lbl');
-            if (!dot || !lbl) return;
-            dot.className = state === 'synced' ? 'h-2 w-2 rounded-full bg-emerald-500' : (state === 'syncing' ? 'h-2 w-2 rounded-full bg-blue-400 animate-pulse' : (state === 'error' ? 'h-2 w-2 rounded-full bg-rose-500' : 'h-2 w-2 rounded-full bg-amber-400'));
-            lbl.innerText = label;
+            const tsEl = document.getElementById('ui-cloud-timestamp');
+            if (dot && lbl) {
+                dot.className = state === 'synced' ? 'h-2 w-2 rounded-full bg-emerald-500' : (state === 'syncing' ? 'h-2 w-2 rounded-full bg-blue-400 animate-pulse' : (state === 'error' ? 'h-2 w-2 rounded-full bg-rose-500' : 'h-2 w-2 rounded-full bg-amber-400'));
+                lbl.innerText = label;
+            }
+            if (tsEl && (state === 'synced' || state === 'local')) {
+                const nowStr = new Date().toLocaleTimeString('en-GB', { hour12: false });
+                localStorage.setItem('wmsLastCloudSyncTsV1', nowStr);
+                tsEl.innerText = `Cloud (${label}): ${nowStr}`;
+            } else if (tsEl) {
+                const prevTs = localStorage.getItem('wmsLastCloudSyncTsV1');
+                if (prevTs) tsEl.innerText = `Cloud (${label}): ${prevTs}`;
+            }
         }
 
         function subscribeToRealtimeCloudSync() {
@@ -3069,6 +3126,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function initCloudClient() {
             cloudSyncConfig = loadPersistedCloudConfig();
+            if (!cloudSyncConfig.sbUrl) cloudSyncConfig.sbUrl = 'https://khkrwvyabygtdiyeoqbd.supabase.co';
+            if (!cloudSyncConfig.sbKey) cloudSyncConfig.sbKey = 'sb_publishable_Z6ZY4PJ5yEIw4cLudVUTdQ_jl6tFPjh';
+            if (!cloudSyncConfig.roomId) cloudSyncConfig.roomId = 'bleckmann-main';
+            cloudSyncConfig.provider = 'supabase';
+            localStorage.setItem('wmsCloudSyncConfigV1', JSON.stringify(cloudSyncConfig));
             if (cloudSyncConfig.provider === 'supabase' && cloudSyncConfig.sbUrl && cloudSyncConfig.sbKey && window.supabase) {
                 try {
                     supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey);
@@ -3086,7 +3148,29 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
         }
 
-        function openCloudSyncModal() {
+        let cloudAdminPassHash = localStorage.getItem('wmsCloudAdminPassHashV1') || '';
+
+        async function openCloudSyncModal() {
+            if (!cloudAdminPassHash) {
+                const setupPass = prompt("Set a password to protect Cloud Sync settings:");
+                if (!setupPass || !setupPass.trim()) {
+                    showToast("Password required to access Cloud Sync.");
+                    return;
+                }
+                cloudAdminPassHash = await hashPasswordText(setupPass.trim());
+                localStorage.setItem('wmsCloudAdminPassHashV1', cloudAdminPassHash);
+                showToast("Cloud Sync password set!");
+            } else {
+                const entered = prompt("Enter Cloud Sync password:");
+                if (entered === null) return;
+                const hashed = await hashPasswordText(entered.trim());
+                if (hashed !== cloudAdminPassHash && entered.trim() !== cloudAdminPassHash) {
+                    showToast("Incorrect Cloud Sync password!");
+                    return;
+                }
+            }
+            document.getElementById('btn-cloud-sync')?.classList.remove('hidden');
+            document.getElementById('btn-cloud-sync')?.classList.add('flex');
             document.getElementById('cloud-provider-select').value = cloudSyncConfig.provider || 'none';
             document.getElementById('cloud-sb-url').value = cloudSyncConfig.sbUrl || '';
             document.getElementById('cloud-sb-key').value = cloudSyncConfig.sbKey || '';
@@ -3094,6 +3178,15 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('cloud-webhook-url').value = cloudSyncConfig.webhookUrl || '';
             toggleCloudProviderFields();
             document.getElementById('cloud-sync-modal').classList.remove('hidden');
+        }
+
+        function lockCloudSyncButton() {
+            const btn = document.getElementById('btn-cloud-sync');
+            if (btn) {
+                btn.classList.add('hidden');
+                btn.classList.remove('flex');
+            }
+            closeCloudSyncModal();
         }
         function closeCloudSyncModal() { document.getElementById('cloud-sync-modal').classList.add('hidden'); }
         function toggleCloudProviderFields() {
@@ -3356,9 +3449,22 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast(`Removed user; active: ${activeTodoUser}`);
         }
 
+        let unlockedSessionUsers = new Set(['Shash']);
+
+        async function ensureUserUnlockedForSession(userName, sectionLabel = 'Reminders & Notes') {
+            if (!userPasswordsMap[userName]) return true;
+            if (unlockedSessionUsers.has(userName)) return true;
+            const ok = await verifyUserPassword(userName, `unlock ${sectionLabel}`);
+            if (ok) {
+                unlockedSessionUsers.add(userName);
+                return true;
+            }
+            return false;
+        }
+
         async function switchTodoUserProfile(userName) {
             if (userName !== activeTodoUser && userPasswordsMap[userName]) {
-                const ok = await verifyUserPassword(userName, 'unlock profile');
+                const ok = await ensureUserUnlockedForSession(userName, 'Reminders & Notes');
                 if (!ok) {
                     refreshTodoUserDropdown();
                     return;
@@ -3370,6 +3476,137 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             saveAndRenderTodos(true);
         }
 
+        let customUserShiftBatches = JSON.parse(localStorage.getItem('wmsCustomUserShiftBatchesV1') || '{}');
+        let draftBatchRows = [];
+
+        function parseBatchReminderLine(line) {
+            const parts = String(line || '').split('|').map(s => s.trim());
+            return {
+                text: parts[0] || '',
+                time: parts[1] || '',
+                list: ['Dispatch', 'Inventory', 'General'].includes(parts[2]) ? parts[2] : 'Dispatch',
+                priority: Math.min(3, Math.max(0, parseInt(parts[3]) || 0))
+            };
+        }
+
+        function getOrInitUserShiftBatch(userName = activeTodoUser) {
+            if (!customUserShiftBatches[userName]) {
+                const existingTodos = todoStoreByUser[userName] || [];
+                const activeNote = getActiveNoteObj(userName);
+                customUserShiftBatches[userName] = {
+                    reminders: existingTodos.map(t => `${t.text} | ${t.time || ''} | ${t.list || 'Dispatch'} | ${t.priority || 0}`),
+                    noteTitle: activeNote?.title || `${userName} Shift Note`,
+                    noteText: (activeNote?.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+                };
+            }
+            return customUserShiftBatches[userName];
+        }
+
+        function renderShiftBatchReminderRows() {
+            const wrap = document.getElementById('user-shift-batch-rows');
+            if (!wrap) return;
+            if (!draftBatchRows.length) draftBatchRows.push({ text: '', time: '', list: 'Dispatch', priority: 0 });
+            wrap.innerHTML = draftBatchRows.map((row, idx) => `
+                <div class="grid grid-cols-12 gap-1.5 items-center font-mono text-xs">
+                    <input type="text" value="${escapeHtml(row.text)}" placeholder="Reminder task..." oninput="draftBatchRows[${idx}].text=this.value" class="col-span-5 theme-input border rounded-lg px-2 py-1 outline-none focus:border-emerald-500">
+                    <input type="time" value="${escapeHtml(row.time)}" onchange="draftBatchRows[${idx}].time=this.value" class="col-span-2 theme-input border rounded-lg px-1.5 py-1 text-[11px] outline-none">
+                    <select onchange="draftBatchRows[${idx}].list=this.value" class="col-span-2 theme-input border rounded-lg px-1 py-1 text-[11px] outline-none">
+                        <option value="Dispatch" ${row.list === 'Dispatch' ? 'selected' : ''}>Dispatch</option>
+                        <option value="Inventory" ${row.list === 'Inventory' ? 'selected' : ''}>Inventory</option>
+                        <option value="General" ${row.list === 'General' ? 'selected' : ''}>General</option>
+                    </select>
+                    <select onchange="draftBatchRows[${idx}].priority=parseInt(this.value)||0" class="col-span-2 theme-input border rounded-lg px-1 py-1 text-[11px] outline-none">
+                        <option value="0" ${row.priority === 0 ? 'selected' : ''}>0</option>
+                        <option value="1" ${row.priority === 1 ? 'selected' : ''}>!1</option>
+                        <option value="2" ${row.priority === 2 ? 'selected' : ''}>!!2</option>
+                        <option value="3" ${row.priority === 3 ? 'selected' : ''}>!!!3</option>
+                    </select>
+                    <button type="button" onclick="draftBatchRows.splice(${idx},1); renderShiftBatchReminderRows();" class="col-span-1 text-rose-400 font-bold text-center">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addShiftBatchReminderRow() {
+            draftBatchRows.push({ text: '', time: '', list: 'Dispatch', priority: 0 });
+            renderShiftBatchReminderRows();
+        }
+
+        function toggleUserShiftBatchEditor() {
+            const box = document.getElementById('user-shift-batch-editor');
+            if (!box) return;
+            const willOpen = box.classList.contains('hidden');
+            box.classList.toggle('hidden', !willOpen);
+            if (willOpen) {
+                const preset = getOrInitUserShiftBatch(activeTodoUser);
+                draftBatchRows = (preset.reminders || []).map(parseBatchReminderLine);
+                if (!draftBatchRows.length) draftBatchRows.push({ text: '', time: '', list: 'Dispatch', priority: 0 });
+                document.getElementById('user-shift-batch-title').innerText = `${activeTodoUser} — Shift Batch Reminders & Note`;
+                renderShiftBatchReminderRows();
+                document.getElementById('user-shift-batch-note-title').value = preset.noteTitle || `${activeTodoUser} Shift Note`;
+                document.getElementById('user-shift-batch-note-body').value = preset.noteText || '';
+            }
+        }
+
+        function saveUserShiftBatchPreset() {
+            const lines = draftBatchRows
+                .map(r => ({ text: (r.text || '').trim(), time: (r.time || '').trim(), list: r.list || 'Dispatch', priority: r.priority || 0 }))
+                .filter(r => r.text)
+                .map(r => `${r.text} | ${r.time} | ${r.list} | ${r.priority}`);
+            const noteTitle = (document.getElementById('user-shift-batch-note-title')?.value || `${activeTodoUser} Shift Note`).trim();
+            const noteText = (document.getElementById('user-shift-batch-note-body')?.value || '').trim();
+            customUserShiftBatches[activeTodoUser] = {
+                reminders: lines,
+                noteTitle,
+                noteText
+            };
+            localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
+            pushStateToCloud(true);
+            playTone('success');
+            showToast(`Saved custom shift batch for ${activeTodoUser}!`);
+        }
+
+        function applyUserShiftBatchTemplate() {
+            const editorBox = document.getElementById('user-shift-batch-editor');
+            if (editorBox && !editorBox.classList.contains('hidden')) {
+                saveUserShiftBatchPreset();
+            }
+            const preset = getOrInitUserShiftBatch(activeTodoUser);
+            pushTodoUndoSnapshot();
+            const createdTodos = (preset.reminders || []).map((line, idx) => {
+                const parsed = parseBatchReminderLine(line);
+                return {
+                    id: 'td-batch-' + Date.now() + '-' + idx,
+                    text: parsed.text || line,
+                    notes: `${activeTodoUser} Shift Batch`,
+                    time: parsed.time,
+                    list: parsed.list,
+                    priority: parsed.priority,
+                    recur: 'none',
+                    flagged: false,
+                    done: false
+                };
+            });
+            if (createdTodos.length) {
+                todoStoreByUser[activeTodoUser] = [...createdTodos, ...getCurrentUserTodos()];
+            }
+            if (preset.noteTitle || preset.noteText) {
+                const notesArr = getUserNotesCollection(activeTodoUser);
+                const noteObj = {
+                    id: 'note-batch-' + Date.now(),
+                    title: preset.noteTitle || `${activeTodoUser} Shift Note`,
+                    html: `<div>${escapeHtml(preset.noteText || '')}</div>`
+                };
+                notesArr.unshift(noteObj);
+                activeNoteIdByUser[activeTodoUser] = noteObj.id;
+                localStorage.setItem('wmsActiveNoteIdByUserV1', JSON.stringify(activeNoteIdByUser));
+                localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+                loadIphoneNoteForUser();
+            }
+            saveAndRenderTodos();
+            playTone('success');
+            showToast(`Applied shift batch for ${activeTodoUser}!`);
+        }
+
         function saveCurrentUserBatch() {
             savedTodoBatchesByUser[activeTodoUser] = JSON.parse(JSON.stringify(getCurrentUserTodos()));
             localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
@@ -3379,6 +3616,59 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             playTone('success');
             showToast(`Saved batch & notes for ${activeTodoUser}!`);
         }
+
+        function updateJsonBackupTimestampUI(tsStr) {
+            const el = document.getElementById('ui-json-backup-timestamp');
+            if (tsStr) localStorage.setItem('wmsLastJsonBackupTsV1', tsStr);
+            const savedTs = tsStr || localStorage.getItem('wmsLastJsonBackupTsV1');
+            if (el) el.innerText = savedTs ? `JSON Backup: ${savedTs}` : 'JSON Backup: —';
+        }
+
+        const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
+        let lastAutoBackupRunAt = 0;
+
+        function runAutomaticFiveHourJsonBackup() {
+            try {
+                if (document.visibilityState !== 'visible') return;
+                const nowMs = Date.now();
+                if (lastAutoBackupRunAt && (nowMs - lastAutoBackupRunAt) < FIVE_HOURS_MS) return;
+                lastAutoBackupRunAt = nowMs;
+
+                const snapshot = {
+                    exportedAt: new Date(nowMs).toISOString(),
+                    activeTodoUser,
+                    todoStoreByUser,
+                    savedTodoBatchesByUser,
+                    customUserShiftBatches,
+                    iphoneNotesByUser,
+                    savedNoteTemplates,
+                    allShiftPresets
+                };
+                const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const stamp = new Date(nowMs).toISOString().replace(/[:.]/g, '-').slice(0, 19);
+                a.href = url;
+                a.download = `wms-auto-backup-${stamp}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                const humanTs = new Date(nowMs).toLocaleTimeString('en-GB', { hour12: false });
+                updateJsonBackupTimestampUI(humanTs);
+                showToast("Auto JSON Backup saved (every 5h)");
+            } catch (e) {}
+        }
+
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                const nowMs = Date.now();
+                if (!lastAutoBackupRunAt) lastAutoBackupRunAt = nowMs;
+                else if ((nowMs - lastAutoBackupRunAt) >= FIVE_HOURS_MS) {
+                    runAutomaticFiveHourJsonBackup();
+                }
+            }
+        }, 60 * 1000);
 
         let activeNoteIdByUser = JSON.parse(localStorage.getItem('wmsActiveNoteIdByUserV1') || '{}');
 
@@ -3464,6 +3754,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const ed = document.getElementById('iphone-note-editor');
             if (tInp) tInp.value = cur.title || '';
             if (ed) ed.innerHTML = cur.html || '';
+            updateNoteWordStats();
         }
 
         function persistIphoneNote() {
@@ -3478,6 +3769,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             pushStateToCloud();
             const lbl = document.getElementById('iphone-note-saved-lbl');
             if (lbl) lbl.innerText = `Saved ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
+            updateNoteWordStats();
         }
 
         function execIphoneNoteCmd(cmd, val = null) {
@@ -3601,6 +3893,45 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
         }
         function toggleTodoFlag(id) { pushTodoUndoSnapshot(); const item = getCurrentUserTodos().find(t => t.id === id); if (item) { item.flagged = !item.flagged; saveAndRenderTodos(); } }
+        function toggleTodoPin(id) {
+            pushTodoUndoSnapshot();
+            const listArr = getCurrentUserTodos();
+            const item = listArr.find(t => t.id === id);
+            if (item) {
+                item.pinned = !item.pinned;
+                listArr.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+                saveAndRenderTodos();
+            }
+        }
+        function duplicateTodoItem(id) {
+            pushTodoUndoSnapshot();
+            const listArr = getCurrentUserTodos();
+            const item = listArr.find(t => t.id === id);
+            if (item) {
+                listArr.unshift({ ...item, id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), done: false });
+                saveAndRenderTodos();
+                showToast("Duplicated reminder!");
+            }
+        }
+        function applyQuickDueTime(val) {
+            const tInp = document.getElementById('todo-due-time');
+            if (tInp) tInp.value = val;
+        }
+        function updateNoteWordStats() {
+            const ed = document.getElementById('iphone-note-editor');
+            const lbl = document.getElementById('note-word-stats');
+            if (!ed || !lbl) return;
+            const txt = (ed.innerText || '').trim();
+            const words = txt ? txt.split(/\s+/).length : 0;
+            lbl.innerText = `${words} word${words === 1 ? '' : 's'}`;
+        }
+        function clearCurrentNoteBody() {
+            const ed = document.getElementById('iphone-note-editor');
+            if (!ed) return;
+            if (!confirm("Clear current note content?")) return;
+            ed.innerHTML = '<div></div>';
+            persistIphoneNote();
+        }
         function deleteTodoItem(id) { pushTodoUndoSnapshot(); todoStoreByUser[activeTodoUser] = getCurrentUserTodos().filter(t => t.id !== id); saveAndRenderTodos(); }
         function clearCompletedTodos() { pushTodoUndoSnapshot(); todoStoreByUser[activeTodoUser] = getCurrentUserTodos().filter(t => !t.done); saveAndRenderTodos(); }
 
@@ -3615,6 +3946,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             a.download = `${activeTodoUser.toLowerCase()}-todo-notes.json`;
             a.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
             a.click();
+            updateJsonBackupTimestampUI(new Date().toLocaleTimeString('en-GB', { hour12: false }));
             showToast(`Exported ${activeTodoUser}'s data!`);
         }
 
@@ -3683,7 +4015,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             ${t.time ? `<span class="${overdue ? 'text-rose-500 font-black' : 'text-blue-400'}">${overdue ? '⚠ OVERDUE • ' : 'Today '}at ${escapeHtml(t.time)}</span>` : ''}
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="toggleTodoPin('${t.id}')" title="Pin Reminder" class="${t.pinned ? 'text-blue-400 font-bold' : 'theme-text-dim opacity-50 hover:opacity-100'} text-[11px] px-1">📌</button>
+                        <button onclick="duplicateTodoItem('${t.id}')" title="Duplicate Reminder" class="theme-text-dim opacity-60 hover:opacity-100 text-[11px] px-1">⧉</button>
                         <button onclick="toggleTodoFlag('${t.id}')" class="${t.flagged ? 'text-amber-500' : 'theme-text-dim opacity-40 hover:opacity-100'}">
                             <i data-lucide="flag" class="w-4 h-4"></i>
                         </button>
@@ -3700,6 +4034,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         window.addEventListener('keydown', (e) => {
             const tag = document.activeElement?.tagName.toLowerCase(), isEd = document.activeElement?.isContentEditable;
             if (tag === 'input' || tag === 'textarea' || tag === 'select' || isEd) return;
+            if (e.shiftKey && (e.key === 'C' || e.key === 'c')) { e.preventDefault(); openCloudSyncModal(); return; }
             const g = document.getElementById('arcade-game-select').value, arcadeVisible = !document.getElementById('arcade-strip').classList.contains('hidden');
             if (arcadeVisible && arcadeRunning) {
                 if (g === 'snake') {
@@ -3761,7 +4096,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function loadTaskFile(id) { const f = workspace.files.find(x => x.id === id); if (!f) return; if (f.type === 'bulk') { document.getElementById('batch-input').value = f.content; switchTab('bulk'); loadBulkDeck(false); } toggleFileManager(); }
         function deleteTaskFile(id) { workspace.files = workspace.files.filter(x => x.id !== id); saveWorkspaceState(); renderFileManager(); }
         function renderFileManager() { const f = document.getElementById('fm-folder-select').value; workspace.activeFolder = f; document.getElementById('fm-file-list').innerHTML = workspace.files.filter(x => x.folder === f).map(x => `<div class="p-2.5 rounded border theme-input flex justify-between items-center text-xs"><span class="truncate font-semibold">${escapeHtml(x.name)}</span><div class="flex gap-1"><button onclick="loadTaskFile('${x.id}')" class="px-2 py-0.5 bg-emerald-600 text-white rounded">Open</button><button onclick="deleteTaskFile('${x.id}')" class="px-1.5 text-rose-400">×</button></div></div>`).join(''); }
-        function exportWorkspaceJSON() { const l = document.createElement('a'); l.download = `workspace.json`; l.href = URL.createObjectURL(new Blob([JSON.stringify(workspace)], { type: 'application/json' })); l.click(); }
+        function exportWorkspaceJSON() { const l = document.createElement('a'); l.download = `workspace.json`; l.href = URL.createObjectURL(new Blob([JSON.stringify(workspace)], { type: 'application/json' })); l.click(); updateJsonBackupTimestampUI(new Date().toLocaleTimeString('en-GB', { hour12: false })); }
         function importWorkspaceJSON(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { workspace = JSON.parse(ev.target.result); saveWorkspaceState(); renderFolderDropdown(); renderFileManager(); }; r.readAsText(f); }
         function quickSavePrompt() { const n = prompt("Save task as:"); if (n) { document.getElementById('fm-task-name').value = n; saveCurrentTaskToFile(); } }
 
@@ -3798,7 +4133,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             makeElementDraggable('calc-popover', 'calc-drag-header');
             makeElementDraggable('chess-floating-window', 'chess-drag-header');
             makeElementDraggable('sudoku-floating-window', 'sudoku-drag-header');
-            initCloudClient(); pullStateFromCloud(false); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(); generateTrailerSingleMasterCode(); renderTrailerManifest();
+            updateJsonBackupTimestampUI(); initCloudClient(); pullStateFromCloud(false); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(); generateTrailerSingleMasterCode(); renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
             renderNoteTemplatesDropdown();
             resetSimpleTwoLineNote();

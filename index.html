@@ -176,6 +176,17 @@
 
             <!-- Right Utilities: Calc, Reflow Zoom %, Arcade, Sound ON/OFF & Multi-Gradient Theme Bar -->
             <div class="flex flex-wrap items-center gap-1.5">
+                <div class="flex items-center theme-input border rounded-lg p-0.5 gap-1" title="Cloud Sync Queue & Manual Force Sync">
+                    <span id="offline-queue-badge" class="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500">
+                        <span id="offline-queue-dot" class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                        <span id="offline-queue-text">Synced (0)</span>
+                    </span>
+                    <button onclick="forceManualCloudSync()" id="btn-force-sync" title="Manual Force Sync (Push Pending Queue & Pull Latest Cloud)" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 text-[10px] font-mono font-bold flex items-center gap-1 transition">
+                        <i data-lucide="refresh-cw" id="icon-force-sync" class="w-3 h-3 text-emerald-500"></i>
+                        <span>Force Sync</span>
+                    </button>
+                </div>
+
                 <button onclick="openCloudSyncModal()" id="btn-cloud-sync" title="Cloud Sync Settings (Password Protected)" class="hidden items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border theme-elevated hover:border-emerald-500 transition">
                     <span id="cloud-sync-dot" class="h-2 w-2 rounded-full bg-amber-400"></span>
                     <span id="cloud-sync-lbl" class="text-[11px] font-mono">Local Cache</span>
@@ -1186,151 +1197,177 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         <!-- ==========================================
              TAB 4: NOTES (CLEAN 2-LINE TEMPLATE + WORKING 1-150PT FONT + AUTO-FILL A4 SCALING)
              ========================================== -->
-        <section id="view-a4note" class="hidden space-y-4">
-            <div class="theme-card border rounded-xl p-3 shadow-sm space-y-2.5">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-2.5">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex theme-input p-0.5 rounded-lg border text-xs">
-                            <button onclick="setOfficeMode('word')" id="btn-office-word" class="px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5">
-                                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Word Doc
-                            </button>
-                            <button onclick="setOfficeMode('excel')" id="btn-office-excel" class="px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5">
-                                <i data-lucide="table" class="w-3.5 h-3.5"></i> Excel Sheet
-                            </button>
+                <!-- ==========================================
+             TAB 4: NOTES (CLEAN 12-COL SPLIT LIKE BULK & CARRIER + PERMANENT TEMPLATES)
+             ========================================== -->
+        <section id="view-a4note" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch min-h-[calc(100vh-132px)] max-h-[calc(100vh-120px)] overflow-hidden">
+            <!-- Left Controls (4 Cols) -->
+            <div class="lg:col-span-4 theme-card border rounded-xl p-4 shadow-sm flex flex-col justify-between overflow-y-auto space-y-3">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b theme-border pb-2.5">
+                        <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i> Dispatch Notes
+                        </span>
+                        <div class="flex theme-input p-0.5 rounded-lg border text-[11px]">
+                            <button onclick="setOfficeMode('word')" id="btn-office-word" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Doc</button>
+                            <button onclick="setOfficeMode('excel')" id="btn-office-excel" class="px-2.5 py-1 rounded font-medium theme-text-muted">Sheet</button>
                         </div>
+                    </div>
 
-                        <div class="flex flex-wrap items-center gap-1.5 pl-2 border-l theme-border text-xs">
-                            <button onclick="addA4TextBlock()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Text Block</button>
-                            <button onclick="addA4BarcodeBlock()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Barcode</button>
-                            <button onclick="addA4DividerLine()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Line</button>
-                            <button onclick="addA4SignBlock()" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 font-semibold">+ Sign Strip</button>
-                            <button onclick="resetSimpleTwoLineNote()" class="px-2 py-1 rounded theme-input border text-emerald-500 font-semibold">Reset 2-Line Template</button>
-                            <div class="inline-flex items-center gap-1 theme-input border rounded px-1.5 py-0.5">
-                                <select id="note-template-library" onchange="applyDispatchTemplate(this.value)" class="bg-transparent text-xs font-semibold text-emerald-500 outline-none" title="Dispatch Templates Library">
-                                    <option value="" selected>Templates...</option>
-                                    <option value="asendia">Asendia Shipping Note</option>
-                                    <option value="nc_rack">NC Rack List (Client, Carrier-Date, Barcode, Total)</option>
-                                    <option value="packing">Packing Station Sheet</option>
-                                </select>
-                                <button onclick="addNewBlankNoteTemplate()" class="px-1.5 py-0.5 rounded bg-blue-600/20 text-blue-400 text-[10px] font-bold hover:bg-blue-600 hover:text-white" title="Create & Save New Template">+ Add Tpl</button>
-                                <button onclick="saveCurrentNoteAsPermanentTemplate()" class="px-1.5 py-0.5 rounded bg-emerald-600/20 text-emerald-400 text-[10px] font-bold hover:bg-emerald-600 hover:text-white" title="Save or Update Permanent Template">Save</button>
-                                <button onclick="deleteSelectedPermanentTemplate()" class="px-1.5 py-0.5 rounded bg-rose-600/20 text-rose-400 text-[10px] font-bold hover:bg-rose-600 hover:text-white" title="Remove Selected Custom Template">Del</button>
-                            </div>
-                            <label class="px-2 py-1 rounded bg-blue-600/15 border border-blue-500/30 text-blue-400 font-semibold cursor-pointer hover:bg-blue-600 hover:text-white" title="Import text/rows from local Word/CSV/Excel file">
-                                Import Doc/Excel
+                    <!-- Templates -->
+                    <div class="p-2.5 rounded-xl border theme-border theme-elevated/40 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase font-bold text-emerald-500">Templates</span>
+                            <span id="note-tpl-sync-badge" class="text-[10px] font-mono text-emerald-400">● Saved</span>
+                        </div>
+                        <select id="note-template-library" onchange="applyDispatchTemplate(this.value)" class="w-full theme-card border rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-emerald-500">
+                            <option value="">Select Template...</option>
+                            <option value="asendia">Asendia Shipping Note</option>
+                            <option value="nc_rack">NC Rack List (Client, Carrier-Date, Barcode, Total)</option>
+                            <option value="packing">Packing Station Sheet</option>
+                        </select>
+                        <div class="grid grid-cols-3 gap-1.5 text-[11px] font-semibold">
+                            <button onclick="addNewBlankNoteTemplate()" class="py-1 px-2 rounded-lg theme-input border hover:border-emerald-500">+ New</button>
+                            <button onclick="saveCurrentNoteAsPermanentTemplate()" class="py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white">Save</button>
+                            <button onclick="deleteSelectedPermanentTemplate()" class="py-1 px-2 rounded-lg theme-input border text-rose-400 hover:border-rose-500">Delete</button>
+                        </div>
+                    </div>
+
+                    <!-- Smart Blocks -->
+                    <div class="p-2.5 rounded-xl border theme-border theme-elevated/40 space-y-2">
+                        <span class="block text-[10px] font-mono uppercase font-bold text-emerald-500">Insert Blocks</span>
+                        <div class="grid grid-cols-2 gap-1.5 text-xs font-semibold">
+                            <button onclick="addA4TextBlock()" class="py-1 px-2 rounded-lg theme-input border hover:border-emerald-500">+ Text</button>
+                            <button onclick="addA4BarcodeBlock()" class="py-1 px-2 rounded-lg theme-input border hover:border-emerald-500">+ Barcode</button>
+                            <button onclick="addA4DividerLine()" class="py-1 px-2 rounded-lg theme-input border hover:border-emerald-500">+ Divider</button>
+                            <button onclick="addA4SignBlock()" class="py-1 px-2 rounded-lg theme-input border hover:border-emerald-500">+ Sign Line</button>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px]">
+                            <button onclick="resetSimpleTwoLineNote()" class="text-emerald-500 hover:underline font-semibold">2-Line Default</button>
+                            <label class="text-blue-400 hover:underline cursor-pointer font-semibold">
+                                Import .CSV/.TXT
                                 <input type="file" accept=".csv,.txt,.xlsx,.xls" onchange="importFileIntoNotes(event)" class="hidden">
                             </label>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <div class="flex theme-input p-0.5 rounded-lg border text-[11px]">
-                            <button onclick="setA4Orientation('landscape')" id="btn-a4-land" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Landscape (Def)</button>
-                            <button onclick="setA4Orientation('portrait')" id="btn-a4-port" class="px-2.5 py-1 rounded font-medium theme-text-muted">Portrait</button>
+                    <!-- Typography -->
+                    <div class="space-y-2 pt-1 border-t theme-border text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] uppercase theme-text-dim mb-1">Font</label>
+                                <select onchange="execDocCmd('fontName', this.value)" class="w-full theme-input border rounded-lg px-2 py-1 text-xs outline-none">
+                                    <option value="Inter, Arial, sans-serif" selected>Inter / Arial</option>
+                                    <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                    <option value="Impact, sans-serif">Impact</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <div>
+                                    <label class="block text-[10px] uppercase theme-text-dim mb-1">Size (pt)</label>
+                                    <input type="number" id="note-font-pt" value="44" min="1" max="150" oninput="applyExactFontSize(this.value)" class="w-full theme-input border rounded-lg px-1.5 py-1 text-xs font-mono font-bold text-center outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase theme-text-dim mb-1">Spacing</label>
+                                    <select onchange="applyNoteLineSpacing(this.value)" class="w-full theme-input border rounded-lg px-1 py-1 text-xs font-mono outline-none">
+                                        <option value="1.0">1.0</option>
+                                        <option value="1.2" selected>1.2</option>
+                                        <option value="1.5">1.5</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <label class="flex items-center gap-1 theme-input border rounded-lg px-2 py-1 text-[10px] font-mono" title="Turn Print Margin ON/OFF">
-                            <input type="checkbox" id="a4-margin-enabled" checked class="accent-emerald-500">
-                            <span>Margin:</span>
-                            <input type="number" id="a4-print-margin-mm" value="8" min="0" max="25" class="w-8 bg-transparent font-bold text-center outline-none">
-                            <span>mm</span>
-                        </label>
-                        <label class="flex items-center gap-1 theme-input border rounded-lg px-2 py-1 text-[10px] font-mono" title="A4 Border Thickness (0px = OFF)">
-                            <span>Border:</span>
-                            <select id="a4-border-width" onchange="applyNoteBorderThickness()" class="bg-transparent font-bold outline-none">
-                                <option value="0px">OFF (0px)</option>
-                                <option value="2px">2px</option>
-                                <option value="4px" selected>4px</option>
-                                <option value="6px">6px</option>
-                            </select>
-                        </label>
-                        <button onclick="showA4PrintLayoutPreview()" class="px-3 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 text-xs font-semibold hover:bg-indigo-600 hover:text-white">Print Layout</button>
-                        <button onclick="printA4DeliveryNote()" class="px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold shadow flex items-center gap-1.5">
-                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print A4 Note
-                        </button>
+
+                        <div class="flex flex-wrap items-center justify-between gap-1">
+                            <div class="flex items-center gap-1">
+                                <button onclick="execDocCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
+                                <button onclick="execDocCmd('italic')" class="px-2 py-1 rounded theme-elevated border italic">I</button>
+                                <button onclick="execDocCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
+                                <button onclick="execDocCmd('justifyLeft')" class="p-1 rounded theme-elevated border"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="execDocCmd('justifyCenter')" class="p-1 rounded theme-elevated border"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                            <div class="flex items-center gap-1 theme-input border rounded-lg px-1.5 py-1">
+                                <button type="button" onclick="execDocCmd('foreColor','#000000')" class="w-3 h-3 rounded-xs bg-black border border-zinc-400" title="Black"></button>
+                                <button type="button" onclick="execDocCmd('foreColor','#dc2626')" class="w-3 h-3 rounded-xs bg-red-600" title="Red"></button>
+                                <button type="button" onclick="execDocCmd('foreColor','#2563eb')" class="w-3 h-3 rounded-xs bg-blue-600" title="Blue"></button>
+                                <input type="color" value="#000000" onchange="execDocCmd('foreColor', this.value)" class="w-3.5 h-3.5 bg-transparent border-0 cursor-pointer" title="Text Color">
+                                <span class="theme-text-dim">|</span>
+                                <button type="button" onclick="execDocCmd('hiliteColor','#fef08a')" class="w-3 h-3 rounded-xs bg-yellow-200 border border-zinc-400" title="Highlight"></button>
+                                <button type="button" onclick="execDocCmd('hiliteColor','transparent')" class="text-[10px] font-mono px-0.5" title="Clear Highlight">Ø</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center justify-between theme-input border rounded-lg px-2 py-1 text-[11px] font-mono">
+                                <span class="flex items-center gap-1"><input type="checkbox" id="a4-margin-enabled" checked class="accent-emerald-500"> Margin</span>
+                                <span><input type="number" id="a4-print-margin-mm" value="8" min="0" max="25" class="w-7 bg-transparent font-bold text-right outline-none">mm</span>
+                            </label>
+                            <div class="flex items-center justify-between theme-input border rounded-lg px-2 py-1 text-[11px] font-mono">
+                                <span>Border</span>
+                                <select id="a4-border-width" onchange="applyNoteBorderThickness()" class="bg-transparent font-bold outline-none">
+                                    <option value="0px">OFF</option>
+                                    <option value="2px">2px</option>
+                                    <option value="4px" selected>4px</option>
+                                    <option value="6px">6px</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="excel-ribbon-tools" class="hidden grid grid-cols-2 gap-2">
+                            <button onclick="addExcelRow()" class="py-1 rounded-lg bg-emerald-600 text-white font-semibold">+ Row</button>
+                            <button onclick="addExcelCol()" class="py-1 rounded-lg theme-elevated border font-semibold">+ Col</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-1.5 text-xs">
-                    <select onchange="execDocCmd('fontName', this.value)" class="theme-input border rounded px-2 py-1 text-xs outline-none">
-                        <option value="Inter, Arial, sans-serif" selected>Inter / Arial (Def)</option>
-                        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
-                        <option value="'Times New Roman', serif">Times New Roman</option>
-                        <option value="Impact, sans-serif">Impact</option>
-                    </select>
-
-                    <div class="flex items-center theme-input border rounded px-1.5 py-0.5 gap-1" title="Select text or click a line, then enter Font Size (1 to 150 pt)">
-                        <span class="text-[10px] font-mono theme-text-dim">Font:</span>
-                        <input type="number" id="note-font-pt" value="44" min="1" max="150" oninput="applyExactFontSize(this.value)" class="w-12 bg-transparent font-mono font-bold text-xs text-center outline-none">
-                        <span class="text-[10px] font-mono theme-text-dim">pt</span>
-                    </div>
-
-                    <div class="flex items-center theme-input border rounded px-1.5 py-0.5 gap-1">
-                        <span class="text-[10px] font-mono theme-text-dim">Spacing:</span>
-                        <select onchange="applyNoteLineSpacing(this.value)" class="bg-transparent font-mono text-xs outline-none">
-                            <option value="1.0">1.0</option>
-                            <option value="1.2" selected>1.2 (Def)</option>
-                            <option value="1.5">1.5</option>
-                            <option value="2.0">2.0</option>
-                        </select>
-                    </div>
-
-                    <button onclick="execDocCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
-                    <button onclick="execDocCmd('italic')" class="px-2.5 py-1 rounded theme-elevated border italic">I</button>
-                    <button onclick="execDocCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
-                    <button onclick="execDocCmd('strikeThrough')" class="px-2 py-1 rounded theme-elevated border line-through">S</button>
-                    <button onclick="execDocCmd('insertUnorderedList')" class="p-1.5 rounded theme-elevated border"><i data-lucide="list" class="w-3.5 h-3.5"></i></button>
-                    <button onclick="execDocCmd('justifyLeft')" class="p-1.5 rounded theme-elevated border"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
-                    <button onclick="execDocCmd('justifyCenter')" class="p-1.5 rounded theme-elevated border"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
-                    <button onclick="execDocCmd('justifyRight')" class="p-1.5 rounded theme-elevated border"><i data-lucide="align-right" class="w-3.5 h-3.5"></i></button>
-
-                    <div class="flex items-center gap-1 px-2 py-1 rounded theme-elevated border" title="Text Colour (Presets + Custom)">
-                        <span class="font-bold">A</span>
-                        <button type="button" onclick="execDocCmd('foreColor','#000000')" class="w-3.5 h-3.5 rounded-xs bg-black border border-zinc-400" title="Black"></button>
-                        <button type="button" onclick="execDocCmd('foreColor','#dc2626')" class="w-3.5 h-3.5 rounded-xs bg-red-600" title="Red"></button>
-                        <button type="button" onclick="execDocCmd('foreColor','#2563eb')" class="w-3.5 h-3.5 rounded-xs bg-blue-600" title="Blue"></button>
-                        <button type="button" onclick="execDocCmd('foreColor','#059669')" class="w-3.5 h-3.5 rounded-xs bg-emerald-600" title="Green"></button>
-                        <input type="color" value="#000000" onchange="execDocCmd('foreColor', this.value)" class="w-4 h-4 bg-transparent border-0 cursor-pointer" title="Custom Text Colour">
-                    </div>
-                    <div class="flex items-center gap-1 px-2 py-1 rounded theme-elevated border" title="Highlight Colour (Presets + Custom)">
-                        <i data-lucide="highlighter" class="w-3 h-3"></i>
-                        <button type="button" onclick="execDocCmd('hiliteColor','#fef08a')" class="w-3.5 h-3.5 rounded-xs bg-yellow-200 border border-zinc-400" title="Yellow"></button>
-                        <button type="button" onclick="execDocCmd('hiliteColor','#bbf7d0')" class="w-3.5 h-3.5 rounded-xs bg-green-200 border border-zinc-400" title="Green"></button>
-                        <button type="button" onclick="execDocCmd('hiliteColor','#bae6fd')" class="w-3.5 h-3.5 rounded-xs bg-sky-200 border border-zinc-400" title="Cyan"></button>
-                        <button type="button" onclick="execDocCmd('hiliteColor','#fecdd3')" class="w-3.5 h-3.5 rounded-xs bg-rose-200 border border-zinc-400" title="Pink"></button>
-                        <button type="button" onclick="execDocCmd('hiliteColor','transparent')" class="px-1 text-[9px] font-mono border rounded" title="No Highlight">Ø</button>
-                        <input type="color" value="#fef08a" onchange="execDocCmd('hiliteColor', this.value)" class="w-4 h-4 bg-transparent border-0 cursor-pointer" title="Custom Highlight">
-                    </div>
-
-                    <div id="excel-ribbon-tools" class="hidden flex items-center gap-1.5 pl-2 border-l theme-border">
-                        <button onclick="addExcelRow()" class="px-2 py-1 rounded bg-emerald-600 text-white font-semibold">+ Row</button>
-                        <button onclick="addExcelCol()" class="px-2 py-1 rounded theme-elevated border font-semibold">+ Col</button>
-                    </div>
-                </div>
+                <button onclick="printA4DeliveryNote()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 px-3 rounded-lg shadow flex items-center justify-center gap-1.5 shrink-0">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Print A4
+                </button>
             </div>
 
-            <div class="canvas-grid border theme-border rounded-xl p-6 flex items-center justify-center overflow-auto">
-                <div id="a4-paper-sheet" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-8 flex flex-col items-center justify-center overflow-hidden transition-all duration-200" style="width: 842px; height: 595px;">
-                    <div id="a4-word-body" oninput="autoFitA4Content()" class="w-full h-full flex flex-col items-center justify-center gap-8 text-center"></div>
+            <!-- Right A4 Stage (8 Cols) -->
+            <div class="lg:col-span-8 theme-card border rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
+                <div class="px-4 py-2.5 border-b theme-border flex flex-wrap items-center justify-between gap-2 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <div class="flex theme-input p-0.5 rounded-md border text-[11px]">
+                            <button onclick="setA4Orientation('landscape')" id="btn-a4-land" class="px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white">Landscape</button>
+                            <button onclick="setA4Orientation('portrait')" id="btn-a4-port" class="px-2.5 py-1 rounded font-medium theme-text-muted">Portrait</button>
+                        </div>
+                        <div class="flex items-center gap-1 theme-input border rounded-md px-1.5 py-0.5 text-[11px] font-mono">
+                            <button type="button" onclick="adjustNoteDocZoom(-10)" class="px-1.5 py-0.5 rounded hover:bg-emerald-500/20 font-bold" title="Zoom Out">-</button>
+                            <span id="a4-doc-zoom-lbl" class="px-1 font-bold text-emerald-500">100%</span>
+                            <button type="button" onclick="adjustNoteDocZoom(10)" class="px-1.5 py-0.5 rounded hover:bg-emerald-500/20 font-bold" title="Zoom In">+</button>
+                            <button type="button" onclick="resetNoteDocZoom()" class="px-1.5 py-0.5 rounded theme-text-dim hover:text-emerald-500 text-[10px]" title="Fit to View">Fit</button>
+                        </div>
+                    </div>
+                    <button onclick="showA4PrintLayoutPreview()" class="px-2.5 py-1 rounded theme-elevated border text-[11px] font-mono hover:border-emerald-500">Layout Info</button>
+                </div>
 
-                    <div id="a4-excel-body" class="hidden w-full h-full overflow-auto">
-                        <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
-                            <thead>
-                                <tr class="bg-zinc-200">
-                                    <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">PALLET ID</th>
-                                    <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">CLIENT / CARRIER</th>
-                                    <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">CARTONS</th>
-                                    <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">WEIGHT</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td contenteditable="true" class="border border-zinc-900 p-2">FF-ASD26111901</td>
-                                    <td contenteditable="true" class="border border-zinc-900 p-2">FITFLOP / ASENDIA</td>
-                                    <td contenteditable="true" class="border border-zinc-900 p-2">48</td>
-                                    <td contenteditable="true" class="border border-zinc-900 p-2">420 KG</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div id="a4-stage-viewport" class="flex-grow canvas-grid p-3 flex items-center justify-center overflow-auto">
+                    <div id="a4-paper-sheet" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-6 flex flex-col items-center justify-center overflow-hidden transition-transform duration-150 origin-center" style="width: 842px; height: 595px;">
+                        <div id="a4-word-body" oninput="autoFitA4Content(); persistActiveNoteDraft();" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center"></div>
+
+                        <div id="a4-excel-body" class="hidden w-full h-full overflow-auto">
+                            <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
+                                <thead>
+                                    <tr class="bg-zinc-200">
+                                        <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">PALLET ID</th>
+                                        <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">CLIENT / CARRIER</th>
+                                        <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">CARTONS</th>
+                                        <th contenteditable="true" class="border-2 border-zinc-900 p-2 text-left">WEIGHT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td contenteditable="true" class="border border-zinc-900 p-2">FF-ASD26111901</td>
+                                        <td contenteditable="true" class="border border-zinc-900 p-2">FITFLOP / ASENDIA</td>
+                                        <td contenteditable="true" class="border border-zinc-900 p-2">48</td>
+                                        <td contenteditable="true" class="border border-zinc-900 p-2">420 KG</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1339,155 +1376,178 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         <!-- ==========================================
              TAB 5: IPHONE-STYLE REMINDERS TO-DO LIST (OVERDUE RED HIGHLIGHT + 5 NEW FEATURES)
              ========================================== -->
-        <section id="view-todo" class="hidden max-w-7xl mx-auto space-y-4">
-            <div id="todo-split-container" class="flex flex-col lg:flex-row gap-5 items-start">
-                <!-- Left Panel: Resizable iOS Reminders + Password Protection + @User Routing -->
-                <div id="todo-reminders-panel" style="width: 58%;" class="w-full lg:w-[58%] min-w-[320px] resize-x overflow-auto theme-card border rounded-3xl p-6 shadow-xl space-y-4 shrink-0">
-                    <div class="flex items-center justify-between gap-2 flex-wrap">
-                        <div>
-                            <h2 class="text-2xl font-extrabold tracking-tight text-blue-500">Reminders</h2>
-                            <p class="text-xs theme-text-dim font-medium" id="todo-progress-text">0 remaining</p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-1.5">
-                            <select id="todo-user-profile" onchange="switchTodoUserProfile(this.value)" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none" title="Select User To-Do List">
-                                <option value="Shash" selected>👤 Shash</option>
-                            </select>
-                            <button onclick="setOrChangeUserPassword()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Set / Change / Remove User Password (Protects Reminders & Notes)">🔒 Pass</button>
-                            <button onclick="addNewTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Add New User">+ User</button>
-                            <button onclick="removeCurrentTodoUser()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Remove Selected User">- User</button>
-                            <button onclick="saveCurrentUserBatch()" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-400 text-xs font-bold hover:bg-blue-600 hover:text-white" title="Save User Shift Batch">Save Batch</button>
-                            <button onclick="applyUserShiftBatchTemplate()" class="px-2.5 py-1.5 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold hover:bg-emerald-600 hover:text-white" title="Load Current User's Saved Shift Batch Reminders & Notes">Load Shift Batch</button>
-                            <button onclick="toggleUserShiftBatchEditor()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Edit / Save User Shift Batch Reminders & Notes">Edit Batch</button>
-                            <button onclick="exportUserProfileData()" class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500" title="Export User Profile (.JSON)">Export</button>
-                            <label class="px-2 py-1.5 rounded-xl theme-elevated border text-xs font-bold hover:border-blue-500 cursor-pointer" title="Import User Profile (.JSON)">
-                                Import <input type="file" accept=".json" onchange="importUserProfileData(event)" class="hidden">
-                            </label>
-                            <button onclick="undoTodoAction()" id="btn-todo-undo" class="hidden px-2 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black" title="Undo Last To-Do Change">Undo</button>
-                            <span class="text-xl font-black font-mono text-blue-500 ml-1" id="todo-big-counter">0</span>
-                            <button onclick="clearCompletedTodos()" class="text-xs text-rose-400 hover:underline font-medium">Clear Done</button>
-                        </div>
+                <!-- ==========================================
+             TAB 5: SMART REMINDERS & NOTES (CLEAN 12-COL SPLIT LIKE BULK & CARRIER)
+             ========================================== -->
+        <section id="view-todo" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Left Column: Reminders (7 Cols) -->
+            <div id="todo-reminders-panel" class="lg:col-span-7 theme-card border rounded-xl p-5 shadow-sm space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b theme-border pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="check-square" class="w-4 h-4 text-emerald-500"></i> Reminders
+                        </span>
+                        <span class="px-2 py-0.5 rounded-md theme-elevated border font-mono text-xs font-bold text-emerald-500" id="todo-big-counter">0</span>
+                        <span class="text-[11px] theme-text-dim font-mono" id="todo-progress-text">0 remaining</span>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <div class="relative flex-grow">
-                            <i data-lucide="search" class="w-3.5 h-3.5 theme-text-dim absolute left-3 top-2.5"></i>
-                            <input type="text" id="todo-search-input" oninput="saveAndRenderTodos()" placeholder="Search reminders..." class="w-full theme-input border rounded-xl pl-8 pr-3 py-1.5 text-xs outline-none focus:border-blue-500">
+                    <div class="flex items-center gap-1.5">
+                        <select id="todo-user-profile" onchange="switchTodoUserProfile(this.value)" class="theme-input border rounded-lg px-2.5 py-1 text-xs font-bold outline-none focus:border-emerald-500" title="Active User">
+                            <option value="Shash" selected>👤 Shash</option>
+                        </select>
+                        <button onclick="addNewTodoUser()" class="px-2 py-1 rounded-lg theme-elevated border text-xs font-semibold hover:border-emerald-500" title="Add User">+ User</button>
+                        <button onclick="setOrChangeUserPassword()" class="px-2 py-1 rounded-lg theme-elevated border text-xs font-semibold hover:border-emerald-500" title="User Lock">🔒</button>
+                        <button onclick="toggleTodoManageDrawer()" class="px-2.5 py-1 rounded-lg theme-elevated border text-xs font-semibold hover:border-emerald-500">Presets & Backup ▾</button>
+                    </div>
+                </div>
+
+                <!-- Collapsible Presets & Backup Drawer -->
+                <div id="todo-manage-drawer" class="hidden p-3 rounded-xl border theme-border theme-elevated/50 space-y-2.5 text-xs">
+                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="saveCurrentUserBatch()" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-semibold">Save Batch</button>
+                            <button onclick="applyUserShiftBatchTemplate()" class="px-2.5 py-1 rounded-lg theme-card border font-semibold hover:border-emerald-500">Load Batch</button>
+                            <button onclick="toggleUserShiftBatchEditor()" class="px-2.5 py-1 rounded-lg theme-card border font-semibold hover:border-emerald-500">Edit Preset</button>
                         </div>
-                        <select id="todo-list-filter" onchange="saveAndRenderTodos()" class="theme-input border rounded-xl px-2.5 py-1.5 text-xs font-medium outline-none">
-                            <option value="ALL">All Lists</option>
-                            <option value="Dispatch">📦 Dispatch</option>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="exportUserProfileData()" class="px-2.5 py-1 rounded-lg theme-card border font-medium">Export</button>
+                            <label class="px-2.5 py-1 rounded-lg theme-card border font-medium cursor-pointer">
+                                Import <input type="file" accept=".json" onchange="importUserProfileData(event)" class="hidden">
+                            </label>
+                            <button onclick="removeCurrentTodoUser()" class="px-2.5 py-1 rounded-lg theme-card border text-rose-400 font-medium">Del User</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inline Shift Batch Preset Editor -->
+                <div id="user-shift-batch-editor" class="hidden p-3.5 rounded-xl border-2 border-emerald-500/40 theme-elevated space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold uppercase tracking-wider text-emerald-500" id="user-shift-batch-title">Shift Batch Preset</span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="addShiftBatchReminderRow()" class="px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-400 font-bold hover:bg-emerald-600 hover:text-white">+ Row</button>
+                            <button type="button" onclick="toggleUserShiftBatchEditor()" class="text-[11px] theme-text-dim hover:text-rose-400">Close</button>
+                        </div>
+                    </div>
+                    <div id="user-shift-batch-rows" class="space-y-1.5"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" id="user-shift-batch-note-title" placeholder="Note Title" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-bold outline-none">
+                        <input type="text" id="user-shift-batch-note-body" placeholder="Note Summary" class="theme-input border rounded-lg px-2.5 py-1.5 text-xs font-mono outline-none">
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="saveUserShiftBatchPreset()" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold">Save Preset</button>
+                        <button type="button" onclick="applyUserShiftBatchTemplate()" class="px-3 py-1.5 rounded-lg theme-card border font-bold hover:border-emerald-500">Apply Now</button>
+                    </div>
+                </div>
+
+                <!-- Quick-Add Bar + Non-Blocking AI Suggest Chips -->
+                <div class="p-3 rounded-xl border theme-border theme-elevated/40 space-y-2">
+                    <div class="flex items-center gap-2 theme-input border rounded-lg px-3 py-2 focus-within:border-emerald-500">
+                        <button onclick="addTodoItem()" class="h-5 w-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">+</button>
+                        <input type="text" id="todo-input-text" placeholder="New reminder (e.g. 'Check bay seal at 17:00 !high #dispatch')..." oninput="renderTodoAiSuggestions()" onkeydown="if(event.key==='Enter') addTodoItem()" class="flex-grow bg-transparent text-xs font-medium outline-none">
+                        <input type="time" id="todo-due-time" title="Due Time" class="bg-transparent text-xs font-mono theme-text-muted outline-none">
+                        <button onclick="toggleNewTodoFlag()" id="btn-new-todo-flag" title="Flag" class="p-1 rounded theme-text-dim hover:text-amber-500">
+                            <i data-lucide="flag" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Inline Non-Blocking AI Suggest Chips for To-Do -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[10px] font-mono">
+                        <span class="text-emerald-500 font-bold shrink-0 flex items-center gap-1">
+                            <i data-lucide="sparkles" class="w-3 h-3"></i> AI Suggest:
+                        </span>
+                        <div id="todo-ai-suggest-chips" class="flex items-center gap-1.5"></div>
+                    </div>
+
+                    <div class="grid grid-cols-12 gap-2">
+                        <input type="text" id="todo-input-notes" placeholder="Note or @mention..." onkeydown="if(event.key==='Enter') addTodoItem()" class="col-span-5 theme-input border rounded-lg px-2.5 py-1 text-xs outline-none">
+                        <select id="todo-new-list" class="col-span-3 theme-input border rounded-lg px-2 py-1 text-xs outline-none">
+                            <option value="Dispatch" selected>📦 Dispatch</option>
                             <option value="Inventory">📊 Inventory</option>
                             <option value="General">📝 General</option>
                         </select>
-                    </div>
-
-                    <div class="grid grid-cols-4 gap-1 theme-input p-1 rounded-xl border text-xs font-semibold">
-                        <button onclick="setTodoFilter('all')" id="td-filter-all" class="py-1.5 rounded-lg bg-blue-600 text-white transition">All</button>
-                        <button onclick="setTodoFilter('today')" id="td-filter-today" class="py-1.5 rounded-lg theme-text-muted transition">Scheduled</button>
-                        <button onclick="setTodoFilter('overdue')" id="td-filter-overdue" class="py-1.5 rounded-lg theme-text-muted transition">Overdue</button>
-                        <button onclick="setTodoFilter('flagged')" id="td-filter-flagged" class="py-1.5 rounded-lg theme-text-muted transition">Flagged</button>
-                    </div>
-
-                    <div class="flex items-center justify-between gap-2 text-[10px] font-mono theme-text-dim">
-                        <span>Quick Time:</span>
-                        <div class="flex items-center gap-1">
-                            <button type="button" onclick="applyQuickDueTime('09:00')" class="px-2 py-0.5 rounded theme-elevated border hover:border-blue-500">09:00</button>
-                            <button type="button" onclick="applyQuickDueTime('16:00')" class="px-2 py-0.5 rounded theme-elevated border hover:border-blue-500">16:00 SOD</button>
-                            <button type="button" onclick="applyQuickDueTime('23:55')" class="px-2 py-0.5 rounded theme-elevated border hover:border-blue-500">23:55 Close</button>
-                            <button type="button" onclick="applyQuickDueTime('')" class="px-2 py-0.5 rounded theme-input border">Clear</button>
-                        </div>
-                    </div>
-
-                    <div id="user-shift-batch-editor" class="hidden p-3.5 rounded-2xl border-2 border-emerald-500/40 theme-elevated space-y-2.5 text-xs">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold uppercase tracking-wider text-emerald-400" id="user-shift-batch-title">User Shift Batch Preset</span>
-                            <div class="flex items-center gap-2">
-                                <button type="button" onclick="addShiftBatchReminderRow()" class="px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-400 font-bold hover:bg-emerald-600 hover:text-white">+ Add Reminder</button>
-                                <button type="button" onclick="toggleUserShiftBatchEditor()" class="text-[11px] theme-text-dim hover:text-rose-400">Close</button>
-                            </div>
-                        </div>
-                        <div id="user-shift-batch-rows" class="space-y-1.5"></div>
-                        <div>
-                            <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Shift Note Title</label>
-                            <input type="text" id="user-shift-batch-note-title" class="w-full theme-input border rounded-xl px-2.5 py-1.5 text-xs font-bold outline-none focus:border-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Shift Note Body</label>
-                            <textarea id="user-shift-batch-note-body" rows="2" class="w-full theme-input border rounded-xl p-2 text-xs font-mono outline-none focus:border-emerald-500"></textarea>
-                        </div>
-                        <div class="flex justify-end gap-2 pt-1">
-                            <button type="button" onclick="saveUserShiftBatchPreset()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">Save Shift Batch</button>
-                            <button type="button" onclick="applyUserShiftBatchTemplate()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold">Save &amp; Apply Now</button>
-                        </div>
-                    </div>
-
-                    <div id="todo-list-container" class="divide-y theme-border rounded-2xl border theme-input overflow-hidden"></div>
-
-                    <div class="pt-1 space-y-2">
-                        <div class="flex items-center gap-2 theme-input border rounded-2xl px-3.5 py-2.5 focus-within:border-blue-500">
-                            <button onclick="addTodoItem()" class="h-6 w-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">+</button>
-                            <input type="text" id="todo-input-text" placeholder="New reminder or 'send sod at 4pm @user2'..." onkeydown="if(event.key==='Enter') addTodoItem()" class="flex-grow bg-transparent text-sm outline-none">
-                            <input type="time" id="todo-due-time" title="Due Time (Highlights Red if Past)" class="bg-transparent text-xs font-mono theme-text-muted outline-none">
-                            <button onclick="toggleNewTodoFlag()" id="btn-new-todo-flag" title="Flag Reminder" class="p-1 rounded theme-text-dim hover:text-amber-500">
-                                <i data-lucide="flag" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-12 gap-2">
-                            <input type="text" id="todo-input-notes" placeholder="Notes / Sub-details..." onkeydown="if(event.key==='Enter') addTodoItem()" class="col-span-6 theme-input border rounded-xl px-3 py-1.5 text-xs theme-text-muted outline-none">
-                            <select id="todo-new-list" class="col-span-3 theme-input border rounded-xl px-2 py-1.5 text-xs outline-none" title="List Category">
-                                <option value="Dispatch" selected>📦 Dispatch</option>
-                                <option value="Inventory">📊 Inventory</option>
-                                <option value="General">📝 General</option>
-                            </select>
-                            <select id="todo-new-priority" class="col-span-2 theme-input border rounded-xl px-1.5 py-1.5 text-xs font-mono outline-none" title="Priority Level">
-                                <option value="0" selected>None</option>
-                                <option value="1">! Low</option>
-                                <option value="2">!! Med</option>
-                                <option value="3">!!! High</option>
-                            </select>
-                            <select id="todo-new-recur" class="col-span-1 theme-input border rounded-xl px-1 py-1.5 text-[10px] font-mono outline-none" title="Recurring Shift Reminder">
-                                <option value="none" selected>1x</option>
-                                <option value="daily">Daily</option>
-                                <option value="shift">Shift</option>
-                            </select>
-                        </div>
+                        <select id="todo-new-priority" class="col-span-2 theme-input border rounded-lg px-1.5 py-1 text-xs font-mono outline-none">
+                            <option value="0" selected>Pri: 0</option>
+                            <option value="1">! Low</option>
+                            <option value="2">!! Med</option>
+                            <option value="3">!!! High</option>
+                        </select>
+                        <select id="todo-new-recur" class="col-span-2 theme-input border rounded-lg px-1.5 py-1 text-xs font-mono outline-none">
+                            <option value="none" selected>Once</option>
+                            <option value="daily">Daily</option>
+                            <option value="shift">Shift</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Right Panel: Resizable Multi-Note Pad Next to Reminders (Password Protected per User) -->
-                <div id="todo-notes-panel" class="flex-1 w-full min-w-[300px] resize overflow-auto theme-card border rounded-3xl p-5 shadow-xl space-y-3">
-                    <div class="flex items-center justify-between gap-2 border-b theme-border pb-2.5 flex-wrap">
-                        <div>
-                            <h3 class="text-lg font-extrabold text-amber-400">Notes</h3>
-                            <p class="text-[11px] theme-text-dim font-mono" id="iphone-note-saved-lbl">Synced</p>
-                        </div>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <select id="user-note-selector" onchange="selectUserNoteItem(this.value)" class="theme-input border rounded-xl px-2 py-1 text-xs font-bold outline-none" title="Select Saved Note"></select>
-                            <button onclick="createNewUserNoteItem()" class="px-2 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold hover:bg-amber-500 hover:text-black">+ Note</button>
-                            <button onclick="saveCurrentNotePermanently()" class="px-2 py-1 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold hover:bg-emerald-600 hover:text-white">Save</button>
-                            <button onclick="deleteCurrentUserNoteItem()" class="px-2 py-1 rounded-xl theme-elevated border text-xs font-bold text-rose-400 hover:border-rose-500" title="Delete Note">×</button>
-                            <button onclick="insertIphoneChecklistItem()" class="px-2.5 py-1 rounded-xl theme-elevated border text-xs font-bold hover:border-amber-400">☑ Checklist</button>
-                        </div>
+                <!-- Distinct Separated Filter Pills + Search -->
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
+                        <button onclick="setTodoFilter('all')" id="td-filter-all" class="px-3 py-1 rounded-lg border bg-emerald-600 text-white border-emerald-600 transition">All</button>
+                        <button onclick="setTodoFilter('today')" id="td-filter-today" class="px-3 py-1 rounded-lg border theme-input theme-text-muted hover:border-emerald-500 transition">Timed</button>
+                        <button onclick="setTodoFilter('overdue')" id="td-filter-overdue" class="px-3 py-1 rounded-lg border theme-input theme-text-muted hover:border-rose-500 transition">Overdue</button>
+                        <button onclick="setTodoFilter('flagged')" id="td-filter-flagged" class="px-3 py-1 rounded-lg border theme-input theme-text-muted hover:border-amber-500 transition">Flagged</button>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-1 text-xs">
-                        <div class="flex flex-wrap items-center gap-1">
-                            <button onclick="execIphoneNoteCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
-                            <button onclick="execIphoneNoteCmd('italic')" class="px-2.5 py-1 rounded theme-elevated border italic">I</button>
-                            <button onclick="execIphoneNoteCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
-                            <button onclick="execIphoneNoteCmd('insertUnorderedList')" class="px-2 py-1 rounded theme-elevated border">• List</button>
-                            <button onclick="execIphoneNoteCmd('hiliteColor','#fef08a')" class="px-2 py-1 rounded bg-yellow-200 text-zinc-900 font-bold text-[11px]">Highlight</button>
-                            <input type="color" value="#f59e0b" onchange="execIphoneNoteCmd('foreColor', this.value)" class="w-5 h-5 bg-transparent border-0 cursor-pointer" title="Text Colour">
-                        </div>
-                        <div class="flex items-center gap-2 text-[10px] font-mono theme-text-dim">
-                            <span id="note-word-stats">0 words</span>
-                            <button type="button" onclick="clearCurrentNoteBody()" class="text-rose-400 hover:underline">Clear</button>
-                        </div>
+                    <div class="flex items-center gap-1.5 flex-grow sm:flex-grow-0">
+                        <input type="text" id="todo-search-input" oninput="saveAndRenderTodos(true)" placeholder="Search..." class="w-32 sm:w-36 theme-input border rounded-lg px-2.5 py-1 text-xs outline-none focus:border-emerald-500">
+                        <select id="todo-list-filter" onchange="saveAndRenderTodos(true)" class="theme-input border rounded-lg px-2 py-1 text-xs outline-none">
+                            <option value="ALL">All Lists</option>
+                            <option value="Dispatch">Dispatch</option>
+                            <option value="Inventory">Inventory</option>
+                            <option value="General">General</option>
+                        </select>
+                        <button onclick="undoTodoAction()" id="btn-todo-undo" class="hidden px-2 py-1 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold">Undo</button>
+                        <button onclick="clearCompletedTodos()" class="text-[11px] text-rose-400 hover:underline font-semibold px-1">Clear Done</button>
                     </div>
-
-                    <input type="text" id="iphone-note-title" oninput="persistIphoneNote()" placeholder="Note Title..." class="w-full theme-input border rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-amber-400">
-                    <div id="iphone-note-editor" contenteditable="true" oninput="persistIphoneNote()" class="min-h-[260px] max-h-[420px] overflow-y-auto theme-input border rounded-2xl p-3.5 text-xs leading-relaxed outline-none focus:border-amber-400"></div>
                 </div>
+
+                <div id="todo-list-container" class="divide-y theme-border rounded-xl border theme-input overflow-hidden max-h-[440px] overflow-y-auto"></div>
+            </div>
+
+            <!-- Right Column: iPhone-Style Upfront Quick Notes + Editor (5 Cols) -->
+            <div id="todo-notes-panel" class="lg:col-span-5 theme-card border rounded-xl p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between gap-2 border-b theme-border pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="notebook-pen" class="w-4 h-4 text-emerald-500"></i> Quick Notes
+                        </span>
+                        <span class="text-[10px] font-mono text-emerald-500" id="iphone-note-saved-lbl">● Synced</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <select id="user-note-selector" onchange="selectUserNoteItem(this.value)" class="hidden"></select>
+                        <button onclick="createNewUserNoteItem()" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold" title="New Note">+ Note</button>
+                        <button onclick="saveCurrentNotePermanently()" class="px-2.5 py-1 rounded-lg theme-elevated border text-xs font-semibold hover:border-emerald-500">Save</button>
+                        <button onclick="deleteCurrentUserNoteItem()" class="px-2 py-1 rounded-lg theme-elevated border text-xs font-bold text-rose-400" title="Delete Selected Note">×</button>
+                    </div>
+                </div>
+
+                <!-- iPhone-Style Notes List Upfront (Click Any Note to Open) -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px] font-mono uppercase theme-text-dim">
+                        <span>All Notes (Click to Open)</span>
+                        <span id="iphone-notes-count-lbl">1 note</span>
+                    </div>
+                    <div id="iphone-notes-list" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-0.5"></div>
+                </div>
+
+                <!-- Formatting + Non-Blocking AI Suggest Chip -->
+                <div class="flex items-center justify-between gap-1 text-xs pt-1 border-t theme-border">
+                    <div class="flex items-center gap-1">
+                        <button onclick="execIphoneNoteCmd('bold')" class="px-2 py-1 rounded theme-elevated border font-bold">B</button>
+                        <button onclick="execIphoneNoteCmd('italic')" class="px-2 py-1 rounded theme-elevated border italic">I</button>
+                        <button onclick="execIphoneNoteCmd('underline')" class="px-2 py-1 rounded theme-elevated border underline">U</button>
+                        <button onclick="insertIphoneChecklistItem()" class="px-2 py-1 rounded theme-elevated border font-semibold">☑ Check</button>
+                        <button onclick="execIphoneNoteCmd('hiliteColor','#fef08a')" class="px-2 py-1 rounded bg-yellow-200 text-zinc-900 font-bold text-[11px]">Hi</button>
+                        <button onclick="applyNoteAiSuggestion()" class="px-2 py-1 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold hover:bg-emerald-600 hover:text-white transition" title="Insert Smart Note Line">✦ AI Suggest</button>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] font-mono theme-text-dim">
+                        <span id="note-word-stats">0 words</span>
+                        <button type="button" onclick="clearCurrentNoteBody()" class="text-rose-400 hover:underline">Clear</button>
+                    </div>
+                </div>
+
+                <input type="text" id="iphone-note-title" oninput="persistIphoneNote()" placeholder="Note Title..." class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500">
+                <div id="iphone-note-editor" contenteditable="true" oninput="persistIphoneNote(); updateNoteWordStats();" class="min-h-[220px] max-h-[300px] overflow-y-auto theme-input border rounded-xl p-3.5 text-xs leading-relaxed outline-none focus:border-emerald-500"></div>
             </div>
         </section>
 
@@ -2792,14 +2852,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         let a4Orientation = 'landscape', lastFocusedEditable = null, activeSelectedTemplateId = '';
         let savedNoteTemplates = JSON.parse(localStorage.getItem('wmsPermanentNoteTemplatesV1') || '{}');
 
+        let hiddenBuiltinNoteTemplates = JSON.parse(localStorage.getItem('wmsHiddenBuiltinNoteTemplatesV1') || '[]');
+
+        const BUILTIN_NOTE_TEMPLATE_META = [
+            { key: 'asendia', label: 'Asendia Shipping Note' },
+            { key: 'nc_rack', label: 'NC Rack List (Client, Carrier-Date, Barcode, Total)' },
+            { key: 'packing', label: 'Packing Station Sheet' }
+        ];
+
         function renderNoteTemplatesDropdown() {
             const sel = document.getElementById('note-template-library');
             if (!sel) return;
             const customKeys = Object.keys(savedNoteTemplates);
-            let opts = `<option value="">Templates...</option>
-                <option value="asendia">Asendia Shipping Note</option>
-                <option value="nc_rack">NC Rack List (Client, Carrier-Date, Barcode, Total)</option>
-                <option value="packing">Packing Station Sheet</option>`;
+            const visibleBuiltins = BUILTIN_NOTE_TEMPLATE_META.filter(t => !hiddenBuiltinNoteTemplates.includes(t.key));
+            let opts = `<option value="">Select Template...</option>` +
+                visibleBuiltins.map(t => `<option value="${t.key}">${escapeHtml(t.label)}</option>`).join('');
             if (customKeys.length) {
                 opts += `<optgroup label="Saved Custom Templates">` + customKeys.map(k => `<option value="custom:${escapeHtml(k)}">★ ${escapeHtml(k)}</option>`).join('') + `</optgroup>`;
             }
@@ -2807,63 +2874,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (activeSelectedTemplateId) sel.value = activeSelectedTemplateId;
         }
 
-        function addNewBlankNoteTemplate() {
-            const name = prompt("Enter new template name:")?.trim();
-            if (!name) return;
-            const body = document.getElementById('a4-word-body');
-            body.innerHTML = `
-                <div class="w-full flex flex-col items-center justify-center gap-5 text-center">
-                    <div class="relative group w-full">
-                        <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
-                        <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 38pt;" class="font-black uppercase outline-none leading-tight">${escapeHtml(name.toUpperCase())}</div>
-                    </div>
-                    <div class="relative group w-full">
-                        <button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
-                        <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 26pt;" class="font-bold uppercase outline-none leading-tight">CLICK TO EDIT DETAILS</div>
-                    </div>
-                </div>`;
-            savedNoteTemplates[name] = body.innerHTML;
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
-            activeSelectedTemplateId = `custom:${name}`;
-            renderNoteTemplatesDropdown();
-            autoFitA4Content();
-            playTone('success');
-            showToast(`Created & saved template "${name}"!`);
-        }
+        
 
-        function saveCurrentNoteAsPermanentTemplate() {
-            const defaultName = activeSelectedTemplateId.startsWith('custom:') ? activeSelectedTemplateId.replace('custom:', '') : '';
-            const name = prompt("Save permanent template name (enter existing name to update):", defaultName)?.trim();
-            if (!name) return;
-            // Convert any live canvases inside a4-word-body into serializable data attributes so barcode survives reload
-            const bodyClone = document.getElementById('a4-word-body').cloneNode(true);
-            bodyClone.querySelectorAll('canvas').forEach(cv => {
-                const code = cv.dataset.barcodeVal || 'NC-RACK-01';
-                const placeholder = document.createElement('div');
-                placeholder.setAttribute('data-saved-barcode', code);
-                cv.replaceWith(placeholder);
-            });
-            savedNoteTemplates[name] = bodyClone.innerHTML;
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
-            activeSelectedTemplateId = `custom:${name}`;
-            renderNoteTemplatesDropdown();
-            playTone('success');
-            showToast(`Permanently saved template "${name}"!`);
-        }
+        
 
-        function deleteSelectedPermanentTemplate() {
-            const selVal = document.getElementById('note-template-library')?.value || activeSelectedTemplateId;
-            if (!selVal || !selVal.startsWith('custom:')) {
-                return showToast("Select a saved custom template (★) to remove.");
-            }
-            const name = selVal.replace('custom:', '');
-            if (!confirm(`Permanently delete template "${name}"?`)) return;
-            delete savedNoteTemplates[name];
-            localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates)); pushStateToCloud();
-            activeSelectedTemplateId = '';
-            renderNoteTemplatesDropdown();
-            showToast(`Removed template "${name}"`);
-        }
+        
 
         function resetSimpleTwoLineNote() {
             const now = new Date(), months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'], day = now.getDate();
@@ -2999,19 +3014,65 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             autoFitA4Content();
         }
         function applyNoteLineSpacing(val) { document.getElementById('a4-word-body').style.lineHeight = val; autoFitA4Content(); }
+        let a4UserZoomPct = 100;
+
+        function setNoteDocZoom(pct) {
+            a4UserZoomPct = Math.min(200, Math.max(35, parseInt(pct, 10) || 100));
+            const lbl = document.getElementById('a4-doc-zoom-lbl');
+            if (lbl) lbl.innerText = `${a4UserZoomPct}%`;
+            fitA4SheetToViewport();
+        }
+
+        function adjustNoteDocZoom(delta) {
+            setNoteDocZoom(a4UserZoomPct + delta);
+        }
+
+        function resetNoteDocZoom() {
+            const viewport = document.getElementById('a4-stage-viewport');
+            const paper = document.getElementById('a4-paper-sheet');
+            if (!viewport || !paper) return setNoteDocZoom(100);
+            const baseW = a4Orientation === 'landscape' ? 842 : 595;
+            const baseH = a4Orientation === 'landscape' ? 595 : 842;
+            const fitScale = Math.min((viewport.clientWidth - 24) / baseW, (viewport.clientHeight - 24) / baseH);
+            setNoteDocZoom(Math.round(Math.max(0.35, Math.min(1.5, fitScale)) * 100));
+        }
+
+        function fitA4SheetToViewport() {
+            const viewport = document.getElementById('a4-stage-viewport');
+            const paper = document.getElementById('a4-paper-sheet');
+            if (!viewport || !paper) return;
+            const baseW = a4Orientation === 'landscape' ? 842 : 595;
+            const baseH = a4Orientation === 'landscape' ? 595 : 842;
+            paper.style.width = `${baseW}px`;
+            paper.style.height = `${baseH}px`;
+            paper.style.transform = `scale(${a4UserZoomPct / 100})`;
+        }
+
         function autoFitA4Content() {
+            fitA4SheetToViewport();
             const paper = document.getElementById('a4-paper-sheet'), body = document.getElementById('a4-word-body');
             if (!paper || !body || body.classList.contains('hidden')) return;
             body.style.transform = 'scale(1)';
-            const availW = paper.clientWidth - 64, availH = paper.clientHeight - 64, contentW = body.scrollWidth, contentH = body.scrollHeight;
-            if (contentH > availH || contentW > availW) body.style.transform = `scale(${Math.max(0.35, Math.min(availW / contentW, availH / contentH))})`;
+            const availW = paper.clientWidth - 48, availH = paper.clientHeight - 48, contentW = body.scrollWidth, contentH = body.scrollHeight;
+            if (contentH > availH || contentW > availW) {
+                body.style.transform = `scale(${Math.max(0.35, Math.min(availW / contentW, availH / contentH))})`;
+            }
         }
         function addA4TextBlock() { const div = document.createElement('div'); div.className = "relative group w-full"; div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 24pt;" class="font-bold uppercase outline-none">NEW NOTE LINE</div>`; document.getElementById('a4-word-body').appendChild(div); autoFitA4Content(); }
         function addA4BarcodeBlock() { const val = prompt("Enter Barcode Value:", "ASD-BLK-261119"); if (!val) return; const div = document.createElement('div'); div.className = "relative group p-2 inline-block"; const cid = 'note-bc-' + Date.now(); div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><canvas id="${cid}" class="mx-auto"></canvas>`; document.getElementById('a4-word-body').appendChild(div); try { bwipjs.toCanvas(document.getElementById(cid), { bcid: 'code128', text: val.trim(), scale: 3, height: 16, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {} autoFitA4Content(); }
         function addA4DividerLine() { const div = document.createElement('div'); div.className = "relative group w-full py-1"; div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute -top-2 right-0 px-1.5 bg-rose-600 text-white rounded text-[10px] font-bold print:hidden">×</button><div class="border-b-4 border-zinc-900 w-full"></div>`; document.getElementById('a4-word-body').appendChild(div); autoFitA4Content(); }
         function addA4SignBlock() { const div = document.createElement('div'); div.className = "relative group w-full pt-4 grid grid-cols-2 gap-6 font-mono text-base font-bold"; div.innerHTML = `<button onclick="this.parentElement.remove(); autoFitA4Content();" class="hidden group-hover:block absolute top-0 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button><div contenteditable="true" onfocus="lastFocusedEditable=this" class="outline-none">DISPATCHED BY: _______________</div><div contenteditable="true" onfocus="lastFocusedEditable=this" class="outline-none">DRIVER SIGN: _________________</div>`; document.getElementById('a4-word-body').appendChild(div); autoFitA4Content(); }
         function setOfficeMode(mode) { document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word'); document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel'); document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel'); document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; }
-        function setA4Orientation(orient) { a4Orientation = orient; const paper = document.getElementById('a4-paper-sheet'); paper.style.width = orient === 'landscape' ? "842px" : "595px"; paper.style.height = orient === 'landscape' ? "595px" : "842px"; document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted"; document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted"; autoFitA4Content(); }
+        function setA4Orientation(orient) {
+            a4Orientation = orient;
+            document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
+            document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
+            autoFitA4Content();
+        }
+
+        window.addEventListener('resize', () => {
+            if (!document.getElementById('view-a4note')?.classList.contains('hidden')) fitA4SheetToViewport();
+        });
         function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); }
         function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); }
         function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); }
@@ -3066,6 +3127,72 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         let supabaseRealtimeChannel = null;
         let cloudPollInterval = null;
         let cloudSyncTimer = null;
+        let offlineSyncQueue = JSON.parse(localStorage.getItem('wmsOfflineSyncQueueV1') || '[]');
+
+        function persistOfflineSyncQueue() {
+            localStorage.setItem('wmsOfflineSyncQueueV1', JSON.stringify(offlineSyncQueue));
+            updateOfflineQueueBadge();
+        }
+
+        function enqueueOfflineSyncChange(reason = 'Update') {
+            offlineSyncQueue.push({ id: 'q-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), reason, ts: new Date().toISOString() });
+            if (offlineSyncQueue.length > 200) offlineSyncQueue = offlineSyncQueue.slice(-200);
+            persistOfflineSyncQueue();
+        }
+
+        function updateOfflineQueueBadge() {
+            const badge = document.getElementById('offline-queue-badge');
+            const dot = document.getElementById('offline-queue-dot');
+            const txt = document.getElementById('offline-queue-text');
+            if (!badge || !dot || !txt) return;
+            const isOnline = navigator.onLine !== false;
+            const count = offlineSyncQueue.length;
+            if (!isOnline) {
+                badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400';
+                dot.className = 'h-2 w-2 rounded-full bg-rose-500 animate-pulse';
+                txt.innerText = `Offline (${count})`;
+            } else if (count > 0) {
+                badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400';
+                dot.className = 'h-2 w-2 rounded-full bg-amber-400 animate-pulse';
+                txt.innerText = `Pending: ${count}`;
+            } else {
+                badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500';
+                dot.className = 'h-2 w-2 rounded-full bg-emerald-500';
+                txt.innerText = 'Synced (0)';
+            }
+        }
+
+        async function forceManualCloudSync() {
+            const icon = document.getElementById('icon-force-sync');
+            if (icon) icon.classList.add('animate-spin');
+            try {
+                if (navigator.onLine === false) {
+                    updateOfflineQueueBadge();
+                    showToast(`Device offline — ${offlineSyncQueue.length} change(s) queued safely.`);
+                    return;
+                }
+                if (offlineSyncQueue.length > 0) {
+                    await pushStateToCloud(true);
+                }
+                await pullStateFromCloud(true);
+                updateOfflineQueueBadge();
+            } finally {
+                if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 400);
+            }
+        }
+
+        window.addEventListener('online', () => {
+            updateOfflineQueueBadge();
+            if (offlineSyncQueue.length > 0) {
+                pushStateToCloud(true);
+            } else {
+                pullStateFromCloud(false);
+            }
+        });
+        window.addEventListener('offline', () => {
+            updateOfflineQueueBadge();
+            updateCloudStatusUI('error', 'Offline Cache');
+        });
 
         function updateCloudStatusUI(state, label) {
             const dot = document.getElementById('cloud-sync-dot');
@@ -3266,8 +3393,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function pushStateToCloud(immediate = false) {
             if (cloudSyncConfig.provider === 'none') return Promise.resolve();
+            enqueueOfflineSyncChange('State Change');
             clearTimeout(cloudSyncTimer);
             const run = async () => {
+                isCloudPushInFlight = true;
+                if (navigator.onLine === false) {
+                    isCloudPushInFlight = false;
+                    updateCloudStatusUI('error', 'Offline Cache');
+                    updateOfflineQueueBadge();
+                    return;
+                }
                 try {
                     updateCloudStatusUI('syncing', 'Syncing...');
                     const payload = buildSharedStateSnapshot();
@@ -3276,6 +3411,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             .from('wms_shared_state')
                             .upsert({ id: cloudSyncConfig.roomId || 'bleckmann-main', payload, updated_at: new Date().toISOString() });
                         if (error) throw error;
+                        offlineSyncQueue = [];
+                        persistOfflineSyncQueue();
                         updateCloudStatusUI('synced', 'Cloud Synced');
                     } else if (cloudSyncConfig.provider === 'webhook' && cloudSyncConfig.webhookUrl) {
                         const res = await fetch(cloudSyncConfig.webhookUrl, {
@@ -3284,11 +3421,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                             body: JSON.stringify({ roomId: cloudSyncConfig.roomId || 'bleckmann-main', payload })
                         });
                         if (!res.ok) throw new Error('HTTP ' + res.status);
+                        offlineSyncQueue = [];
+                        persistOfflineSyncQueue();
                         updateCloudStatusUI('synced', 'API Synced');
                     }
                 } catch (e) {
                     console.warn('Cloud push fell back to local cache:', e);
                     updateCloudStatusUI('error', 'Offline Cache');
+                    updateOfflineQueueBadge();
+                } finally {
+                    isCloudPushInFlight = false;
                 }
             };
             if (immediate) return run();
@@ -3300,6 +3442,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         async function pullStateFromCloud(notify = false) {
             if (cloudSyncConfig.provider === 'none') return;
             try {
+                if (!notify && (isCloudPushInFlight || (Date.now() - lastLocalMutationAt) < 4000)) return;
                 updateCloudStatusUI('syncing', 'Pulling...');
                 if (cloudSyncConfig.provider === 'supabase' && supabaseClientInstance) {
                     const { data, error } = await supabaseClientInstance
@@ -3754,8 +3897,29 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             showToast("Deleted note");
         }
 
+        function renderIphoneNotesUpfrontList() {
+            const listEl = document.getElementById('iphone-notes-list');
+            const countEl = document.getElementById('iphone-notes-count-lbl');
+            if (!listEl) return;
+            const notesArr = getUserNotesCollection(activeTodoUser);
+            const cur = getActiveNoteObj(activeTodoUser);
+            if (countEl) countEl.innerText = `${notesArr.length} note${notesArr.length === 1 ? '' : 's'}`;
+
+            listEl.innerHTML = notesArr.map(n => {
+                const isSelected = cur && n.id === cur.id;
+                const plainPreview = (n.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || 'Empty note';
+                return `
+                    <button type="button" onclick="selectUserNoteItem('${n.id}')" class="text-left p-2 rounded-lg border transition ${isSelected ? 'border-emerald-500 bg-emerald-500/15' : 'theme-input hover:border-emerald-500/50'}">
+                        <div class="text-xs font-bold truncate ${isSelected ? 'text-emerald-400' : ''}">${escapeHtml(n.title || 'Untitled Note')}</div>
+                        <div class="text-[10px] theme-text-dim truncate mt-0.5">${escapeHtml(plainPreview)}</div>
+                    </button>
+                `;
+            }).join('');
+        }
+
         function loadIphoneNoteForUser() {
             refreshUserNotesDropdown();
+            renderIphoneNotesUpfrontList();
             const cur = getActiveNoteObj(activeTodoUser);
             const tInp = document.getElementById('iphone-note-title');
             const ed = document.getElementById('iphone-note-editor');
@@ -3773,10 +3937,69 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             cur.html = ed.innerHTML;
             localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
             refreshUserNotesDropdown();
+            renderIphoneNotesUpfrontList();
             pushStateToCloud();
             const lbl = document.getElementById('iphone-note-saved-lbl');
             if (lbl) lbl.innerText = `Saved ${new Date().toLocaleTimeString('en-GB', { hour12: false })}`;
             updateNoteWordStats();
+        }
+
+        function renderTodoAiSuggestions() {
+            const box = document.getElementById('todo-ai-suggest-chips');
+            if (!box) return;
+            const raw = (document.getElementById('todo-input-text')?.value || '').toLowerCase();
+            const suggestions = [];
+
+            if (!raw.trim()) {
+                suggestions.push({ label: 'Verify carrier labels', insert: 'Verify carrier label sequence and copies' });
+                suggestions.push({ label: 'Bay seal check @17:00', insert: 'Check trailer seal and dock bay at 17:00 !high #dispatch' });
+                suggestions.push({ label: 'Stock gap audit', insert: 'Audit bin gaps and low stock #inventory' });
+            } else {
+                if (!/\bat\s+\d{1,2}/.test(raw)) suggestions.push({ label: '+ at 17:00', append: ' at 17:00' });
+                if (!/!high|!med/.test(raw)) suggestions.push({ label: '+ !high', append: ' !high' });
+                if (!/#dispatch|#inventory|#general/.test(raw)) {
+                    if (raw.includes('stock') || raw.includes('sku') || raw.includes('bin')) suggestions.push({ label: '+ #inventory', append: ' #inventory' });
+                    else suggestions.push({ label: '+ #dispatch', append: ' #dispatch' });
+                }
+                if (raw.includes('seal') || raw.includes('trailer') || raw.includes('bay')) {
+                    suggestions.push({ label: 'Add bay & seal note', note: 'Confirm seal number & bay sign-off' });
+                }
+            }
+
+            box.innerHTML = suggestions.slice(0, 4).map((s, idx) => `
+                <button type="button" onclick="applyTodoAiSuggestion(${idx})" class="px-2 py-0.5 rounded-full theme-elevated border hover:border-emerald-500 text-[10px] font-mono font-semibold shrink-0 transition">${escapeHtml(s.label)}</button>
+            `).join('');
+            window._latestTodoAiSuggestions = suggestions.slice(0, 4);
+        }
+
+        function applyTodoAiSuggestion(idx) {
+            const s = (window._latestTodoAiSuggestions || [])[idx];
+            if (!s) return;
+            const inp = document.getElementById('todo-input-text');
+            const noteInp = document.getElementById('todo-input-notes');
+            if (s.insert && inp) inp.value = s.insert;
+            if (s.append && inp) inp.value = `${inp.value.trim()}${s.append}`.trim();
+            if (s.note && noteInp) noteInp.value = noteInp.value ? `${noteInp.value}\n${s.note}` : s.note;
+            renderTodoAiSuggestions();
+            inp?.focus();
+        }
+
+        function applyNoteAiSuggestion() {
+            const ed = document.getElementById('iphone-note-editor');
+            if (!ed) return;
+            const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const txt = (ed.innerText || '').toLowerCase();
+            let line = `[${now}] Shift check: labels verified, bay clear, exceptions logged.`;
+            if (txt.includes('carrier') || txt.includes('rm') || txt.includes('dpd')) {
+                line = `[${now}] Carrier run check: serial range, copy count, and scan test complete.`;
+            } else if (txt.includes('trailer') || txt.includes('seal')) {
+                line = `[${now}] Trailer check: seal intact, load count matched, manifest ready.`;
+            }
+            const div = document.createElement('div');
+            div.textContent = line;
+            ed.appendChild(div);
+            persistIphoneNote();
+            showToast("Inserted concise AI note suggestion.");
         }
 
         function execIphoneNoteCmd(cmd, val = null) {
@@ -3818,58 +4041,18 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function setTodoFilter(f) {
             todoFilter = f;
             ['all', 'today', 'overdue', 'flagged'].forEach(k => {
-                document.getElementById(`td-filter-${k}`).className = k === f ? "py-1.5 rounded-lg bg-blue-600 text-white transition" : "py-1.5 rounded-lg theme-text-muted transition";
+                const el = document.getElementById(`td-filter-${k}`);
+                if (!el) return;
+                const activeCls = k === 'overdue'
+                    ? "px-3 py-1 rounded-lg border bg-rose-600 text-white border-rose-600 transition"
+                    : "px-3 py-1 rounded-lg border bg-emerald-600 text-white border-emerald-600 transition";
+                const idleCls = "px-3 py-1 rounded-lg border theme-input theme-text-muted hover:border-emerald-500 transition";
+                el.className = (k === f) ? activeCls : idleCls;
             });
             saveAndRenderTodos(true);
         }
 
-        function addTodoItem() {
-            const inp = document.getElementById('todo-input-text'), rawText = inp.value.trim();
-            if (!rawText) return;
-            pushTodoUndoSnapshot();
-            const notes = document.getElementById('todo-input-notes').value.trim();
-            const time = document.getElementById('todo-due-time').value || '';
-            const list = document.getElementById('todo-new-list').value || 'Dispatch';
-            const priority = parseInt(document.getElementById('todo-new-priority').value) || 0;
-            const recur = document.getElementById('todo-new-recur').value || 'none';
-
-            // Parse "@user2" mentions so reminders like "send sod at 4pm @user2" also appear in user2's reminders
-            const mentionMatches = [...rawText.matchAll(/@([A-Za-z0-9_-]+)/g)].map(m => m[1]);
-            const cleanText = rawText.replace(/\s*@[A-Za-z0-9_-]+/g, '').trim() || rawText;
-
-            const linkGroupId = 'lnk-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
-            const authorUser = activeTodoUser;
-            const newTask = {
-                id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
-                linkGroupId,
-                authorUser,
-                assignedToUsers: mentionMatches,
-                text: cleanText,
-                notes: mentionMatches.length ? `${notes ? notes + ' • ' : ''}From ${authorUser} (@${mentionMatches.join(', @')})` : notes,
-                time, list, priority, recur, flagged: newTodoFlagged, done: false
-            };
-
-            getCurrentUserTodos().unshift(newTask);
-
-            mentionMatches.forEach(targetName => {
-                const matchedKey = Object.keys(todoStoreByUser).find(k => k.toLowerCase() === targetName.toLowerCase());
-                const destUser = matchedKey || targetName;
-                if (!todoStoreByUser[destUser]) todoStoreByUser[destUser] = [];
-                todoStoreByUser[destUser].unshift({
-                    ...newTask,
-                    id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-                    linkGroupId,
-                    authorUser,
-                    notes: `${notes ? notes + ' • ' : ''}Assigned by ${authorUser}`
-                });
-                refreshTodoUserDropdown();
-            });
-
-            inp.value = ''; document.getElementById('todo-input-notes').value = '';
-            newTodoFlagged = false; document.getElementById('btn-new-todo-flag').className = "p-1 rounded theme-text-dim hover:text-amber-500";
-            saveAndRenderTodos(); playTone('success');
-            if (mentionMatches.length) showToast(`Reminder sent to @${mentionMatches.join(', @')}!`);
-        }
+        
 
         function toggleTodoDone(id) {
             pushTodoUndoSnapshot();
@@ -4133,6 +4316,223 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function copyTextValue(txt) { if (txt) { navigator.clipboard.writeText(txt); showToast(`Copied: ${txt}`); } }
         function escapeHtml(s) { return String(s||'').replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
+                let isCloudPushInFlight = false;
+        let lastLocalMutationAt = 0;
+
+        function markLocalStateDirty() {
+            lastLocalMutationAt = Date.now();
+            try {
+                localStorage.setItem('wmsPermanentNoteTemplatesV1', JSON.stringify(savedNoteTemplates));
+                localStorage.setItem('wmsShiftTodosByUserV2', JSON.stringify(todoStoreByUser));
+                localStorage.setItem('wmsTodoUserPasswordsV1', JSON.stringify(userPasswordsMap));
+                localStorage.setItem('wmsSavedTodoBatchesV1', JSON.stringify(savedTodoBatchesByUser));
+                localStorage.setItem('wmsIphoneNotesByUserV1', JSON.stringify(iphoneNotesByUser));
+                localStorage.setItem('wmsCustomUserShiftBatchesV1', JSON.stringify(customUserShiftBatches));
+                localStorage.setItem('wmsActiveNoteTemplateIdV1', activeSelectedTemplateId || '');
+                const activeDraftHtml = serializeNoteBodyHtml();
+                if (activeDraftHtml) localStorage.setItem('wmsActiveNoteCanvasDraftV1', activeDraftHtml);
+            } catch (e) {
+                console.warn('LocalStorage write warning:', e);
+            }
+        }
+
+        function serializeNoteBodyHtml() {
+            const wordBody = document.getElementById('a4-word-body');
+            if (!wordBody) return '';
+            const bodyClone = wordBody.cloneNode(true);
+            bodyClone.querySelectorAll('canvas').forEach(cv => {
+                const code = cv.dataset.barcodeVal || 'NC-RACK-01';
+                const placeholder = document.createElement('div');
+                placeholder.setAttribute('data-saved-barcode', code);
+                cv.replaceWith(placeholder);
+            });
+            return bodyClone.innerHTML;
+        }
+
+        function hydrateNoteBodyHtml(rawHtml) {
+            const body = document.getElementById('a4-word-body');
+            if (!body) return;
+            body.innerHTML = rawHtml || '';
+            body.querySelectorAll('[data-saved-barcode]').forEach((el, idx) => {
+                const code = el.getAttribute('data-saved-barcode');
+                const cid = `custom-bc-${Date.now()}-${idx}`;
+                const cv = document.createElement('canvas');
+                cv.id = cid;
+                cv.dataset.barcodeVal = code;
+                cv.className = 'mx-auto cursor-pointer';
+                cv.onclick = () => editNoteInlineBarcode(cid);
+                el.replaceWith(cv);
+                try { bwipjs.toCanvas(cv, { bcid: 'code128', text: code, scale: 3, height: 15, includetext: true, textxalign: 'center', backgroundcolor: 'ffffff' }); } catch (e) {}
+            });
+        }
+
+        function persistActiveNoteDraft() {
+            const serialized = serializeNoteBodyHtml();
+            localStorage.setItem('wmsActiveNoteCanvasDraftV1', serialized);
+            if (activeSelectedTemplateId && activeSelectedTemplateId.startsWith('custom:')) {
+                const tplName = activeSelectedTemplateId.replace('custom:', '');
+                savedNoteTemplates[tplName] = serialized;
+                markLocalStateDirty();
+                pushStateToCloud(false);
+            }
+        }
+
+        function addNewBlankNoteTemplate() {
+            const name = prompt("Enter new permanent template name:")?.trim();
+            if (!name) return;
+            const body = document.getElementById('a4-word-body');
+            body.innerHTML = `
+                <div class="w-full flex flex-col items-center justify-center gap-5 text-center">
+                    <div class="relative group w-full">
+                        <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                        <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 38pt;" class="font-black uppercase outline-none leading-tight">${escapeHtml(name.toUpperCase())}</div>
+                    </div>
+                    <div class="relative group w-full">
+                        <button onclick="this.parentElement.remove(); autoFitA4Content(); persistActiveNoteDraft();" class="hidden group-hover:block absolute -top-2 right-0 px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold print:hidden">×</button>
+                        <div contenteditable="true" onfocus="lastFocusedEditable=this" style="font-size: 26pt;" class="font-bold uppercase outline-none leading-tight">CLICK TO EDIT DETAILS</div>
+                    </div>
+                </div>`;
+            savedNoteTemplates[name] = serializeNoteBodyHtml();
+            activeSelectedTemplateId = `custom:${name}`;
+            markLocalStateDirty();
+            renderNoteTemplatesDropdown();
+            autoFitA4Content();
+            pushStateToCloud(true);
+            playTone('success');
+            showToast(`Created & permanently saved "${name}"!`);
+        }
+
+        function saveCurrentNoteAsPermanentTemplate() {
+            const defaultName = activeSelectedTemplateId.startsWith('custom:') ? activeSelectedTemplateId.replace('custom:', '') : '';
+            const name = prompt("Save permanent template name (existing name updates it):", defaultName)?.trim();
+            if (!name) return;
+            savedNoteTemplates[name] = serializeNoteBodyHtml();
+            activeSelectedTemplateId = `custom:${name}`;
+            markLocalStateDirty();
+            renderNoteTemplatesDropdown();
+            pushStateToCloud(true);
+            playTone('success');
+            showToast(`Permanently saved template "${name}"!`);
+        }
+
+        function deleteSelectedPermanentTemplate() {
+            const selVal = document.getElementById('note-template-library')?.value || activeSelectedTemplateId;
+            if (!selVal) {
+                return showToast("Select a template to delete.");
+            }
+            if (selVal.startsWith('custom:')) {
+                const name = selVal.replace('custom:', '');
+                if (!confirm(`Permanently delete template "${name}"?`)) return;
+                delete savedNoteTemplates[name];
+                activeSelectedTemplateId = '';
+                markLocalStateDirty();
+                renderNoteTemplatesDropdown();
+                pushStateToCloud(true);
+                showToast(`Removed template "${name}"`);
+                return;
+            }
+            const meta = BUILTIN_NOTE_TEMPLATE_META.find(t => t.key === selVal);
+            if (!confirm(`Permanently delete template "${meta ? meta.label : selVal}"?`)) return;
+            if (!hiddenBuiltinNoteTemplates.includes(selVal)) {
+                hiddenBuiltinNoteTemplates.push(selVal);
+                localStorage.setItem('wmsHiddenBuiltinNoteTemplatesV1', JSON.stringify(hiddenBuiltinNoteTemplates));
+            }
+            if (activeSelectedTemplateId === selVal) activeSelectedTemplateId = '';
+            markLocalStateDirty();
+            renderNoteTemplatesDropdown();
+            pushStateToCloud(true);
+            showToast(`Deleted permanent template "${meta ? meta.label : selVal}"`);
+        }
+
+        function toggleTodoManageDrawer() {
+            document.getElementById('todo-manage-drawer')?.classList.toggle('hidden');
+        }
+
+        function addTodoItem() {
+            const inp = document.getElementById('todo-input-text');
+            let rawText = inp.value.trim();
+            if (!rawText) return;
+            pushTodoUndoSnapshot();
+
+            let notes = document.getElementById('todo-input-notes').value.trim();
+            let time = document.getElementById('todo-due-time').value || '';
+            let list = document.getElementById('todo-new-list').value || 'Dispatch';
+            let priority = parseInt(document.getElementById('todo-new-priority').value) || 0;
+            const recur = document.getElementById('todo-new-recur').value || 'none';
+
+            // Smart NLP extraction: time ("at 16:00" or "at 4pm"), priority ("!high"), category ("#inventory")
+            const timeMatch = rawText.match(/\bat\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i);
+            if (timeMatch && !time) {
+                let hh = parseInt(timeMatch[1], 10);
+                const mm = timeMatch[2] || '00';
+                const mer = (timeMatch[3] || '').toLowerCase();
+                if (mer === 'pm' && hh < 12) hh += 12;
+                if (mer === 'am' && hh === 12) hh = 0;
+                if (hh >= 0 && hh <= 23) {
+                    time = `${String(hh).padStart(2, '0')}:${mm}`;
+                    rawText = rawText.replace(timeMatch[0], '').trim();
+                }
+            }
+            if (/\B!high\b|!!!/i.test(rawText)) { priority = 3; rawText = rawText.replace(/\B!high\b|!!!/gi, '').trim(); }
+            else if (/\B!med\b|!!/i.test(rawText)) { priority = 2; rawText = rawText.replace(/\B!med\b|!!/gi, '').trim(); }
+            if (/#inventory\b/i.test(rawText)) { list = 'Inventory'; rawText = rawText.replace(/#inventory\b/gi, '').trim(); }
+            else if (/#general\b/i.test(rawText)) { list = 'General'; rawText = rawText.replace(/#general\b/gi, '').trim(); }
+            else if (/#dispatch\b/i.test(rawText)) { list = 'Dispatch'; rawText = rawText.replace(/#dispatch\b/gi, '').trim(); }
+
+            const mentionMatches = [...rawText.matchAll(/@([A-Za-z0-9_-]+)/g)].map(m => m[1]);
+            const cleanText = rawText.replace(/\s*@[A-Za-z0-9_-]+/g, '').trim() || rawText;
+
+            const linkGroupId = 'lnk-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+            const authorUser = activeTodoUser;
+            const newTask = {
+                id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+                linkGroupId,
+                authorUser,
+                assignedToUsers: mentionMatches,
+                text: cleanText,
+                notes: mentionMatches.length ? `${notes ? notes + ' • ' : ''}From ${authorUser} (@${mentionMatches.join(', @')})` : notes,
+                time, list, priority, recur, flagged: newTodoFlagged, done: false
+            };
+
+            getCurrentUserTodos().unshift(newTask);
+
+            mentionMatches.forEach(targetName => {
+                const matchedKey = Object.keys(todoStoreByUser).find(k => k.toLowerCase() === targetName.toLowerCase());
+                const destUser = matchedKey || targetName;
+                if (!todoStoreByUser[destUser]) todoStoreByUser[destUser] = [];
+                todoStoreByUser[destUser].unshift({
+                    ...newTask,
+                    id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+                    linkGroupId,
+                    authorUser,
+                    notes: `${notes ? notes + ' • ' : ''}Assigned by ${authorUser}`
+                });
+                refreshTodoUserDropdown();
+            });
+
+            inp.value = '';
+            document.getElementById('todo-input-notes').value = '';
+            document.getElementById('todo-due-time').value = '';
+            newTodoFlagged = false;
+            document.getElementById('btn-new-todo-flag').className = "p-1 rounded theme-text-dim hover:text-amber-500";
+            markLocalStateDirty();
+            saveAndRenderTodos();
+            pushStateToCloud(true);
+            playTone('success');
+            if (mentionMatches.length) showToast(`Reminder sent to @${mentionMatches.join(', @')}!`);
+        }
+
+        window.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                markLocalStateDirty();
+                pushStateToCloud(true);
+            }
+        });
+        window.addEventListener('pagehide', () => {
+            markLocalStateDirty();
+            pushStateToCloud(true);
+        });
+
         window.onload = function() {
             setTheme(localStorage.getItem('wmsThemeMode') || 'dark');
             document.getElementById('sound-pack-select').value = localStorage.getItem('wmsSoundPack') || 'laser';
@@ -4140,12 +4540,23 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             makeElementDraggable('calc-popover', 'calc-drag-header');
             makeElementDraggable('chess-floating-window', 'chess-drag-header');
             makeElementDraggable('sudoku-floating-window', 'sudoku-drag-header');
-            updateJsonBackupTimestampUI(); initCloudClient(); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(true);
+            updateJsonBackupTimestampUI(); initCloudClient(); updateOfflineQueueBadge(); if (offlineSyncQueue.length > 0 && navigator.onLine !== false) pushStateToCloud(true); saveWorkspaceState(); refreshTodoUserDropdown(); switchShiftBatchPreset(activeShiftPresetKey); renderBulkColumnEditor(); renderClientCarrierPresets(); renderShiftBatchPills(); renderFeedbackBoard(); saveAndRenderTodos(true);
             pullStateFromCloud(false).then(() => { refreshTodoUserDropdown(); saveAndRenderTodos(true); }); generateTrailerSingleMasterCode(); renderTrailerManifest();
             document.getElementById('cl-date').value = getTodayIsoDate();
+            const savedTplId = localStorage.getItem('wmsActiveNoteTemplateIdV1') || '';
+            const savedDraftHtml = localStorage.getItem('wmsActiveNoteCanvasDraftV1') || '';
             renderNoteTemplatesDropdown();
-            resetSimpleTwoLineNote();
+            if (savedTplId && (savedTplId.startsWith('custom:') || ['asendia', 'nc_rack', 'packing'].includes(savedTplId))) {
+                applyDispatchTemplate(savedTplId);
+            } else if (savedDraftHtml.trim()) {
+                hydrateNoteBodyHtml(savedDraftHtml);
+                applyNoteBorderThickness();
+                autoFitA4Content();
+            } else {
+                resetSimpleTwoLineNote();
+            }
             autoSetNextAvailableSerial(); loadBulkDeck(false);
+            renderTodoAiSuggestions();
             prepareArcadeGame();
             startArcadeEngine();
         };

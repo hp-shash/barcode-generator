@@ -184,7 +184,6 @@
                         <span id="offline-queue-dot" class="h-2 w-2 rounded-full bg-emerald-500"></span>
                         <span id="offline-queue-text">Synced (0)</span>
                     </span>
-                    <button onclick="openCloudAuthModal()" id="btn-cloud-auth" title="Supabase account sign-in" class="px-2 py-1 rounded theme-elevated border text-[10px] font-mono font-bold">Sign in</button>
                     <button onclick="forceManualCloudSync()" id="btn-force-sync" title="Manual Force Sync (Push Pending Queue & Pull Latest Cloud)" class="px-2 py-1 rounded theme-elevated border hover:border-emerald-500 text-[10px] font-mono font-bold flex items-center gap-1 transition">
                         <i data-lucide="refresh-cw" id="icon-force-sync" class="w-3 h-3 text-emerald-500"></i>
                         <span>Force Sync</span>
@@ -322,7 +321,7 @@
                     All browsers use the same deployment-configured Supabase project and room. Run the supplied <code>wms_shared_state_setup.sql</code> once in the project SQL Editor. Cloud data is authoritative; browser storage is only a temporary recovery cache and cannot redirect a browser to another workspace. To change the project or room, update <code>EMBEDDED_CLOUD_DEFAULTS</code> in this HTML and redeploy the same file to every device.
                 </p>
                 <p class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-amber-300 leading-relaxed">
-                    Security: cloud access requires a signed-in Supabase Auth user and workspace membership. Apply the supplied secure migration before enabling shared cloud data. The three operational tabs (Bulk & Labels, Carrier Labels and Trailer Shipping) remain local-only and are excluded from cloud snapshots.
+                    Security: this is a no-login shared workspace. Anyone with the deployed app and its public Supabase key can read and change shared cloud data in the configured room. Do not store passwords, personal data or confidential information here. The three operational tabs (Bulk & Labels, Carrier Labels and Trailer Shipping) remain local-only and are excluded from cloud snapshots.
                 </p>
                 <div>
                     <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Sync Provider</label>
@@ -353,21 +352,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div id="cloud-auth-modal" class="hidden fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="w-full max-w-sm theme-card border-2 border-emerald-500/40 rounded-2xl shadow-2xl p-5 space-y-3">
-            <div class="text-sm font-bold">Sign in to Shared Workspace</div>
-            <p class="text-xs theme-text-muted">Sign in with an account created in your Supabase project. Cloud data is available only to workspace members. Local-only tabs continue to work without signing in.</p>
-            <input id="cloud-auth-email" type="email" autocomplete="username" placeholder="Email address" class="w-full theme-input border rounded-lg px-3 py-2 text-sm">
-            <input id="cloud-auth-password" type="password" autocomplete="current-password" placeholder="Password" class="w-full theme-input border rounded-lg px-3 py-2 text-sm">
-            <div id="cloud-auth-error" class="hidden text-xs text-rose-400"></div>
-            <div class="flex gap-2">
-                <button onclick="closeCloudAuthModal()" class="flex-1 px-3 py-2 rounded-lg theme-input border text-xs">Continue locally</button>
-                <button onclick="signInToCloud()" class="flex-1 px-3 py-2 rounded-lg bg-emerald-600 text-white font-bold text-xs">Sign in</button>
-            </div>
-            <button onclick="signOutOfCloud()" class="w-full text-xs theme-text-dim underline">Sign out of cloud account</button>
         </div>
     </div>
 
@@ -3659,13 +3643,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         throw new Error('The Supabase client library did not load.');
                     }
                     supabaseClientInstance = window.supabase.createClient(cloudSyncConfig.sbUrl, cloudSyncConfig.sbKey, {
+                        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
                         global: { fetch: (input, options = {}) => fetch(input, { ...options, cache: 'no-store' }) }
                     });
-                    updateCloudStatusUI('syncing', 'Checking Auth...');
-                    refreshCloudAuthSession().then(isSignedIn => {
-                        if (isSignedIn) { subscribeToRealtimeCloudSync(); pullStateFromCloud(false); }
-                        else { cloudBootstrapComplete = false; updateCloudStatusUI('local', 'Sign in Required'); updateOfflineQueueBadge(); }
-                    }).catch(error => { cloudSyncLastError = error.message || String(error); updateCloudStatusUI('error', 'Auth Error'); updateOfflineQueueBadge(); });
+                    // No-login mode: use Supabase's anon role; database RLS limits access to the configured room.
+                    cloudAuthUser = { id: null, email: 'Anonymous' };
+                    updateCloudStatusUI('syncing', 'Connecting...');
+                    subscribeToRealtimeCloudSync();
+                    pullStateFromCloud(false).then(loaded => {
+                        if (!loaded) updateCloudStatusUI('error', 'Cloud Access Error');
+                    });
                 } catch (e) {
                     console.warn('Supabase setup failed:', e);
                     supabaseClientInstance = null;
@@ -3694,60 +3681,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             updateCloudStatusUI('local', 'Local Cache');
         }
 
-        let cloudAuthUser = null;
-        function updateCloudAuthButton() {
-            const button = document.getElementById('btn-cloud-auth');
-            if (button) button.textContent = cloudAuthUser ? `Signed in: ${(cloudAuthUser.email || 'Account').split('@')[0]}` : 'Sign in';
-        }
-        function openCloudAuthModal() {
-            const modal = document.getElementById('cloud-auth-modal');
-            if (modal) modal.classList.remove('hidden');
-            if (cloudAuthUser) {
-                const email = document.getElementById('cloud-auth-email');
-                if (email) email.value = cloudAuthUser.email || '';
-            }
-        }
-        function closeCloudAuthModal() { document.getElementById('cloud-auth-modal')?.classList.add('hidden'); }
-        async function signInToCloud() {
-            const email = (document.getElementById('cloud-auth-email')?.value || '').trim();
-            const password = document.getElementById('cloud-auth-password')?.value || '';
-            const errorBox = document.getElementById('cloud-auth-error');
-            try {
-                if (!supabaseClientInstance) throw new Error('Supabase client is not initialized.');
-                if (!email || !password) throw new Error('Enter your email address and password.');
-                const { data, error } = await supabaseClientInstance.auth.signInWithPassword({ email, password });
-                if (error) throw error;
-                cloudAuthUser = data.user || data.session?.user || null;
-                if (!cloudAuthUser) throw new Error('Supabase did not return a signed-in user.');
-                updateCloudAuthButton(); closeCloudAuthModal();
-                cloudBootstrapComplete = false;
-                subscribeToRealtimeCloudSync();
-                const loaded = await pullStateFromCloud(true);
-                if (!loaded) throw new Error(cloudSyncLastError || 'Could not load shared workspace. Check that your account is a workspace member.');
-                showToast('Signed in and connected to the shared workspace.');
-            } catch (e) {
-                if (errorBox) { errorBox.textContent = e.message || String(e); errorBox.classList.remove('hidden'); }
-                cloudAuthUser = null; updateCloudAuthButton();
-            }
-        }
-        async function signOutOfCloud() {
-            try { if (supabaseClientInstance) await supabaseClientInstance.auth.signOut(); } catch (e) { console.warn('Sign out issue:', e); }
-            cloudAuthUser = null; cloudBootstrapComplete = false; stopCloudSubscriptions(); updateCloudAuthButton();
-            closeCloudAuthModal(); updateCloudStatusUI('local', 'Local Only'); updateOfflineQueueBadge();
-        }
-        async function refreshCloudAuthSession() {
-            if (!supabaseClientInstance?.auth) return false;
-            const { data, error } = await supabaseClientInstance.auth.getSession();
-            if (error) throw error;
-            cloudAuthUser = data.session?.user || null;
-            updateCloudAuthButton();
-            supabaseClientInstance.auth.onAuthStateChange((event, session) => {
-                cloudAuthUser = session?.user || null; updateCloudAuthButton();
-                if (event === 'SIGNED_OUT') { cloudBootstrapComplete = false; stopCloudSubscriptions(); updateCloudStatusUI('local', 'Signed Out'); }
-                if (event === 'TOKEN_REFRESHED' && cloudAuthUser) subscribeToRealtimeCloudSync();
-            });
-            return !!cloudAuthUser;
-        }
+        // Anonymous shared-workspace mode: no staff login or Supabase Auth session.
+        let cloudAuthUser = { id: null, email: 'Anonymous' };
 
         let cloudAdminPassHash = readStoredText('wmsCloudAdminPassHashV1', '');
 
@@ -4003,7 +3938,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         async function readCloudSnapshotFromProvider() {
             if (cloudSyncConfig.provider === 'supabase') {
                 if (!supabaseClientInstance) throw new Error('Supabase client is not ready. Check the project URL and publishable key.');
-                if (!cloudAuthUser) throw new Error('Sign in to Supabase before accessing shared cloud data.');
                 const { data, error } = await supabaseClientInstance
                     .from('wms_shared_state')
                     .select('payload,updated_at')
@@ -4298,12 +4232,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (cloudSyncConfig.provider === 'none') return Promise.resolve(true);
             lastLocalMutationAt = Date.now();
             try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
-            if (cloudSyncConfig.provider === 'supabase' && !cloudAuthUser) {
-                enqueueOfflineSyncChange('Waiting for sign-in');
-                updateCloudStatusUI('local', 'Sign in to Sync');
-                return Promise.resolve(false);
-            }
-
             try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
             enqueueOfflineSyncChange('State Change');
             cloudPushRequested = true;
@@ -4329,13 +4257,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         async function pullStateFromCloud(notify = false) {
-            if (cloudSyncConfig.provider === 'supabase' && !cloudAuthUser) {
-                cloudBootstrapComplete = false;
-                updateCloudStatusUI('local', 'Sign in Required');
-                if (notify) openCloudAuthModal();
-                updateOfflineQueueBadge();
-                return false;
-            }
             if (cloudSyncConfig.provider === 'none') {
                 cloudBootstrapComplete = true;
                 return true;
@@ -4456,7 +4377,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         async function showNotesVersionHistory() {
             try {
-                if (!cloudAuthUser) { openCloudAuthModal(); showToast('Sign in to view shared Notes version history.'); return; }
                 const { data, error } = await supabaseClientInstance.from('wms_shared_state_versions')
                     .select('revision,created_at,payload').eq('room_id', cloudSyncConfig.roomId || 'bleckmann-main')
                     .order('revision', { ascending: false }).limit(30);
@@ -5714,13 +5634,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             }
             if (cloudSyncConfig.provider !== 'none') {
                 if (!cloudLastSyncedSnapshot) { try { localStorage.removeItem('wmsOfflineSyncQueueV1'); } catch (e) {} }
-                if (cloudAuthUser) {
-                    const cloudLoaded = await pullStateFromCloud(false);
-                    if (!cloudLoaded) console.warn('Cloud startup was not completed. Local edits will not be uploaded until a successful cloud load.');
-                } else {
-                    cloudBootstrapComplete = false;
-                    updateCloudStatusUI('local', 'Sign in Required');
-                }
+                const cloudLoaded = await pullStateFromCloud(false);
+                if (!cloudLoaded) console.warn('Cloud startup was not completed. Local edits will not be uploaded until a successful cloud load.');
             } else {
                 cloudBootstrapComplete = true;
             }

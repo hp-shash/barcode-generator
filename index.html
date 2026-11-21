@@ -318,10 +318,10 @@
             </div>
             <div class="p-4 space-y-3 text-xs">
                 <p class="theme-text-muted leading-relaxed">
-                    All browsers use the same deployment-configured Supabase project and room. Run the supplied <code>wms_shared_state_setup.sql</code> once in the project SQL Editor. Cloud data is authoritative; browser storage is only a temporary recovery cache and cannot redirect a browser to another workspace. To change the project or room, update <code>EMBEDDED_CLOUD_DEFAULTS</code> in this HTML and redeploy the same file to every device.
+                    All browsers use the same deployment-configured Supabase project and room. Run the supplied <code>wms_no_login_workspace_migration_fixed.sql</code> once in the project SQL Editor. Cloud data is authoritative; browser storage is only a temporary recovery cache and cannot redirect a browser to another workspace. To change the project or room, update <code>EMBEDDED_CLOUD_DEFAULTS</code> in this HTML and redeploy the same file to every device.
                 </p>
                 <p class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2.5 text-amber-300 leading-relaxed">
-                    Security: this is a no-login shared workspace. Anyone with the deployed app and its public Supabase key can read and change shared cloud data in the configured room. Do not store passwords, personal data or confidential information here. The three operational tabs (Bulk & Labels, Carrier Labels and Trailer Shipping) remain local-only and are excluded from cloud snapshots.
+                    Security: this is a no-login shared workspace. Anyone with the deployed app and its public Supabase key can read and change shared cloud data in the configured room. Do not store passwords, personal data or confidential information here. Only Notes and To-Do data are stored in this shared cloud workspace. Bulk & Labels, Carrier Labels, Trailer Shipping, Feedback and File Manager data remain on this device. To-Do profile passwords are browser-local convenience locks, not cloud security controls.
                 </p>
                 <div>
                     <label class="block text-[10px] font-mono uppercase theme-text-dim mb-1">Sync Provider</label>
@@ -498,7 +498,7 @@
         <div class="p-4 border-b theme-border flex items-center justify-between theme-elevated">
             <div class="flex items-center gap-2">
                 <i data-lucide="folder-kanban" class="w-4 h-4 text-emerald-500"></i>
-                <h2 class="text-xs font-bold uppercase tracking-wider">File Manager // Local & Cloud</h2>
+                <h2 class="text-xs font-bold uppercase tracking-wider">File Manager // Local</h2>
             </div>
             <button onclick="toggleFileManager()" class="p-1 rounded hover:opacity-75"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
@@ -589,7 +589,7 @@
                             <span>Schema: <code id="bulk-schema-hint" class="font-mono text-emerald-500">ID, SKU, QTY, LANE</code></span>
                             <span id="bulk-line-count" class="font-mono font-semibold text-emerald-500">5 items</span>
                         </div>
-                        <textarea id="batch-input" rows="5" oninput="handleBulkFeederInput(); pushStateToCloud()" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM01, SKU-101, 24, LANE-1
+                        <textarea id="batch-input" rows="5" oninput="handleBulkFeederInput()" class="w-full theme-input border rounded-lg p-3 text-xs font-mono outline-none focus:border-emerald-500 leading-relaxed">FF-RM01, SKU-101, 24, LANE-1
 FF-RM03, SKU-101, 24, LANE-1
 FF-RM03, SKU-102, 12, LANE-2
 FF-DPD01, SKU-505, 40, DOCK-A
@@ -1092,22 +1092,22 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Trailer / Vehicle ID</label>
-                            <input type="text" id="tr-trailer-id" value="TRL-UK-804" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-trailer-id" value="TRL-UK-804" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Loading Bay / Dock</label>
-                            <input type="text" id="tr-dock-door" value="BAY-04" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-dock-door" value="BAY-04" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Security Seal #</label>
-                            <input type="text" id="tr-seal-num" value="SL-994021" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-seal-num" value="SL-994021" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase theme-text-dim mb-1">Carrier / Destination</label>
-                            <input type="text" id="tr-carrier-name" value="DPD / ROYAL MAIL" oninput="renderTrailerManifest(); pushStateToCloud()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
+                            <input type="text" id="tr-carrier-name" value="DPD / ROYAL MAIL" oninput="renderTrailerManifest()" class="w-full theme-input border rounded-lg px-3 py-2 text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500">
                         </div>
                     </div>
 
@@ -1300,12 +1300,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
                         <div class="grid grid-cols-2 gap-2">
                             <label class="flex items-center justify-between theme-input border rounded-lg px-2 py-1 text-[11px] font-mono">
-                                <span class="flex items-center gap-1"><input type="checkbox" id="a4-margin-enabled" checked onchange="pushStateToCloud()" class="accent-emerald-500"> Margin</span>
-                                <span><input type="number" id="a4-print-margin-mm" value="8" min="0" max="25" onchange="pushStateToCloud()" class="w-7 bg-transparent font-bold text-right outline-none">mm</span>
+                                <span class="flex items-center gap-1"><input type="checkbox" id="a4-margin-enabled" checked onchange="persistActiveNoteDraft()" class="accent-emerald-500"> Margin</span>
+                                <span><input type="number" id="a4-print-margin-mm" value="8" min="0" max="25" onchange="persistActiveNoteDraft()" class="w-7 bg-transparent font-bold text-right outline-none">mm</span>
                             </label>
                             <div class="flex items-center justify-between theme-input border rounded-lg px-2 py-1 text-[11px] font-mono">
                                 <span>Border</span>
-                                <select id="a4-border-width" onchange="applyNoteBorderThickness(); pushStateToCloud()" class="bg-transparent font-bold outline-none">
+                                <select id="a4-border-width" onchange="applyNoteBorderThickness(); persistActiveNoteDraft()" class="bg-transparent font-bold outline-none">
                                     <option value="0px">OFF</option>
                                     <option value="2px">2px</option>
                                     <option value="4px" selected>4px</option>
@@ -1348,7 +1348,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     <div id="a4-paper-sheet" class="bg-white text-zinc-950 border-4 border-zinc-900 shadow-2xl p-6 flex flex-col items-center justify-center overflow-hidden transition-transform duration-150 origin-center" style="width: 842px; height: 595px;">
                         <div id="a4-word-body" oninput="autoFitA4Content(); persistActiveNoteDraft();" onfocusout="persistActiveNoteDraft();" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center"></div>
 
-                        <div id="a4-excel-body" oninput="pushStateToCloud()" class="hidden w-full h-full overflow-auto">
+                        <div id="a4-excel-body" oninput="persistActiveExcelNote();" class="hidden w-full h-full overflow-auto">
                             <table id="a4-excel-table" class="w-full border-collapse border-2 border-zinc-900 font-mono text-xs">
                                 <thead>
                                     <tr class="bg-zinc-200">
@@ -2047,7 +2047,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         // ==========================================
         // 3. BULK & LABELS (RESET DEFAULT + AUTO-SORT ON ENTRY/CHANGE WITH CUSTOMISATION)
         // ==========================================
-        let bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'], bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel', duplicateIdSet = new Set();
+        let bulkColumnHeaders = readStoredJson('wmsBulkColumnHeadersV1', ['ID', 'SKU', 'QTY', 'LANE']), bulkRecords = [], scannedSet = new Set(), currentDeckIndex = 0, autoPlayTimer = null, bulkViewMode = 'carousel', duplicateIdSet = new Set();
+        if (!Array.isArray(bulkColumnHeaders) || !bulkColumnHeaders.length) bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'];
 
         function resetBulkFeederDefaults() {
             bulkColumnHeaders = ['ID', 'SKU', 'QTY', 'LANE'];
@@ -2065,7 +2066,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             scannedSet.clear();
             renderBulkColumnEditor();
             loadBulkDeck(false);
-            pushStateToCloud(true);
             playTone('success');
             showToast("Bulk & Label Feeder reset to defaults!");
         }
@@ -2098,8 +2098,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         });
 
         function saveBulkSettingsToCloud() {
-            // pushStateToCloud queues edits made while the first cloud read is still in progress.
-            pushStateToCloud();
+            // Bulk & Labels settings are device-local by design.
+            safeLocalCacheWrite('wmsBulkColumnHeadersV1', bulkColumnHeaders);
         }
 
         function renderBulkColumnEditor() {
@@ -2141,7 +2141,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 const idKey = line.split(',')[0].trim().toUpperCase();
                 if (!seen.has(idKey)) { seen.add(idKey); uniqueLines.push(line); }
             });
-            ta.value = uniqueLines.join('\n'); scannedSet.clear(); loadBulkDeck(false); pushStateToCloud(true); playTone('success'); showToast("Removed duplicate IDs!");
+            ta.value = uniqueLines.join('\n'); scannedSet.clear(); loadBulkDeck(false); playTone('success'); showToast("Removed duplicate IDs!");
         }
 
         function getBulkRecordStableKey(record) {
@@ -2202,7 +2202,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (!toAdd.length) return showToast("All gaps already present.");
             ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + toAdd.join('\n');
             loadBulkDeck(false);
-            pushStateToCloud(true);
             playTone('success');
             showToast(`Inserted ${toAdd.length} missing serial(s)!`);
         }
@@ -2354,7 +2353,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             scannedSet.add(currentDeckIndex); playTone('success');
             if (currentDeckIndex < bulkRecords.length - 1) currentDeckIndex++;
             renderCurrentDeckSlide();
-            pushStateToCloud();
         }
         function stepDeck(d) { if (bulkRecords.length) { currentDeckIndex = (currentDeckIndex + d + bulkRecords.length) % bulkRecords.length; renderCurrentDeckSlide(); } }
         function toggleAutoPlay() {
@@ -2506,12 +2504,11 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('btn-shift-preset-NC').className = key === 'NC' ? "px-2 py-0.5 rounded font-bold bg-emerald-600 text-white" : "px-2 py-0.5 rounded font-bold theme-text-muted";
             renderShiftBatchPills();
             if (!document.getElementById('shift-batch-editor').classList.contains('hidden')) renderShiftBatchEditorRows();
-            if (!skipCloudPush) pushStateToCloud();
+            safeLocalCacheWrite('wmsAllShiftPresetsV1', allShiftPresets);
         }
         function saveShiftBatchRules() {
             allShiftPresets[activeShiftPresetKey] = JSON.parse(JSON.stringify(shiftBatchConfig));
             safeLocalCacheWrite('wmsAllShiftPresetsV1', allShiftPresets);
-            pushStateToCloud();
             renderShiftBatchPills();
             toggleShiftBatchEditor();
             showToast(`Saved ${activeShiftPresetKey} shift batch!`);
@@ -2582,7 +2579,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('cl-carrier-preset').innerHTML = savedCarriers.map(c => `<option value="${escapeHtml(c.code)}">${escapeHtml(c.code)} — ${escapeHtml(c.name)}</option>`).join('');
         }
         function promptNewClientPreset() { const c = prompt("Client Code:")?.trim().toUpperCase(); if (!c) return; if (!/^[A-Z0-9_-]{1,10}$/.test(c)) return showToast('Use 1–10 letters, numbers, hyphens or underscores for client codes.'); if (savedClients.some(x => String(x.code).toUpperCase() === c)) return showToast('That client code already exists.'); const n = prompt(`Client Name:`, c) || c; savedClients.push({ id: `client:${c}`, code: c, name: n }); safeLocalCacheWrite('wmsCustomClientsV2', savedClients); renderClientCarrierPresets(); document.getElementById('cl-client-preset').value = c; document.getElementById('cl-client-code').value = c; autoSetNextAvailableSerial(); }
-        function promptNewCarrierPreset() { const c = prompt("Carrier Code:")?.trim().toUpperCase(); if (!c) return; if (!/^[A-Z0-9_-]{1,10}$/.test(c)) return showToast('Use 1–10 letters, numbers, hyphens or underscores for carrier codes.'); if (savedCarriers.some(x => String(x.code).toUpperCase() === c)) return showToast('That carrier code already exists.'); const n = prompt(`Carrier Name:`, c) || c; savedCarriers.push({ id: `carrier:${c}`, code: c, name: n }); safeLocalCacheWrite('wmsCustomCarriersV2', savedCarriers); renderClientCarrierPresets(); document.getElementById('cl-carrier-preset').value = c; document.getElementById('cl-carrier-code').value = c; autoSetNextAvailableSerial(); pushStateToCloud(true); }
+        function promptNewCarrierPreset() { const c = prompt("Carrier Code:")?.trim().toUpperCase(); if (!c) return; if (!/^[A-Z0-9_-]{1,10}$/.test(c)) return showToast('Use 1–10 letters, numbers, hyphens or underscores for carrier codes.'); if (savedCarriers.some(x => String(x.code).toUpperCase() === c)) return showToast('That carrier code already exists.'); const n = prompt(`Carrier Name:`, c) || c; savedCarriers.push({ id: `carrier:${c}`, code: c, name: n }); safeLocalCacheWrite('wmsCustomCarriersV2', savedCarriers); renderClientCarrierPresets(); document.getElementById('cl-carrier-preset').value = c; document.getElementById('cl-carrier-code').value = c; autoSetNextAvailableSerial(); }
         function syncCarrierPreset(kind) { if (kind === 'client') document.getElementById('cl-client-code').value = document.getElementById('cl-client-preset').value; else document.getElementById('cl-carrier-code').value = document.getElementById('cl-carrier-preset').value; autoSetNextAvailableSerial(); }
         function setCarrierOrientation(orient) {
             carrierOrientation = orient;
@@ -3267,21 +3264,28 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             autoFitA4Content();
             persistActiveNoteDraft();
         }
-        function setOfficeMode(mode) { document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word'); document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel'); document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel'); document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; if (cloudBootstrapComplete) pushStateToCloud(); }
-        function setA4Orientation(orient) {
+        function setOfficeMode(mode, skipCloudPush = false) { document.getElementById('a4-word-body').classList.toggle('hidden', mode !== 'word'); document.getElementById('a4-excel-body').classList.toggle('hidden', mode !== 'excel'); document.getElementById('excel-ribbon-tools').classList.toggle('hidden', mode !== 'excel'); document.getElementById('btn-office-word').className = mode === 'word' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; document.getElementById('btn-office-excel').className = mode === 'excel' ? "px-3 py-1 rounded-md font-semibold bg-blue-600 text-white flex items-center gap-1.5" : "px-3 py-1 rounded-md font-medium theme-text-muted flex items-center gap-1.5"; if (!skipCloudPush && cloudBootstrapComplete) pushStateToCloud(true); }
+        function setA4Orientation(orient, skipCloudPush = false) {
             a4Orientation = orient;
             document.getElementById('btn-a4-land').className = orient === 'landscape' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
             document.getElementById('btn-a4-port').className = orient === 'portrait' ? "px-2.5 py-1 rounded font-semibold bg-emerald-600 text-white" : "px-2.5 py-1 rounded font-medium theme-text-muted";
             autoFitA4Content();
-            if (cloudBootstrapComplete) pushStateToCloud();
+            if (!skipCloudPush && cloudBootstrapComplete) pushStateToCloud(true);
         }
 
         window.addEventListener('resize', () => {
             if (!document.getElementById('view-a4note')?.classList.contains('hidden')) fitA4SheetToViewport();
         });
         function execDocCmd(cmd, val = null) { document.execCommand(cmd, false, val); persistActiveNoteDraft(); }
-        function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); pushStateToCloud(); }
-        function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); pushStateToCloud(); }
+        function persistActiveExcelNote() {
+            const excelBody = document.getElementById('a4-excel-body');
+            if (!excelBody) return;
+            safeLocalCacheWrite('wmsActiveNoteExcelHtmlV1', sanitizeNoteHtml(excelBody.innerHTML));
+            markLocalStateDirty();
+            pushStateToCloud(false);
+        }
+        function addExcelRow() { const tb = document.querySelector('#a4-excel-table tbody'), cols = document.querySelectorAll('#a4-excel-table thead th').length, tr = document.createElement('tr'); for (let i = 0; i < cols; i++) tr.innerHTML += `<td contenteditable="true" class="border border-zinc-900 p-2">--</td>`; tb.appendChild(tr); persistActiveExcelNote(); }
+        function addExcelCol() { const name = prompt("Column Header:", "NOTES") || "COL", th = document.createElement('th'); th.contentEditable = "true"; th.className = "border-2 border-zinc-900 p-2 text-left"; th.innerText = name.toUpperCase(); document.querySelector('#a4-excel-table thead tr').appendChild(th); document.querySelectorAll('#a4-excel-table tbody tr').forEach(tr => { const td = document.createElement('td'); td.contentEditable = "true"; td.className = "border border-zinc-900 p-2"; td.innerText = "--"; tr.appendChild(td); }); persistActiveExcelNote(); }
         function printA4DeliveryNote() {
             const marginOn = document.getElementById('a4-margin-enabled')?.checked ?? true;
             const marginMm = marginOn ? (parseInt(document.getElementById('a4-print-margin-mm')?.value) || 0) : 0;
@@ -3485,7 +3489,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 badge.className = 'inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500';
                 dot.className = 'h-2 w-2 rounded-full bg-emerald-500';
                 txt.innerText = 'Synced (0)';
-                badge.title = 'The shared cloud snapshot has been loaded and there are no pending changes. Local-only tabs are never queued.';
+                badge.title = 'Notes and To-Do data are shared. All other tabs stay on this device.';
                 setTemplateBadge('Cloud Saved', 'text-emerald-400');
             }
         }
@@ -3734,36 +3738,29 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function buildSharedStateSnapshot() {
-            // Keep the in-memory mutation clock authoritative when browser storage is blocked
-            // (notably private/incognito modes). LocalStorage is only a persistence fallback.
             const persistedMutationTs = Number(readStoredJson('wmsLastLocalMutationAtV1', 0)) || 0;
             const localMutationTs = Math.max(Number(lastLocalMutationAt) || 0, persistedMutationTs);
+            const excelBody = document.getElementById('a4-excel-body');
             return {
-                schemaVersion: 4,
-                todoStoreByUser,
-                userPasswordsMap,
-                savedTodoBatchesByUser,
-                iphoneNotesByUser,
-                customUserShiftBatches,
+                schemaVersion: 5,
+                todoStoreByUser: cloneCloudJson(todoStoreByUser),
+                savedTodoBatchesByUser: cloneCloudJson(savedTodoBatchesByUser),
+                iphoneNotesByUser: cloneCloudJson(iphoneNotesByUser),
+                customUserShiftBatches: cloneCloudJson(customUserShiftBatches),
                 savedNoteTemplates: Object.fromEntries(Object.entries(savedNoteTemplates).map(([key, value]) => [key, sanitizeNoteHtml(value)])),
-                hiddenBuiltinNoteTemplates,
-                activeNoteIdByUser,
-                allShiftPresets,
-                activeShiftPresetKey,
-                activeNoteDraftHtml: sanitizeNoteHtml(activeNoteDraftHtml),
-                activeSelectedTemplateId,
-                activeNoteExcelHtml: sanitizeNoteHtml(document.getElementById('a4-excel-body')?.innerHTML || ''),
+                hiddenBuiltinNoteTemplates: Array.isArray(hiddenBuiltinNoteTemplates) ? hiddenBuiltinNoteTemplates.filter(key => typeof key === 'string') : [],
+                activeNoteIdByUser: cloneCloudJson(activeNoteIdByUser),
+                activeNoteDraftHtml: sanitizeNoteHtml(serializeNoteBodyHtml()),
+                activeSelectedTemplateId: String(activeSelectedTemplateId || ''),
+                activeNoteExcelHtml: sanitizeNoteHtml(excelBody?.innerHTML || ''),
                 noteLayout: {
                     orientation: a4Orientation,
-                    officeMode: document.getElementById('a4-excel-body')?.classList.contains('hidden') ? 'word' : 'excel',
+                    officeMode: excelBody && !excelBody.classList.contains('hidden') ? 'excel' : 'word',
                     lineSpacing: document.getElementById('a4-word-body')?.style.lineHeight || '1.2',
                     borderWidth: document.getElementById('a4-border-width')?.value || '4px',
                     printMarginMm: document.getElementById('a4-print-margin-mm')?.value || '8',
                     marginEnabled: document.getElementById('a4-margin-enabled')?.checked ?? true
                 },
-                feedbackList: Array.isArray(feedbackList) ? feedbackList.map((item, index) => ({
-                    ...item, id: item.id || `feedback:${item.createdAt || item.comment || index}`
-                })) : [],
                 updatedAt: localMutationTs ? new Date(localMutationTs).toISOString() : new Date(0).toISOString()
             };
         }
@@ -3928,10 +3925,21 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function stripLocalOnlyCloudFields(snapshot) {
-            if (!isPlainObject(snapshot)) return snapshot;
-            const clean = cloneCloudJson(snapshot);
-            ['savedClients','savedCarriers','carrierUsageLedger','trailerScannedList','trailerContext',
-             'workspace','bulkInput','bulkSettings','bulkScannedKeys'].forEach(key => { delete clean[key]; });
+            if (!isPlainObject(snapshot)) return null;
+            const clean = { schemaVersion: 5 };
+            const objectKeys = [
+                'todoStoreByUser', 'savedTodoBatchesByUser', 'iphoneNotesByUser',
+                'customUserShiftBatches', 'savedNoteTemplates', 'activeNoteIdByUser', 'noteLayout'
+            ];
+            objectKeys.forEach(key => {
+                clean[key] = isPlainObject(snapshot[key]) ? cloneCloudJson(snapshot[key]) : {};
+            });
+            clean.hiddenBuiltinNoteTemplates = Array.isArray(snapshot.hiddenBuiltinNoteTemplates)
+                ? snapshot.hiddenBuiltinNoteTemplates.filter(key => typeof key === 'string') : [];
+            clean.activeNoteDraftHtml = typeof snapshot.activeNoteDraftHtml === 'string' ? snapshot.activeNoteDraftHtml : '';
+            clean.activeSelectedTemplateId = typeof snapshot.activeSelectedTemplateId === 'string' ? snapshot.activeSelectedTemplateId : '';
+            clean.activeNoteExcelHtml = typeof snapshot.activeNoteExcelHtml === 'string' ? snapshot.activeNoteExcelHtml : '';
+            if (typeof snapshot.updatedAt === 'string') clean.updatedAt = snapshot.updatedAt;
             return clean;
         }
 
@@ -4007,97 +4015,97 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         function applySharedStateSnapshot(snap) {
+            snap = stripLocalOnlyCloudFields(snap);
             if (!isPlainObject(snap)) return false;
             cloudSnapshotApplied = true;
             let applied = false;
-
             if (isPlainObject(snap.todoStoreByUser)) {
-                todoStoreByUser = snap.todoStoreByUser;
+                todoStoreByUser = cloneCloudJson(snap.todoStoreByUser);
                 safeLocalCacheWrite('wmsShiftTodosByUserV2', todoStoreByUser);
                 applied = true;
             }
-            if (isPlainObject(snap.userPasswordsMap)) {
-                userPasswordsMap = snap.userPasswordsMap;
-                safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
-                applied = true;
-            }
             if (isPlainObject(snap.savedTodoBatchesByUser)) {
-                savedTodoBatchesByUser = snap.savedTodoBatchesByUser;
+                savedTodoBatchesByUser = cloneCloudJson(snap.savedTodoBatchesByUser);
                 safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
                 applied = true;
             }
             if (isPlainObject(snap.iphoneNotesByUser)) {
-                iphoneNotesByUser = snap.iphoneNotesByUser;
+                iphoneNotesByUser = cloneCloudJson(snap.iphoneNotesByUser);
                 safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
                 applied = true;
             }
             if (isPlainObject(snap.customUserShiftBatches)) {
-                customUserShiftBatches = snap.customUserShiftBatches;
+                customUserShiftBatches = cloneCloudJson(snap.customUserShiftBatches);
                 safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
                 applied = true;
             }
             if (isPlainObject(snap.savedNoteTemplates)) {
                 savedNoteTemplates = Object.fromEntries(Object.entries(snap.savedNoteTemplates).map(([key, value]) => [key, sanitizeNoteHtml(value)]));
                 safeLocalCacheWrite('wmsPermanentNoteTemplatesV1', savedNoteTemplates);
-                renderNoteTemplatesDropdown();
-                // The activeNoteDraftHtml field below contains the exact shared editor state.
-                // Do not regenerate a template here: that would create an unnecessary local edit
-                // while handling a remote update and could echo stale content back to the cloud.
                 applied = true;
             }
             if (Array.isArray(snap.hiddenBuiltinNoteTemplates)) {
                 hiddenBuiltinNoteTemplates = snap.hiddenBuiltinNoteTemplates.filter(key => typeof key === 'string');
                 safeLocalCacheWrite('wmsHiddenBuiltinNoteTemplatesV1', hiddenBuiltinNoteTemplates);
-                renderNoteTemplatesDropdown();
                 applied = true;
             }
             if (isPlainObject(snap.activeNoteIdByUser)) {
-                activeNoteIdByUser = snap.activeNoteIdByUser;
+                activeNoteIdByUser = cloneCloudJson(snap.activeNoteIdByUser);
                 safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
                 applied = true;
             }
-            if (isPlainObject(snap.allShiftPresets)) {
-                allShiftPresets = snap.allShiftPresets;
-                safeLocalCacheWrite('wmsAllShiftPresetsV1', allShiftPresets);
-                shiftBatchConfig = allShiftPresets[activeShiftPresetKey] || allShiftPresets.FF || shiftBatchConfig;
-                renderShiftBatchPills();
+            if (typeof snap.activeSelectedTemplateId === 'string') {
+                activeSelectedTemplateId = snap.activeSelectedTemplateId;
+                safeLocalCacheWrite('wmsActiveNoteTemplateIdV1', activeSelectedTemplateId);
                 applied = true;
             }
             if (typeof snap.activeNoteDraftHtml === 'string') {
                 const noteBody = document.getElementById('a4-word-body');
                 const userIsEditingNote = noteBody && noteBody.contains(document.activeElement);
-                if (userIsEditingNote) {
-                    activeNoteDraftHtml = serializeNoteBodyHtml();
-                } else {
+                if (!userIsEditingNote) {
                     activeNoteDraftHtml = sanitizeNoteHtml(snap.activeNoteDraftHtml);
                     safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', activeNoteDraftHtml);
                     safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeNoteDraftHtml);
-                    if (noteBody) {
-                        hydrateNoteBodyHtml(activeNoteDraftHtml);
-                        applyNoteBorderThickness();
-                        autoFitA4Content();
-                    }
+                    if (noteBody) hydrateNoteBodyHtml(activeNoteDraftHtml);
                 }
                 applied = true;
-            } else {
-                // Old cloud schemas did not contain a shared draft. Do not revive a stale browser draft.
-                activeNoteDraftHtml = '';
-                safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', '');
-                safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', '');
             }
-            if (typeof snap.activeShiftPresetKey === 'string' && allShiftPresets[snap.activeShiftPresetKey]) {
-                activeShiftPresetKey = snap.activeShiftPresetKey;
-                safeLocalCacheWrite('wmsActiveShiftPresetKeyV1', activeShiftPresetKey);
-                shiftBatchConfig = allShiftPresets[activeShiftPresetKey];
-                renderShiftBatchPills();
+            if (typeof snap.activeNoteExcelHtml === 'string') {
+                const excelBody = document.getElementById('a4-excel-body');
+                const userIsEditingExcel = excelBody && excelBody.contains(document.activeElement);
+                if (!userIsEditingExcel && excelBody) {
+                    excelBody.innerHTML = sanitizeNoteHtml(snap.activeNoteExcelHtml);
+                    safeLocalCacheWrite('wmsActiveNoteExcelHtmlV1', excelBody.innerHTML);
+                }
                 applied = true;
             }
-
+            if (isPlainObject(snap.noteLayout)) {
+                applyCloudNoteLayout(snap.noteLayout);
+                applied = true;
+            }
             if (applied) {
+                renderNoteTemplatesDropdown();
                 refreshTodoUserDropdown();
                 saveAndRenderTodos(true);
+                autoFitA4Content();
             }
             return applied;
+        }
+
+        function applyCloudNoteLayout(layout) {
+            if (!isPlainObject(layout)) return;
+            if (layout.orientation === 'landscape' || layout.orientation === 'portrait') setA4Orientation(layout.orientation, true);
+            if (layout.officeMode === 'word' || layout.officeMode === 'excel') setOfficeMode(layout.officeMode, true);
+            const wordBody = document.getElementById('a4-word-body');
+            if (wordBody && typeof layout.lineSpacing === 'string') wordBody.style.lineHeight = layout.lineSpacing;
+            const border = document.getElementById('a4-border-width');
+            if (border && ['0px', '2px', '4px', '6px'].includes(layout.borderWidth)) { border.value = layout.borderWidth; applyNoteBorderThickness(); }
+            const margin = document.getElementById('a4-print-margin-mm');
+            if (margin && layout.printMarginMm !== undefined) margin.value = String(Math.min(25, Math.max(0, Number(layout.printMarginMm) || 0)));
+            const marginEnabled = document.getElementById('a4-margin-enabled');
+            if (marginEnabled && typeof layout.marginEnabled === 'boolean') marginEnabled.checked = layout.marginEnabled;
+            safeLocalCacheWrite('wmsNoteLayoutV1', layout);
+            autoFitA4Content();
         }
 
         async function writeMergedSnapshotToCloud(localSnapshot, queuedIds) {
@@ -4232,7 +4240,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (cloudSyncConfig.provider === 'none') return Promise.resolve(true);
             lastLocalMutationAt = Date.now();
             try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
-            try { localStorage.setItem('wmsLastLocalMutationAtV1', String(lastLocalMutationAt)); } catch (e) {}
             enqueueOfflineSyncChange('State Change');
             cloudPushRequested = true;
             clearTimeout(cloudSyncTimer);
@@ -4266,7 +4273,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 if (notify) showToast('Device offline. Local data remains on this device only.');
                 return false;
             }
-            if (isCloudPushInFlight || cloudPullPromise) return cloudPullPromise || false;
+            if (cloudPullPromise) return cloudPullPromise;
+            if (isCloudPushInFlight && cloudPushPromise) {
+                const activePush = cloudPushPromise;
+                try { await activePush; } catch (e) { /* The following pull reports current server state. */ }
+            }
+            if (cloudPullPromise) return cloudPullPromise;
 
             cloudPullPromise = (async () => {
                 let shouldPushMergedLocal = false;
@@ -4418,12 +4430,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         let todoStoreByUser = readStoredJson('wmsShiftTodosByUserV2', null);
         if (!isPlainObject(todoStoreByUser)) todoStoreByUser = null;
         if (!todoStoreByUser) {
-            todoStoreByUser = {
-                Shash: [
-                    { id: 'td-1', text: 'Print 25 FF-RM labels (2 copies each)', notes: 'Royal Mail evening dispatch', time: '09:30', list: 'Dispatch', priority: 3, recur: 'daily', flagged: true, done: false },
-                    { id: 'td-2', text: 'Verify trailer seal and print Asendia Note', notes: 'Bay 4 Bleckmann FitFlop load', time: '23:55', list: 'Dispatch', priority: 2, recur: 'shift', flagged: false, done: false }
-                ]
-            };
+            todoStoreByUser = { Shash: [] };
         }
         let userPasswordsMap = readStoredJson('wmsTodoUserPasswordsV1', {});
         if (!isPlainObject(userPasswordsMap)) userPasswordsMap = {};
@@ -4479,15 +4486,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (nextPass.trim()) {
                 userPasswordsMap[activeTodoUser] = await hashPasswordText(nextPass.trim());
                 safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
-                pushStateToCloud();
                 refreshTodoUserDropdown();
-                showToast(`Password protected for ${activeTodoUser}!`);
+                showToast(`Password protected locally for ${activeTodoUser}!`);
             } else {
                 delete userPasswordsMap[activeTodoUser];
                 safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
-                pushStateToCloud();
                 refreshTodoUserDropdown();
-                showToast(`Password removed for ${activeTodoUser}`);
+                showToast(`Local password removed for ${activeTodoUser}`);
             }
         }
 
@@ -4527,9 +4532,18 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (!ok) return;
             if (!confirm(`Remove user "${activeTodoUser}"?`)) return;
             pushTodoUndoSnapshot();
-            delete todoStoreByUser[activeTodoUser];
-            delete userPasswordsMap[activeTodoUser];
+            const removedUser = activeTodoUser;
+            delete todoStoreByUser[removedUser];
+            delete savedTodoBatchesByUser[removedUser];
+            delete iphoneNotesByUser[removedUser];
+            delete activeNoteIdByUser[removedUser];
+            delete customUserShiftBatches[removedUser];
+            delete userPasswordsMap[removedUser];
             safeLocalCacheWrite('wmsTodoUserPasswordsV1', userPasswordsMap);
+            safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
+            safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
+            safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
+            safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
             activeTodoUser = Object.keys(todoStoreByUser)[0];
             safeLocalCacheWrite('wmsActiveTodoUserV1', activeTodoUser);
             refreshTodoUserDropdown();
@@ -4580,10 +4594,9 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function getOrInitUserShiftBatch(userName = activeTodoUser) {
             if (!customUserShiftBatches[userName]) {
-                const existingTodos = todoStoreByUser[userName] || [];
                 const activeNote = getActiveNoteObj(userName);
                 customUserShiftBatches[userName] = {
-                    reminders: existingTodos.map(t => `${t.text} | ${t.time || ''} | ${t.list || 'Dispatch'} | ${t.priority || 0}`),
+                    reminders: [],
                     noteTitle: activeNote?.title || `${userName} Shift Note`,
                     noteText: (activeNote?.html || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
                 };
@@ -4656,16 +4669,33 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
 
         function applyUserShiftBatchTemplate() {
             const editorBox = document.getElementById('user-shift-batch-editor');
-            if (editorBox && !editorBox.classList.contains('hidden')) {
-                saveUserShiftBatchPreset();
-            }
+            if (editorBox && !editorBox.classList.contains('hidden')) saveUserShiftBatchPreset();
             const preset = getOrInitUserShiftBatch(activeTodoUser);
+            const batchSignature = JSON.stringify({
+                reminders: (preset.reminders || []).map(line => String(line || '').trim()),
+                noteTitle: String(preset.noteTitle || ''),
+                noteText: String(preset.noteText || '')
+            });
+            let hash = 2166136261;
+            for (let i = 0; i < batchSignature.length; i++) hash = Math.imul(hash ^ batchSignature.charCodeAt(i), 16777619);
+            const runKey = `${activeTodoUser}:${(hash >>> 0).toString(36)}:${Math.floor(Date.now() / 14400000)}`;
+            const existing = getCurrentUserTodos();
+            const existingRunIds = new Set(existing.map(t => t.batchRunId).filter(Boolean));
+            if (existingRunIds.has(runKey)) return showToast('This shift batch has already been applied in the current shift window.');
             pushTodoUndoSnapshot();
             const createdTodos = (preset.reminders || []).map((line, idx) => {
                 const parsed = parseBatchReminderLine(line);
+                const text = parsed.text || line;
+                const alreadyOpen = existing.some(task => !task.done
+                    && task.notes === `${activeTodoUser} Shift Batch`
+                    && task.text === text && (task.time || '') === parsed.time
+                    && (task.list || 'General') === parsed.list
+                    && (Number(task.priority) || 0) === parsed.priority);
+                if (alreadyOpen) return null;
                 return {
-                    id: 'td-batch-' + Date.now() + '-' + idx,
-                    text: parsed.text || line,
+                    id: `td-batch-${encodeURIComponent(runKey)}-${idx}`,
+                    batchRunId: runKey,
+                    text,
                     notes: `${activeTodoUser} Shift Batch`,
                     time: parsed.time,
                     list: parsed.list,
@@ -4674,18 +4704,16 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                     flagged: false,
                     done: false
                 };
-            });
-            if (createdTodos.length) {
-                todoStoreByUser[activeTodoUser] = [...createdTodos, ...getCurrentUserTodos()];
-            }
+            }).filter(Boolean);
+            if (createdTodos.length) todoStoreByUser[activeTodoUser] = [...createdTodos, ...existing];
             if (preset.noteTitle || preset.noteText) {
                 const notesArr = getUserNotesCollection(activeTodoUser);
-                const noteObj = {
-                    id: 'note-batch-' + Date.now(),
-                    title: preset.noteTitle || `${activeTodoUser} Shift Note`,
-                    html: `<div>${escapeHtml(preset.noteText || '')}</div>`
-                };
-                notesArr.unshift(noteObj);
+                const noteId = `note-batch-${encodeURIComponent(runKey)}`;
+                let noteObj = notesArr.find(n => n.id === noteId);
+                if (!noteObj) {
+                    noteObj = { id: noteId, title: preset.noteTitle || `${activeTodoUser} Shift Note`, html: `<div>${escapeHtml(preset.noteText || '')}</div>` };
+                    notesArr.unshift(noteObj);
+                }
                 activeNoteIdByUser[activeTodoUser] = noteObj.id;
                 safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
                 safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
@@ -4769,11 +4797,13 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (!raw) {
                 const initial = [{ id: 'note-' + Date.now(), title: `${userName} Shift Notes`, html: '<div>Tap to write notes, checklists, or shift logs...</div>' }];
                 iphoneNotesByUser[userName] = initial;
+                safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
                 return initial;
             }
             if (Array.isArray(raw)) return raw;
             const migrated = [{ id: 'note-' + Date.now(), title: raw.title || `${userName} Shift Notes`, html: raw.html || '' }];
             iphoneNotesByUser[userName] = migrated;
+            safeLocalCacheWrite('wmsIphoneNotesByUserV1', iphoneNotesByUser);
             return migrated;
         }
 
@@ -4784,6 +4814,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             if (!found) {
                 found = notesArr[0];
                 activeNoteIdByUser[userName] = found.id;
+                safeLocalCacheWrite('wmsActiveNoteIdByUserV1', activeNoteIdByUser);
             }
             return found;
         }
@@ -4868,8 +4899,8 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const cur = getActiveNoteObj(activeTodoUser);
             const tInp = document.getElementById('iphone-note-title');
             const ed = document.getElementById('iphone-note-editor');
-            if (tInp) tInp.value = cur.title || '';
-            if (ed) ed.innerHTML = cur.html || '';
+            if (tInp && document.activeElement !== tInp) tInp.value = cur.title || '';
+            if (ed && !ed.contains(document.activeElement)) ed.innerHTML = cur.html || '';
             updateNoteWordStats();
         }
 
@@ -5003,30 +5034,48 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             pushTodoUndoSnapshot();
             const listArr = getCurrentUserTodos();
             const item = listArr.find(t => t.id === id);
-            if (item) {
-                const nextDoneState = !item.done;
-                item.done = nextDoneState;
+            if (!item) return;
+            const nextDoneState = !item.done;
+            item.done = nextDoneState;
 
-                if (item.linkGroupId) {
-                    Object.keys(todoStoreByUser).forEach(uKey => {
-                        (todoStoreByUser[uKey] || []).forEach(otherTask => {
-                            if (otherTask.linkGroupId === item.linkGroupId && otherTask.id !== item.id) {
-                                otherTask.done = nextDoneState;
-                                if (nextDoneState) {
-                                    otherTask.notes = `${otherTask.notes ? otherTask.notes + ' • ' : ''}Completed by ${activeTodoUser}`;
-                                }
+            if (item.linkGroupId) {
+                Object.keys(todoStoreByUser).forEach(uKey => {
+                    (todoStoreByUser[uKey] || []).forEach(otherTask => {
+                        if (otherTask.linkGroupId === item.linkGroupId && otherTask.id !== item.id) {
+                            otherTask.done = nextDoneState;
+                            if (nextDoneState) {
+                                const suffix = `Completed by ${activeTodoUser}`;
+                                if (!(otherTask.notes || '').includes(suffix)) otherTask.notes = `${otherTask.notes ? otherTask.notes + ' • ' : ''}${suffix}`;
+                            } else {
+                                otherTask.notes = String(otherTask.notes || '').replace(/(?: • )?Completed by [^•]*/g, '').trim();
                             }
-                        });
+                        }
                     });
-                }
-
-                if (nextDoneState && item.recur && item.recur !== 'none') {
-                    listArr.push({ ...item, id: 'td-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), done: false });
-                }
-                saveAndRenderTodos();
-                if (nextDoneState) playTone('success');
+                });
             }
+
+            if (nextDoneState && item.recur && item.recur !== 'none') {
+                const rootId = item.recurrenceRootId || item.id;
+                const sequence = (Number(item.recurrenceSequence) || 0) + 1;
+                const nextId = `td-recur-${encodeURIComponent(activeTodoUser)}-${encodeURIComponent(rootId)}-${sequence}`;
+                if (!listArr.some(t => t.id === nextId)) {
+                    const nextItem = {
+                        ...item,
+                        id: nextId,
+                        recurrenceRootId: rootId,
+                        recurrenceSequence: sequence,
+                        linkGroupId: null,
+                        assignedToUsers: [],
+                        notes: String(item.notes || '').replace(/(?: • )?Completed by [^•]*/g, '').trim(),
+                        done: false
+                    };
+                    listArr.push(nextItem);
+                }
+            }
+            saveAndRenderTodos();
+            if (nextDoneState) playTone('success');
         }
+
         function toggleTodoFlag(id) { pushTodoUndoSnapshot(); const item = getCurrentUserTodos().find(t => t.id === id); if (item) { item.flagged = !item.flagged; saveAndRenderTodos(); } }
         function toggleTodoPin(id) {
             pushTodoUndoSnapshot();
@@ -5110,7 +5159,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         function saveAndRenderTodos(skipCloudPush = false) {
             safeLocalCacheWrite('wmsShiftTodosByUserV2', todoStoreByUser);
             safeLocalCacheWrite('wmsSavedTodoBatchesV1', savedTodoBatchesByUser);
-            if (!skipCloudPush) pushStateToCloud();
+            if (!skipCloudPush) pushStateToCloud(true);
 
             const currentTodos = getCurrentUserTodos();
             const openCount = currentTodos.filter(t => !t.done).length;
@@ -5219,11 +5268,27 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
         }
 
         let currentActiveTab = 'bulk';
-        function switchTab(tab) {
+        async function switchTab(tab) {
             currentActiveTab = tab;
-            ['bulk', 'carrier', 'trailer', 'a4note', 'todo'].forEach(t => { document.getElementById(`view-${t}`).classList.add('hidden'); document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all"; });
-            document.getElementById(`view-${tab}`).classList.remove('hidden'); document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
-            if (tab === 'bulk') loadBulkDeck(true); if (tab === 'carrier') updateCarrierPreview(); if (tab === 'trailer') { generateTrailerSingleMasterCode(); renderTrailerManifest(); setTimeout(() => document.getElementById('tr-rdt-input').focus(), 100); } if (tab === 'a4note') autoFitA4Content(); if (tab === 'todo') { pullStateFromCloud(false); saveAndRenderTodos(true); alertOverdueRemindersOnTabOpen(); }
+            ['bulk', 'carrier', 'trailer', 'a4note', 'todo'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-lg theme-text-muted hover:opacity-90 transition-all";
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).className = "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white shadow-sm transition-all";
+            if (tab === 'bulk') loadBulkDeck(true);
+            if (tab === 'carrier') updateCarrierPreview();
+            if (tab === 'trailer') {
+                generateTrailerSingleMasterCode();
+                renderTrailerManifest();
+                setTimeout(() => document.getElementById('tr-rdt-input').focus(), 100);
+            }
+            if (tab === 'a4note' || tab === 'todo') {
+                if (cloudSyncConfig.provider !== 'none') await pullStateFromCloud(false);
+                if (currentActiveTab !== tab) return;
+                if (tab === 'a4note') autoFitA4Content();
+                if (tab === 'todo') { saveAndRenderTodos(true); alertOverdueRemindersOnTabOpen(); }
+            }
         }
 
         let workspace = readStoredJson('wmsWorkspaceFilesV1', { folders: ['Default Shift', 'Carrier Runs'], activeFolder: 'Default Shift', files: [] });
@@ -5274,7 +5339,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 const content = await readUploadedFileAsText(file);
                 workspace.files.unshift({ id: 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8), folder: workspace.activeFolder, name: file.name, type: 'bulk', updated: new Date().toISOString(), content });
                 saveWorkspaceState(); renderFileManager();
-                showToast(`Added ${file.name} to the shared workspace.`);
+                showToast(`Added ${file.name} to this device's File Manager.`);
             } catch (error) { showToast(error.message || 'Could not import that file.'); }
             finally { e.target.value = ''; }
         }
@@ -5282,7 +5347,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const file = workspace.files.find(item => item.id === id); if (!file) return;
             if (file.type === 'bulk') {
                 document.getElementById('batch-input').value = String(file.content || '');
-                switchTab('bulk'); loadBulkDeck(false); pushStateToCloud(true);
+                switchTab('bulk'); loadBulkDeck(false);
             } else if (file.type === 'a4note') {
                 activeSelectedTemplateId = '';
                 activeNoteDraftHtml = sanitizeNoteHtml(file.content || '');
@@ -5315,7 +5380,7 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                         }));
                     workspace = { folders: validFolders, activeFolder: validFolders.includes(data.activeFolder) ? data.activeFolder : validFolders[0], files: validFiles };
                     saveWorkspaceState(); renderFolderDropdown(); renderFileManager();
-                    showToast('Workspace backup imported and shared to cloud.');
+                    showToast('Workspace backup imported on this device.');
                 } catch (error) { showToast(error.message || 'Invalid workspace backup.'); }
             };
             reader.readAsText(file); e.target.value = '';
@@ -5363,18 +5428,17 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 const text = await readUploadedFileAsText(file);
                 document.getElementById(id).value = text.trim();
                 scannedSet.clear(); loadBulkDeck(false);
-                const saved = await pushStateToCloud(true);
-                showToast(saved ? `Imported ${file.name} and saved to shared cloud.` : `Imported ${file.name}; cloud save is not confirmed.`);
+                showToast(`Imported ${file.name}; kept on this device.`);
             } catch (error) { showToast(error.message || 'Could not import the selected file.'); }
             finally { e.target.value = ''; }
         }
 
-        async function decodeImageIntoBulk(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); const ta = document.getElementById('batch-input'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t; loadBulkDeck(true); const saved = await pushStateToCloud(true); playTone(saved ? 'success' : 'error'); showToast(saved ? `Decoded, added & cloud-saved: ${t}` : 'Decoded, but cloud save is not confirmed.'); } catch (err) { playTone('error'); } }
+        async function decodeImageIntoBulk(e) { const f = e.target.files[0]; if (!f) return; try { const t = await Html5Qrcode.scanFile(f, false); const ta = document.getElementById('batch-input'); ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t; loadBulkDeck(true); playTone('success'); showToast(`Decoded and added locally: ${t}`); } catch (err) { playTone('error'); } finally { e.target.value = ''; } }
         function clearBulkInput() { document.getElementById('batch-input').value = ''; scannedSet.clear(); loadBulkDeck(false); }
 
         let feedbackList = readStoredJson('wmsFeedbackBoardV1', []);
         if (!Array.isArray(feedbackList)) feedbackList = [];
-        async function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ id: `feedback:${Date.now()}:${Math.random().toString(36).slice(2,7)}`, createdAt: new Date().toISOString(), name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); safeLocalCacheWrite('wmsFeedbackBoardV1', feedbackList); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); const saved = await pushStateToCloud(true); showToast(saved ? 'Feedback shared to cloud.' : 'Feedback is not yet confirmed in cloud.'); }
+        function submitFeedbackComment() { const c = document.getElementById('fb-comment').value.trim(); if (!c) return; feedbackList.unshift({ id: `feedback:${Date.now()}:${Math.random().toString(36).slice(2,7)}`, createdAt: new Date().toISOString(), name: document.getElementById('fb-name').value || 'User', cat: document.getElementById('fb-category').value, comment: c }); safeLocalCacheWrite('wmsFeedbackBoardV1', feedbackList); document.getElementById('fb-comment').value = ''; renderFeedbackBoard(); showToast('Feedback saved on this device.'); }
         function submitFeedbackToGitHub() { window.open(`https://github.com/hp-shash/barcode-generator/issues/new?title=Feedback&body=${encodeURIComponent(document.getElementById('fb-comment').value)}`, '_blank'); }
         function renderFeedbackBoard() { document.getElementById('fb-comments-list').innerHTML = feedbackList.map(f => `<div class="p-3 rounded-lg border theme-input text-xs"><b>${escapeHtml(f.name)}</b> [${escapeHtml(f.cat)}]: ${escapeHtml(f.comment)}</div>`).join(''); }
 
@@ -5394,7 +5458,19 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             safeLocalCacheWrite('wmsCustomUserShiftBatchesV1', customUserShiftBatches);
             safeLocalCacheWrite('wmsActiveNoteTemplateIdV1', activeSelectedTemplateId || '');
             const activeDraftHtml = sanitizeNoteHtml(serializeNoteBodyHtml());
-            if (activeDraftHtml) { activeNoteDraftHtml = activeDraftHtml; safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', activeDraftHtml); safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeDraftHtml); }
+            activeNoteDraftHtml = activeDraftHtml;
+            safeLocalCacheWrite('wmsActiveNoteDraftHtmlV1', activeDraftHtml);
+            safeLocalCacheWrite('wmsActiveNoteCanvasDraftV1', activeDraftHtml);
+            const excelBody = document.getElementById('a4-excel-body');
+            if (excelBody) safeLocalCacheWrite('wmsActiveNoteExcelHtmlV1', sanitizeNoteHtml(excelBody.innerHTML));
+            safeLocalCacheWrite('wmsNoteLayoutV1', {
+                orientation: a4Orientation,
+                officeMode: excelBody && !excelBody.classList.contains('hidden') ? 'excel' : 'word',
+                lineSpacing: document.getElementById('a4-word-body')?.style.lineHeight || '1.2',
+                borderWidth: document.getElementById('a4-border-width')?.value || '4px',
+                printMarginMm: document.getElementById('a4-print-margin-mm')?.value || '8',
+                marginEnabled: document.getElementById('a4-margin-enabled')?.checked ?? true
+            });
         }
 
         function serializeNoteBodyHtml() {
@@ -5593,7 +5669,6 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             document.getElementById('btn-new-todo-flag').className = "p-1 rounded theme-text-dim hover:text-amber-500";
             markLocalStateDirty();
             saveAndRenderTodos();
-            pushStateToCloud(true);
             playTone('success');
             if (mentionMatches.length) showToast(`Reminder sent to @${mentionMatches.join(', @')}!`);
         }
@@ -5654,15 +5729,10 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
             const savedDraftHtml = readStoredText('wmsActiveNoteDraftHtmlV1', readStoredText('wmsActiveNoteCanvasDraftV1', ''));
             renderNoteTemplatesDropdown();
             if (cloudSnapshotApplied) {
-                if (activeNoteDraftHtml) {
-                    hydrateNoteBodyHtml(activeNoteDraftHtml);
-                    applyNoteBorderThickness();
-                    autoFitA4Content();
-                } else if (activeSelectedTemplateId && (activeSelectedTemplateId.startsWith('custom:') || ['asendia', 'nc_rack', 'packing'].includes(activeSelectedTemplateId))) {
-                    applyDispatchTemplate(activeSelectedTemplateId);
-                } else {
-                    resetSimpleTwoLineNote();
-                }
+                // An empty shared draft means the user intentionally cleared it.
+                hydrateNoteBodyHtml(activeNoteDraftHtml);
+                applyNoteBorderThickness();
+                autoFitA4Content();
             } else if (savedTplId && savedTplId.startsWith('custom:') && Object.prototype.hasOwnProperty.call(savedNoteTemplates, savedTplId.slice(7))) {
                 applyDispatchTemplate(savedTplId);
             } else if (savedTplId && ['asendia', 'nc_rack', 'packing'].includes(savedTplId)) {
@@ -5674,6 +5744,12 @@ FF-DPD02, SKU-505, 40, DOCK-A</textarea>
                 autoFitA4Content();
             } else {
                 resetSimpleTwoLineNote();
+            }
+            if (!cloudSnapshotApplied) {
+                const localExcelDraft = readStoredText('wmsActiveNoteExcelHtmlV1', '');
+                if (localExcelDraft) document.getElementById('a4-excel-body').innerHTML = sanitizeNoteHtml(localExcelDraft);
+                const localNoteLayout = readStoredJson('wmsNoteLayoutV1', null);
+                if (isPlainObject(localNoteLayout)) applyCloudNoteLayout(localNoteLayout);
             }
             autoSetNextAvailableSerial(); loadBulkDeck(false);
             renderTodoAiSuggestions();
